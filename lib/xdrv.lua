@@ -119,7 +119,100 @@ M.XDRVLane = {
 ---@alias XDRVGearShift { beat: number, gearShift: { lane: XDRVLane, length: number } }
 ---@alias XDRVGearShiftStart { beat: number, gearShiftStart: { lane: XDRVLane } }
 ---@alias XDRVGearShiftEnd { beat: number, gearShiftEnd: { lane: XDRVLane } }
----@alias XDRVEvent XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd
+---@alias XDRVBPMChange { beat: number, bpm: number }
+---@alias XDRVWarp { beat: number, warp: number }
+---@alias XDRVStop { beat: number, stop: number }
+---@alias XDRVStopSeconds { beat: number, stopSeconds: number }
+---@alias XDRVScroll { beat: number, scroll: number }
+---@alias XDRVTimeSignature { beat: number, timeSignature: number }
+---@alias XDRVComboTicks { beat: number, comboTicks: number }
+---@alias XDRVLabel { beat: number, label: string }
+---@alias XDRVFake { beat: number, fake: number }
+---@alias XDRVSceneEvent { beat: number, event: { name: string, args: string[] } }
+---@alias XDRVCheckpoint { beat: number, checkpoint: string }
+---@alias XDRVEvent XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
+
+---@return XDRVEvent?
+local function parseTimingSegment(beat, s)
+  s = string.sub(s, 2) -- remove leading #
+  local eq = string.find(s, '=')
+  if not eq then return nil end
+  local key = string.sub(s, 1, eq - 1)
+  local value = string.sub(s, eq + 1)
+
+  local args = {}
+  for arg in string.gmatch(value, '([^,]+)') do
+    table.insert(args, arg)
+  end
+
+  if key == 'BPM' then
+    return {
+      beat = beat,
+      bpm = tonumber(args[1]),
+    }
+  elseif key == 'WARP' then
+    return {
+      beat = beat,
+      warp = tonumber(args[1]),
+    }
+  elseif key == 'STOP' then
+    return {
+      beat = beat,
+      stop = tonumber(args[1]),
+    }
+  elseif key == 'STOP_SECONDS' then
+    return {
+      beat = beat,
+      stopSeconds = tonumber(args[1]),
+    }
+  elseif key == 'SCROLL' then
+    return {
+      beat = beat,
+      scroll = tonumber(args[1]),
+    }
+  elseif key == 'TIME_SIGNATURE' then
+    return {
+      beat = beat,
+      timeSignature = { tonumber(args[1]), tonumber(args[2]) },
+    }
+  elseif key == 'COMBO_TICKS' then
+    return {
+      beat = beat,
+      comboTicks = tonumber(args[1]),
+    }
+  elseif key == 'COMBO' then
+    -- unused
+  elseif key == 'LABEL' then
+    return {
+      beat = beat,
+      label = args[1],
+    }
+  elseif key == 'FAKE' then
+    return {
+      beat = beat,
+      fake = tonumber(args[1]),
+    }
+  elseif key == 'EVENT' then
+    local name = args[1]
+
+    local eventArgs = {}
+    for i = 2, #args do
+      table.insert(eventArgs, args[i])
+    end
+
+    return {
+      beat = beat,
+      event = { name = name, args = eventArgs }
+    }
+  elseif key == 'CHECKPOINT' then
+    return {
+      beat = beat,
+      checkpoint = args[1],
+    }
+  end
+
+  return nil
+end
 
 ---@param events XDRVEvent[]
 ---@return XDRVEvent[]
@@ -214,6 +307,17 @@ local function formatNotesCol(c)
     noteEventToType(c[5]) ..
     noteEventToType(c[6])
 end
+---@param event XDRVEvent
+local function gearEventToType(event)
+  if not event then return '0' end
+  if event.gearShiftStart then return '1' end
+  if event.gearShiftEnd then return '2' end
+  return '0'
+end
+---@param g table<XDRVLane, XDRVEvent>
+local function formatGears(g)
+  return gearEventToType(g[M.XDRVLane.Left]) .. gearEventToType(g[M.XDRVLane.Right])
+end
 local function noteEvent(beat, s, c)
   if s == '1' then
     return { beat = beat, note = { column = c } }
@@ -239,6 +343,11 @@ end
 ---@param events XDRVEvent[]
 local function serializeChart(events)
   events = addHoldEnds(events)
+
+  -- a lot of code assumes this table is sorted
+  -- preferably we shouldn't sort it to do so, but making `addHoldEnds` work
+  -- with properly sorted tables is a TODO
+  table.sort(events, function(a, b) return a.beat < b.beat end)
 
   local segments = {}
 
@@ -278,33 +387,45 @@ local function serializeChart(events)
       local offset = (row - 1) / rowsN
 
       local cols = {}
+      local gears = {}
 
       for i, event in ipairs(segment) do
         if math.abs(event.beat - (b + offset)) < 0.001 then
           if event.note or event.holdStart or event.holdEnd then
             local note = event.note or event.holdStart or event.holdEnd
             cols[note.column] = event
-          elseif event.label then
-            if string.sub(event.label, 1, 1) == '#' then
-              table.insert(segmentStr, event.label)
-            else
-              table.insert(segmentStr, '#LABEL=' .. event.label)
-            end
-          elseif event.timesig then
-            table.insert(segmentStr, '#TIME_SIGNATURE=' .. event.timesig[1] .. ',' .. event.timesig[2])
+          elseif event.gearShiftStart or event.gearShiftEnd then
+            local gear = event.gearShiftStart or event.gearShiftEnd
+            print(pretty(event))
+            gears[gear.lane] = event
           elseif event.bpm then
             table.insert(segmentStr, '#BPM=' .. event.bpm)
           elseif event.warp then
             table.insert(segmentStr, '#WARP=' .. event.warp)
           elseif event.stop then
-            table.insert(segmentStr, '#STOP_SECONDS=' .. event.stop)
+            table.insert(segmentStr, '#STOP=' .. event.stop)
+          elseif event.stopSeconds then
+            table.insert(segmentStr, '#STOP_SECONDS=' .. event.stopSeconds)
+          elseif event.scroll then
+            table.insert(segmentStr, '#SCROLL=' .. event.scroll)
+          elseif event.timeSignature then
+            table.insert(segmentStr, '#TIME_SIGNATURE=' .. event.timeSignature[1] .. ',' .. event.timeSignature[2])
+          elseif event.comboTicks then
+            table.insert(segmentStr, '#COMBO_TICKS=' .. event.comboTicks)
+          elseif event.label then
+            table.insert(segmentStr, '#LABEL=' .. event.label)
           elseif event.fake then
             table.insert(segmentStr, '#FAKE=' .. event.fake)
+          elseif event.event then
+            table.insert(segmentStr, '#EVENT=' .. event.event.name .. ',' .. table.concat(event.event.args, ','))
+          elseif event.checkpoint then
+            table.insert(segmentStr, '#CHECKPOINT=' .. event.checkpoint)
           end
         end
       end
 
-      table.insert(segmentStr, formatNotesCol(cols) .. '|' .. '00' .. '|' .. '0')
+      -- todo: drifts
+      table.insert(segmentStr, formatNotesCol(cols) .. '|' .. formatGears(gears) .. '|' .. '0')
     end
 
     --print(table.concat(segmentStr, '\n'))
@@ -378,7 +499,7 @@ local function deserializeChart(str)
 
     for line in string.gmatch(segment, '[^\r\n]+') do
       local isEvent = string.sub(line, 1, 1) == '#'
-      if string.len(line) ~= 0 and line ~= '--' then
+      if string.len(line) ~= 0 and line ~= '--' and string.sub(line, 1, 2) ~= '//' then
         table.insert(buffer, line)
         if not isEvent then
           table.insert(rows, buffer)
@@ -391,8 +512,11 @@ local function deserializeChart(str)
       local div = (rowI - 1) / #rows
       local b = b + div
       for n = 1, #row - 1 do
-        -- this will only have events
-        -- TODO
+        local seg = row[n]
+        local parsed = parseTimingSegment(b, seg)
+        if parsed then
+          table.insert(events, parsed)
+        end
       end
       local noterow = row[#row]
       local c1, c2, c3, c4, c5, c6, l, r, d = string.match(noterow, '(%d)(%d)(%d)%-(%d)(%d)(%d)|(%d)(%d)|(%d)')

@@ -100,6 +100,8 @@ function self.keypressed(key, code)
   else
     if key == 's' and love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
       chart.saveChart()
+    elseif key == 'o' and love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
+      chart.openChart()
     elseif key == 'tab' then
       self.write = true
     end
