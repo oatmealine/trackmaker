@@ -32,9 +32,9 @@ function love.draw()
     'b: ' .. conductor.beat .. '\n' ..
     edit.modeName(edit.getMode()) .. '\n' ..
     '\n' ..
-    chart.metadata.MUSIC_TITLE .. '\n' ..
-    chart.metadata.MUSIC_ARTIST .. '\n' ..
-    chart.metadata.CHART_AUTHOR
+    chart.metadata.musicTitle .. '\n' ..
+    chart.metadata.musicArtist .. '\n' ..
+    chart.metadata.chartAuthor
   )
 end
 

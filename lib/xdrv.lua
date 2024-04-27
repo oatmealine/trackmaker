@@ -299,6 +299,101 @@ local function deserializeChart(str)
   return collapseHoldEnds(events)
 end
 
+---@enum XDRVDifficulty
+M.XDRVDifficulty = {
+  Beginner = 0,
+  Normal = 1,
+  Hyper = 2,
+  Extreme = 3,
+}
+
+---@class XDRVMetadata @ https://github.com/Dylannichols702/SCXEditor/blob/d3339f664c739a3d7d9120c8411192bbb3a1779a/SCXEditor/SCXEditor/Models/XDRV/XDRV.cs#L465
+---@field musicTitle string @ MUSIC_TITLE
+---@field alternateTitle string @ ALTERNATE_TITLE
+---@field musicArtist string @ MUSIC_ARTIST
+---@field musicAudio string @ MUSIC_AUDIO
+---@field jacketImage string @ JACKET_IMAGE
+---@field jacketIllustrator string @ JACKET_ILLUSTRATOR
+---@field chartAuthor string @ CHART_AUTHOR
+---@field chartUnlock string @ CHART_UNLOCK
+---@field stageBackground string @ STAGE_BACKGROUND
+---@field modfilePath string @ MODFILE_PATH
+---@field chartLevel number @ CHART_LEVEL
+---@field chartDisplayBPM number @ CHART_DISPLAY_BPM
+---@field chartBoss boolean @ CHART_BOSS
+---@field disableLeaderboardUploading boolean @ DISABLE_LEADERBOARD_UPLOADING
+---@field rpcHidden boolean @ RPC_HIDDEN
+---@field isFlashTrack boolean @ FLASH_TRACK
+---@field isKeyboardOnly boolean @ KEYBOARD_ONLY
+---@field isOriginal boolean @ ORIGINAL
+---@field musicPreviewStart number @ MUSIC_PREVIEW_START
+---@field musicPreviewLength number @ MUSIC_PREVIEW_LENGTH
+---@field musicVolume number @ MUSIC_VOLUME
+---@field musicOffset number @ MUSIC_OFFSET
+---@field chartBPM number @ CHART_BPM
+---@field chartTags { [1]: number, [2]: number, [3]: number, [4]: number } @ CHART_TAGS
+---@field chartDifficulty XDRVDifficulty @ CHART_DIFFICULTY
+
+local function parseString(s)
+  if type(s) ~= 'string' then return '' end
+  return s
+end
+
+local function parseFloat(s)
+  return tonumber(s) or -1
+end
+
+-- https://love2d.org/forums/viewtopic.php?p=208676&sid=3b643938f0769ccacdc44af3ea34f09c#p208676
+local function round(n) return n >= 0 and n - n % -1 or n - n % 1 end
+local function parseInt(s)
+  return round(parseFloat(s))
+end
+
+local function parseBool(s)
+  return s == 'TRUE'
+end
+
+local function parseDifficulty(s)
+  if s == 'BEGINNER' then return M.XDRVDifficulty.Beginner end
+  if s == 'NORMAL' then return M.XDRVDifficulty.Normal end
+  if s == 'HYPER' then return M.XDRVDifficulty.Hyper end
+  if s == 'EXTREME' then return M.XDRVDifficulty.Extreme end
+
+  return M.XDRVDifficulty.Beginner
+end
+
+---@param m table<string, string>
+---@return XDRVMetadata
+local function makeMetdata(m)
+  return {
+    musicTitle = parseString(m.MUSIC_TITLE),
+    alternateTitle = parseString(m.ALTERNATE_TITLE),
+    musicArtist = parseString(m.MUSIC_ARTIST),
+    musicAudio = parseString(m.MUSIC_AUDIO),
+    jacketImage = parseString(m.JACKET_IMAGE),
+    jacketIllustrator = parseString(m.JACKET_ILLUSTRATOR),
+    chartAuthor = parseString(m.CHART_AUTHOR),
+    chartUnlock = parseString(m.CHART_UNLOCK),
+    stageBackground = parseString(m.STAGE_BACKGROUND),
+    modfilePath = parseString(m.MODFILE_PATH),
+    chartLevel = parseInt(m.CHART_LEVEL),
+    chartDisplayBPM = parseInt(m.CHART_DISPLAY_BPM),
+    chartBoss = parseBool(m.CHART_BOSS),
+    disableLeaderboardUploading = parseBool(m.DISABLE_LEADERBOARD_UPLOADING),
+    rpcHidden = parseBool(m.RPC_HIDDEN),
+    isFlashTrack = parseBool(m.FLASH_TRACK),
+    isKeyboardOnly = parseBool(m.KEYBOARD_ONLY),
+    isOriginal = parseBool(m.ORIGINAL),
+    musicPreviewStart = parseFloat(m.MUSIC_PREVIEW_START),
+    musicPreviewLength = parseFloat(m.MUSIC_PREVIEW_LENGTH),
+    musicVolume = parseFloat(m.MUSIC_VOLUME),
+    musicOffset = parseFloat(m.MUSIC_OFFSET),
+    chartBPM = parseFloat(m.CHART_BPM),
+    chartTags = { 0, 0, 0, 0 }, -- TODO
+    chartDifficulty = parseDifficulty(m.CHART_DIFFICULTY),
+  }
+end
+
 local function deserializeMetadata(str)
   local metadata = {}
 
@@ -314,10 +409,10 @@ local function deserializeMetadata(str)
     end
   end
 
-  return metadata
+  return makeMetdata(metadata)
 end
 
----@alias XDRVChart { metadata: table<string, string>, chart: XDRVEvent[] }
+---@alias XDRVChart { metadata: XDRVMetadata, chart: XDRVEvent[] }
 
 ---@return XDRVChart
 function M.deserialize(str)

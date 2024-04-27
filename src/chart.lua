@@ -7,7 +7,7 @@ local conductor = require 'src.conductor'
 self.loaded = false
 ---@type XDRVEvent[]
 self.chart = nil
----@type table<string, string>
+---@type XDRVMetadata
 self.metadata = nil
 ---@type string
 self.chartDir = nil
@@ -20,7 +20,7 @@ local function updateTitle()
   if self.loaded then
     local dirtyMark = ''
     if self.dirty then dirtyMark = '●︎' end
-    love.window.setTitle(self.metadata.MUSIC_TITLE .. dirtyMark .. ' - trackmaker')
+    love.window.setTitle(self.metadata.musicTitle .. dirtyMark .. ' - trackmaker')
   else
     love.window.setTitle('trackmaker')
   end
@@ -62,10 +62,19 @@ local function save(filepath)
   updateTitle()
 end
 
+---@param m XDRVMetadata
+local function makeChartFilename(m)
+  if m.chartDifficulty == xdrv.XDRVDifficulty.Beginner then return 'BEGINNER.xdrv' end
+  if m.chartDifficulty == xdrv.XDRVDifficulty.Normal   then return 'NORMAL.xdrv'   end
+  if m.chartDifficulty == xdrv.XDRVDifficulty.Hyper    then return 'HYPER.xdrv'    end
+  if m.chartDifficulty == xdrv.XDRVDifficulty.Extreme  then return 'EXTREME.xdrv'  end
+  return 'UNKNOWN.xdrv'
+end
+
 function self.saveChart()
   if not self.chart then return end
 
-  local filepath = nfd.save('xdrv', self.chartDir .. '/' .. self.metadata.CHART_DIFFICULTY .. '.xdrv')
+  local filepath = nfd.save('xdrv', self.chartDir .. '/' .. makeChartFilename(self.metadata))
 
   if not filepath then return end
   save(filepath)

@@ -8,15 +8,15 @@ M.bpm = 120
 
 ---@param chart XDRVChart
 function M.loadFromChart(chart, dir)
-  M.offset = tonumber(chart.metadata.MUSIC_OFFSET) or 0
-  local songPath = dir .. chart.metadata.MUSIC_AUDIO
+  M.offset = chart.metadata.musicOffset
+  local songPath = dir .. chart.metadata.musicAudio
   local file = io.open(songPath, 'rb')
   if file then
     local data = file:read('*a')
-    song = love.audio.newSource(love.filesystem.newFileData(data, chart.metadata.MUSIC_AUDIO), 'static')
+    song = love.audio.newSource(love.filesystem.newFileData(data, chart.metadata.musicAudio), 'static')
     file:close()
   end
-  M.bpm = tonumber(chart.metadata.CHART_BPM) or 120
+  M.bpm = chart.metadata.chartBPM
 end
 
 function M.getSeconds()
