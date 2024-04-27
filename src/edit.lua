@@ -100,6 +100,10 @@ function self.keypressed(key, code)
     setBeat(conductor.beat - QUANTS[self.quantIndex])
   elseif key == 'up' then
     setBeat(conductor.beat + QUANTS[self.quantIndex])
+  elseif key == 'pagedown' then
+    setBeat(conductor.beat - 4)
+  elseif key == 'pageup' then
+    setBeat(conductor.beat + 4)
   elseif key == 'left' then
     self.quantIndex = self.quantIndex - 1
     if self.quantIndex < 1 then
