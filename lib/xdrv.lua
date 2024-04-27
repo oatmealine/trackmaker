@@ -22,6 +22,89 @@ local function quantize(b)
   return math.floor((1 / b) + 0.5)
 end
 
+---@enum XDRVDifficulty
+M.XDRVDifficulty = {
+  Beginner = 0,
+  Normal = 1,
+  Hyper = 2,
+  Extreme = 3,
+}
+
+---@class XDRVMetadata @ https://github.com/Dylannichols702/SCXEditor/blob/d3339f664c739a3d7d9120c8411192bbb3a1779a/SCXEditor/SCXEditor/Models/XDRV/XDRV.cs#L465
+---@field musicTitle string @ MUSIC_TITLE
+---@field alternateTitle string @ ALTERNATE_TITLE
+---@field musicArtist string @ MUSIC_ARTIST
+---@field musicAudio string @ MUSIC_AUDIO
+---@field jacketImage string @ JACKET_IMAGE
+---@field jacketIllustrator string @ JACKET_ILLUSTRATOR
+---@field chartAuthor string @ CHART_AUTHOR
+---@field chartUnlock string @ CHART_UNLOCK
+---@field stageBackground string @ STAGE_BACKGROUND
+---@field modfilePath string @ MODFILE_PATH
+---@field chartLevel number @ CHART_LEVEL
+---@field chartDisplayBPM number @ CHART_DISPLAY_BPM
+---@field chartBoss boolean @ CHART_BOSS
+---@field disableLeaderboardUploading boolean @ DISABLE_LEADERBOARD_UPLOADING
+---@field rpcHidden boolean @ RPC_HIDDEN
+---@field isFlashTrack boolean @ FLASH_TRACK
+---@field isKeyboardOnly boolean @ KEYBOARD_ONLY
+---@field isOriginal boolean @ ORIGINAL
+---@field musicPreviewStart number @ MUSIC_PREVIEW_START
+---@field musicPreviewLength number @ MUSIC_PREVIEW_LENGTH
+---@field musicVolume number @ MUSIC_VOLUME
+---@field musicOffset number @ MUSIC_OFFSET
+---@field chartBPM number @ CHART_BPM
+---@field chartTags { [1]: number, [2]: number, [3]: number, [4]: number } @ CHART_TAGS
+---@field chartDifficulty XDRVDifficulty @ CHART_DIFFICULTY
+
+local function parseString(s)
+  if type(s) ~= 'string' then return '' end
+  return s
+end
+
+local function parseFloat(s)
+  return tonumber(s) or -1
+end
+
+-- https://love2d.org/forums/viewtopic.php?p=208676&sid=3b643938f0769ccacdc44af3ea34f09c#p208676
+local function round(n) return n >= 0 and n - n % -1 or n - n % 1 end
+local function parseInt(s)
+  return round(parseFloat(s))
+end
+
+local function parseBool(s)
+  return s == 'TRUE'
+end
+
+local function parseDifficulty(s)
+  if s == 'BEGINNER' then return M.XDRVDifficulty.Beginner end
+  if s == 'NORMAL'   then return M.XDRVDifficulty.Normal   end
+  if s == 'HYPER'    then return M.XDRVDifficulty.Hyper    end
+  if s == 'EXTREME'  then return M.XDRVDifficulty.Extreme  end
+
+  return M.XDRVDifficulty.Beginner
+end
+
+local function formatString(s)
+  return s
+end
+local function formatFloat(n)
+  return tostring(n)
+end
+local function formatInt(n)
+  return tostring(round(n))
+end
+local function formatBool(b)
+  return b and 'TRUE' or 'FALSE'
+end
+local function formatDifficulty(d)
+  if d == M.XDRVDifficulty.Beginner then return 'BEGINNER' end
+  if d == M.XDRVDifficulty.Normal   then return 'NORMAL'   end
+  if d == M.XDRVDifficulty.Hyper    then return 'HYPER'    end
+  if d == M.XDRVDifficulty.Extreme  then return 'EXTREME'  end
+  return 'BEGINNER'
+end
+
 ---@enum XDRVLane
 M.XDRVLane = {
   Left = 1,
@@ -234,8 +317,45 @@ local function serializeChart(events)
   return '--\n' .. table.concat(segments, '\n--\n') .. '\n--'
 end
 
+local function serializeMetadata(m)
+  local data = {
+    MUSIC_TITLE = formatString(m.musicTitle),
+    ALTERNATE_TITLE = formatString(m.alternateTitle),
+    MUSIC_ARTIST = formatString(m.musicArtist),
+    MUSIC_AUDIO = formatString(m.musicAudio),
+    JACKET_IMAGE = formatString(m.jacketImage),
+    JACKET_ILLUSTRATOR = formatString(m.jacketIllustrator),
+    CHART_AUTHOR = formatString(m.chartAuthor),
+    CHART_UNLOCK = formatString(m.chartUnlock),
+    STAGE_BACKGROUND = formatString(m.stageBackground),
+    MODFILE_PATH = formatString(m.modfilePath),
+    CHART_LEVEL = formatInt(m.chartLevel),
+    CHART_DISPLAY_BPM = formatInt(m.chartDisplayBPM),
+    CHART_BOSS = formatBool(m.chartBoss),
+    DISABLE_LEADERBOARD_UPLOADING = formatBool(m.disableLeaderboardUploading),
+    RPC_HIDDEN = formatBool(m.rpcHidden),
+    FLASH_TRACK = formatBool(m.isFlashTrack),
+    KEYBOARD_ONLY = formatBool(m.isKeyboardOnly),
+    ORIGINAL = formatBool(m.isOriginal),
+    MUSIC_PREVIEW_START = formatFloat(m.musicPreviewStart),
+    MUSIC_PREVIEW_LENGTH = formatFloat(m.musicPreviewLength),
+    MUSIC_VOLUME = formatFloat(m.musicVolume),
+    MUSIC_OFFSET = formatFloat(m.musicOffset),
+    CHART_BPM = formatFloat(m.chartBPM),
+    CHART_TAGS = '0,0,0,0', -- TODO
+    CHART_DIFFICULTY = formatDifficulty(m.chartDifficulty),
+  }
+
+  local lines = {}
+  for k, v in pairs(data) do
+    table.insert(lines, k .. '=' .. v)
+  end
+
+  return table.concat(lines, '\n')
+end
+
 function M.serialize(chart)
-  return '// Metadata NYI\n' .. serializeChart(chart.chart)
+  return serializeMetadata(chart.metadata) .. '\n' .. serializeChart(chart.chart)
 end
 
 ---@return XDRVEvent[]
@@ -297,69 +417,6 @@ local function deserializeChart(str)
   end
 
   return collapseHoldEnds(events)
-end
-
----@enum XDRVDifficulty
-M.XDRVDifficulty = {
-  Beginner = 0,
-  Normal = 1,
-  Hyper = 2,
-  Extreme = 3,
-}
-
----@class XDRVMetadata @ https://github.com/Dylannichols702/SCXEditor/blob/d3339f664c739a3d7d9120c8411192bbb3a1779a/SCXEditor/SCXEditor/Models/XDRV/XDRV.cs#L465
----@field musicTitle string @ MUSIC_TITLE
----@field alternateTitle string @ ALTERNATE_TITLE
----@field musicArtist string @ MUSIC_ARTIST
----@field musicAudio string @ MUSIC_AUDIO
----@field jacketImage string @ JACKET_IMAGE
----@field jacketIllustrator string @ JACKET_ILLUSTRATOR
----@field chartAuthor string @ CHART_AUTHOR
----@field chartUnlock string @ CHART_UNLOCK
----@field stageBackground string @ STAGE_BACKGROUND
----@field modfilePath string @ MODFILE_PATH
----@field chartLevel number @ CHART_LEVEL
----@field chartDisplayBPM number @ CHART_DISPLAY_BPM
----@field chartBoss boolean @ CHART_BOSS
----@field disableLeaderboardUploading boolean @ DISABLE_LEADERBOARD_UPLOADING
----@field rpcHidden boolean @ RPC_HIDDEN
----@field isFlashTrack boolean @ FLASH_TRACK
----@field isKeyboardOnly boolean @ KEYBOARD_ONLY
----@field isOriginal boolean @ ORIGINAL
----@field musicPreviewStart number @ MUSIC_PREVIEW_START
----@field musicPreviewLength number @ MUSIC_PREVIEW_LENGTH
----@field musicVolume number @ MUSIC_VOLUME
----@field musicOffset number @ MUSIC_OFFSET
----@field chartBPM number @ CHART_BPM
----@field chartTags { [1]: number, [2]: number, [3]: number, [4]: number } @ CHART_TAGS
----@field chartDifficulty XDRVDifficulty @ CHART_DIFFICULTY
-
-local function parseString(s)
-  if type(s) ~= 'string' then return '' end
-  return s
-end
-
-local function parseFloat(s)
-  return tonumber(s) or -1
-end
-
--- https://love2d.org/forums/viewtopic.php?p=208676&sid=3b643938f0769ccacdc44af3ea34f09c#p208676
-local function round(n) return n >= 0 and n - n % -1 or n - n % 1 end
-local function parseInt(s)
-  return round(parseFloat(s))
-end
-
-local function parseBool(s)
-  return s == 'TRUE'
-end
-
-local function parseDifficulty(s)
-  if s == 'BEGINNER' then return M.XDRVDifficulty.Beginner end
-  if s == 'NORMAL' then return M.XDRVDifficulty.Normal end
-  if s == 'HYPER' then return M.XDRVDifficulty.Hyper end
-  if s == 'EXTREME' then return M.XDRVDifficulty.Extreme end
-
-  return M.XDRVDifficulty.Beginner
 end
 
 ---@param m table<string, string>
