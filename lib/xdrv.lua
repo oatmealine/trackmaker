@@ -28,9 +28,11 @@ M.XDRVLane = {
   Right = 2,
 }
 
----@alias XDRVNote { beat: number, note: { column: 1 | 2 | 3 | 4 | 5 | 6 | number, length: number? } }
----@alias XDRVHoldStart { beat: number, holdStart: { column: 1 | 2 | 3 | 4 | 5 | 6 | number } }
----@alias XDRVHoldEnd { beat: number, holdEnd: { column: 1 | 2 | 3 | 4 | 5 | 6 | number } }
+---@alias XDRVNoteColumn 1 | 2 | 3 | 4 | 5 | 6
+
+---@alias XDRVNote { beat: number, note: { column: XDRVNoteColumn, length: number? } }
+---@alias XDRVHoldStart { beat: number, holdStart: { column: XDRVNoteColumn } }
+---@alias XDRVHoldEnd { beat: number, holdEnd: { column: XDRVNoteColumn } }
 ---@alias XDRVGearShift { beat: number, gearShift: { lane: XDRVLane, length: number } }
 ---@alias XDRVGearShiftStart { beat: number, gearShiftStart: { lane: XDRVLane } }
 ---@alias XDRVGearShiftEnd { beat: number, gearShiftEnd: { lane: XDRVLane } }

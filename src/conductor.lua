@@ -4,6 +4,7 @@ local M = {}
 local song
 
 M.offset = -0.007
+M.bpm = 120
 
 ---@param chart XDRVChart
 function M.loadFromChart(chart, dir)

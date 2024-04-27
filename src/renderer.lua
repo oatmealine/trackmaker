@@ -20,15 +20,15 @@ local zoom = 1
 
 local SCROLL_SPEED = 60
 
-function getScrollSpeed()
+local function getScrollSpeed()
   return SCROLL_SPEED * zoom
 end
 
-function scale()
+local function scale()
   return math.min(zoom, 1)
 end
 
-function getColumnX(i)
+local function getColumnX(i)
   if i < 4 then
     return -GAP_WIDTH/2 - NOTE_WIDTH * (3 - i + 0.5)
   else
@@ -36,7 +36,7 @@ function getColumnX(i)
   end
 end
 
-function getColumnColor(i)
+local function getColumnColor(i)
   if i == 1 then
     return hex('ab80ff')
   elseif i == 2 then
@@ -143,13 +143,16 @@ function self.draw()
       local y = beatToY(event.beat)
       local yEnd = beatToY(event.beat + gear.length)
 
-      love.graphics.setLineWidth(3 * scale())
+      if y < -NOTE_HEIGHT/2 then break end
+      if yEnd < sh then
+        love.graphics.setLineWidth(3 * scale())
 
-      love.graphics.setColor(color:alpha(0.3):unpack())
-      love.graphics.rectangle('fill', (GAP_WIDTH/2) * offset * scale(), yEnd, NOTE_WIDTH * 3 * offset * scale(), y - yEnd)
-      love.graphics.setColor(color:unpack())
-      love.graphics.line(getRight() * offset, y, getMRight() * offset, y)
-      love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
+        love.graphics.setColor(color:alpha(0.3):unpack())
+        love.graphics.rectangle('fill', (GAP_WIDTH/2) * offset * scale(), yEnd, NOTE_WIDTH * 3 * offset * scale(), y - yEnd)
+        love.graphics.setColor(color:unpack())
+        love.graphics.line(getRight() * offset, y, getMRight() * offset, y)
+        love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
+      end
     end
   end
 

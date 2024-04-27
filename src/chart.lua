@@ -11,6 +11,20 @@ self.chart = nil
 self.metadata = nil
 ---@type string
 self.chartDir = nil
+---@type string
+self.chartLocation = nil
+
+self.dirty = false
+
+local function updateTitle()
+  if self.loaded then
+    local dirtyMark = ''
+    if self.dirty then dirtyMark = '●︎' end
+    love.window.setTitle(self.metadata.MUSIC_TITLE .. dirtyMark .. ' - trackmaker')
+  else
+    love.window.setTitle('trackmaker')
+  end
+end
 
 function self.openChart()
   local filepath = nfd.open('xdrv')
@@ -27,11 +41,25 @@ function self.openChart()
 
   local loaded = xdrv.deserialize(data)
   self.chart = loaded.chart
+  self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
   conductor.loadFromChart({ chart = self.chart, metadata = self.metadata }, self.chartDir)
 
   self.loaded = true
+  updateTitle()
+end
+
+local function save(filepath)
+  local file, err = io.open(filepath, 'w')
+  if not file then
+    print(err)
+    return
+  end
+  file:write('// Made with trackmaker v' .. release.version .. '\n' .. xdrv.serialize({ metadata = self.metadata, chart = self.chart }))
+  file:close()
+  self.dirty = false
+  updateTitle()
 end
 
 function self.saveChart()
@@ -40,14 +68,19 @@ function self.saveChart()
   local filepath = nfd.save('xdrv', self.chartDir .. '/' .. self.metadata.CHART_DIFFICULTY .. '.xdrv')
 
   if not filepath then return end
-
-  local file, err = io.open(filepath, 'w')
-  if not file then
-    print(err)
-    return
-  end
-  file:write('// Made with trackmaker v' .. release.version .. '\n' .. xdrv.serialize({ metadata = self.metadata, chart = self.chart }))
-  file:close()
+  save(filepath)
 end
+
+function self.quickSave()
+  if not self.chart then return end
+  save(self.chartLocation)
+end
+
+function self.markDirty()
+  self.dirty = true
+  updateTitle()
+end
+
+updateTitle()
 
 return self

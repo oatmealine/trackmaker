@@ -1,6 +1,7 @@
 local conductor = require 'src.conductor'
 require 'lib.color'
 require 'src.util'
+local edit      = require 'src.edit'
 
 local t = {}
 t.window = {}
@@ -23,12 +24,13 @@ end
 function love.draw()
   renderer.draw()
 
-  if not chart.metadata then return end
+  if not chart.loaded then return end
 
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(
     'FPS ' .. love.timer.getFPS() .. '\n' ..
     'b: ' .. conductor.beat .. '\n' ..
+    edit.modeName(edit.getMode()) .. '\n' ..
     '\n' ..
     chart.metadata.MUSIC_TITLE .. '\n' ..
     chart.metadata.MUSIC_ARTIST .. '\n' ..
@@ -37,24 +39,12 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button)
-  if button == 1 and not chart then
+  if button == 1 and not chart.loaded then
     chart.openChart()
   end
 end
-function love.keypressed(key)
-  if key == 'space' then
-    if conductor.isPlaying() then
-      conductor.pause()
-    else
-      conductor.play()
-    end
-  elseif key == 'down' then
-    conductor.seekDelta(-conductor.beatsToSeconds(1))
-  elseif key == 'up' then
-    conductor.seekDelta(conductor.beatsToSeconds(1))
-  elseif key == 's' and love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
-    chart.saveChart()
-  end
+function love.keypressed(key, scancode)
+  edit.keypressed(key, scancode)
 end
 function love.wheelmoved(ox, oy)
   renderer.wheelmoved(oy)
