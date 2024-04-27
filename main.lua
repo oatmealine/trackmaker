@@ -30,7 +30,7 @@ function love.draw()
   love.graphics.print(
     'FPS ' .. love.timer.getFPS() .. '\n' ..
     'b: ' .. conductor.beat .. '\n' ..
-    edit.modeName(edit.getMode()) .. '\n' ..
+    edit.modeName(edit.getMode()) .. ' ' .. (1 / edit.quantIndex) .. '\n' ..
     '\n' ..
     chart.metadata.musicTitle .. '\n' ..
     chart.metadata.musicArtist .. '\n' ..

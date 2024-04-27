@@ -5,17 +5,19 @@ local song
 
 M.offset = -0.007
 M.initialBPM = 120
-M.bpms = {}
+M.bpms = { { 0, 120 } }
 M.stops = {}
 
 M.time = 0
 M.playing = false
 
----@param chart XDRVChart
-function M.loadFromChart(chart, dir)
+function M.reset()
   M.time = 0
   M.playing = false
+end
 
+---@param chart XDRVChart
+function M.loadFromChart(chart, dir)
   M.offset = chart.metadata.musicOffset
   local songPath = dir .. chart.metadata.musicAudio
   local file = io.open(songPath, 'rb')
@@ -117,8 +119,9 @@ function M.beatAtTime(t)
   return lastBPM[1] + M.secondsToBeats(t, lastBPM)
 end
 
-function M.timeAtBeat(t)
-  error('NYI', 2)
+function M.timeAtBeat(b)
+  -- TODO
+  return M.beatsToSeconds(b, M.getBPM())
 end
 
 function M.play()
@@ -151,6 +154,10 @@ function M.seek(s)
 end
 function M.seekDelta(s)
   M.time = M.time + s
+  updateSongPos()
+end
+function M.seekBeats(b)
+  M.time = M.timeAtBeat(b)
   updateSongPos()
 end
 function M.isPlaying()

@@ -10,6 +10,40 @@ function countKeys(t)
   return n
 end
 
+-- https://love2d.org/forums/viewtopic.php?p=208676&sid=3b643938f0769ccacdc44af3ea34f09c#p208676
+function round(n) return n >= 0 and n - n % -1 or n - n % 1 end
+
+QUANTS = {
+  1,
+  1 / 2,
+  1 / 3,
+  1 / 4,
+  1 / 6,
+  1 / 8,
+  1 / 12,
+  1 / 16,
+  1 / 24,
+  1 / 48,
+}
+
+function getQuantIndex(beat)
+  for i, quant in ipairs(QUANTS) do
+    if math.abs(beat - round(beat / quant) * quant) < 0.01 then
+      return i
+    end
+  end
+  return #QUANTS
+end
+
+function getDivision(beat)
+  return 4 / QUANTS[getQuantIndex(beat)]
+end
+
+function quantize(beat, quantI)
+  local quant = QUANTS[quantI]
+  return round(beat / quant) * quant
+end
+
 ---@param o any
 function pretty(o, depth, seen)
   depth = depth or 0
@@ -86,4 +120,18 @@ function pretty(o, depth, seen)
   else
     return tostring(o)
   end
+end
+
+-- returns true if every value in tab1 matches tab2, and not necessarily the other way round
+function looseComp(tab1, tab2)
+  for k, v1 in pairs(tab1) do
+    local v2 = tab2[k]
+    if type(v1) ~= type(v2) then return false end
+    if type(v1) == 'table' then
+      if not looseComp(v1, v2) then return false end
+    else
+      if v1 ~= v2 then return false end
+    end
+  end
+  return true
 end

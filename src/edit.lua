@@ -26,6 +26,7 @@ end
 ---@type Mode
 local mode = self.Mode.Insert
 self.write = false
+self.quantIndex = 1
 
 local function cycleMode()
   mode = mode + 1
@@ -39,25 +40,51 @@ function self.getMode()
   return mode
 end
 
----@param event XDRVEvent
-local function placeEvent(event)
-  for i, ev in ipairs(chart.chart) do
-    if ev.beat > event.beat then
-      table.insert(chart.chart, i - 1, event)
-      return
-    end
-  end
-  table.insert(chart.chart, event)
+local function getBeat()
+  return quantize(conductor.beat, self.quantIndex)
+end
+local function setBeat(b)
+  conductor.seekBeats(quantize(b, self.quantIndex))
 end
 
 ---@param column XDRVNoteColumn
 function self.placeNote(column)
-  chart.markDirty()
-  placeEvent({ beat = conductor.beat, note = { column = column } })
+  local beat = getBeat()
+
+  if mode == self.Mode.Insert or mode == self.Mode.Append then
+    local event = { beat = beat, note = { column = column } }
+    local eventIdx = chart.findEvent(event)
+    if eventIdx then
+      chart.removeEvent(eventIdx)
+    else
+      chart.placeEvent(event)
+    end
+    if mode == self.Mode.Append then
+      setBeat(beat + QUANTS[self.quantIndex])
+    end
+  else
+    local event = { beat = beat, note = { } }
+    local eventIdx = chart.findEvent(event)
+    local lastIdx = eventIdx or 1
+    while eventIdx do
+      chart.removeEvent(eventIdx)
+      lastIdx = eventIdx
+      eventIdx = chart.findEvent(event)
+    end
+    chart.placeEvent({ beat = beat, note = { column = column } })
+    for i = lastIdx, #chart.chart do
+      local ev = chart.chart[i]
+      if ev.beat > beat then
+        self.quantIndex = getQuantIndex(ev.beat)
+        setBeat(ev.beat)
+        break
+      end
+    end
+  end
 end
 ---@param lane XDRVLane
 function self.placeGearShift(lane)
-  placeEvent({ beat = conductor.beat, gearShift = { lane = lane, length = 1 } })
+  chart.placeEvent({ beat = getBeat(), gearShift = { lane = lane, length = 1 } })
 end
 
 ---@param key love.KeyConstant
@@ -70,9 +97,19 @@ function self.keypressed(key, code)
       conductor.play()
     end
   elseif key == 'down' then
-    conductor.seekDelta(-conductor.beatsToSeconds(1))
+    setBeat(conductor.beat - QUANTS[self.quantIndex])
   elseif key == 'up' then
-    conductor.seekDelta(conductor.beatsToSeconds(1))
+    setBeat(conductor.beat + QUANTS[self.quantIndex])
+  elseif key == 'left' then
+    self.quantIndex = self.quantIndex - 1
+    if self.quantIndex < 1 then
+      self.quantIndex = #QUANTS
+    end
+  elseif key == 'right' then
+    self.quantIndex = self.quantIndex + 1
+    if self.quantIndex > #QUANTS then
+      self.quantIndex = 1
+    end
   end
 
   if self.write then

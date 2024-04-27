@@ -44,6 +44,7 @@ function self.openChart()
   self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
+  conductor.reset()
   conductor.loadFromChart({ chart = self.chart, metadata = self.metadata }, self.chartDir)
 
   self.loaded = true
@@ -69,6 +70,36 @@ local function makeChartFilename(m)
   if m.chartDifficulty == xdrv.XDRVDifficulty.Hyper    then return 'HYPER.xdrv'    end
   if m.chartDifficulty == xdrv.XDRVDifficulty.Extreme  then return 'EXTREME.xdrv'  end
   return 'UNKNOWN.xdrv'
+end
+
+---@param event XDRVEvent
+---@return number?
+function self.findEvent(event)
+  for i, ev in ipairs(self.chart) do
+    if ev.beat > event.beat then
+      return
+    end
+    if ev.beat == event.beat and looseComp(event, ev) then
+      return i
+    end
+  end
+end
+
+function self.removeEvent(i)
+  self.markDirty()
+  table.remove(self.chart, i)
+end
+
+---@param event XDRVEvent
+function self.placeEvent(event)
+  self.markDirty()
+  for i, ev in ipairs(self.chart) do
+    if ev.beat > event.beat then
+      table.insert(self.chart, i - 1, event)
+      return
+    end
+  end
+  table.insert(self.chart, event)
 end
 
 function self.saveChart()
