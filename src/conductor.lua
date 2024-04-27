@@ -8,8 +8,12 @@ M.initialBPM = 120
 M.bpms = {}
 M.stops = {}
 
+M.time = 0
+
 ---@param chart XDRVChart
 function M.loadFromChart(chart, dir)
+  M.time = 0
+
   M.offset = chart.metadata.musicOffset
   local songPath = dir .. chart.metadata.musicAudio
   local file = io.open(songPath, 'rb')
@@ -31,14 +35,6 @@ function M.loadFromChart(chart, dir)
       table.insert(M.stops, { event.beat, duration, seconds })
     end
   end
-end
-
-function M.getSeconds()
-  if not song then return 0 end
-  return song:tell() + M.offset
-end
-function M.getBeat()
-  return M.beatAtTime(M.getSeconds())
 end
 
 function M.secondsToBeats(s, bpm)
@@ -119,6 +115,7 @@ function M.beatAtTime(t)
 end
 
 function M.timeAtBeat(t)
+  error('NYI', 2)
 end
 
 function M.play()
@@ -129,13 +126,19 @@ function M.pause()
   if not song then return end
   song:pause()
 end
-function M.seek(s)
+
+local function updateSongPos()
   if not song then return end
-  song:seek(math.max(s - M.offset, 0))
+  song:seek(math.min(math.max(M.time - M.offset, 0), song:getDuration()))
+end
+
+function M.seek(s)
+  M.time = s
+  updateSongPos()
 end
 function M.seekDelta(s)
-  if not song then return end
-  song:seek(math.max(song:tell() + s, 0))
+  M.time = M.time + s
+  updateSongPos()
 end
 function M.isPlaying()
   if not song then return false end
@@ -143,7 +146,10 @@ function M.isPlaying()
 end
 
 function M.update(dt)
-  M.beat = M.getBeat()
+  M.beat = M.beatAtTime(M.time)
+  if M.isPlaying() then
+    M.time = M.time + dt
+  end
 end
 
 return M
