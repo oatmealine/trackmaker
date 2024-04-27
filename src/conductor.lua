@@ -87,4 +87,8 @@ function M.isPlaying()
   return song:isPlaying()
 end
 
+function M.update(dt)
+  M.beat = M.getBeat()
+end
+
 return M

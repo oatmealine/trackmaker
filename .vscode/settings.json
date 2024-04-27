@@ -6,5 +6,8 @@
   "Lua.runtime.special": {
     "love.filesystem.load": "loadfile"
   },
-  "Lua.workspace.checkThirdParty": false
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.diagnostics.disable": [
+    "lowercase-global"
+  ]
 }
