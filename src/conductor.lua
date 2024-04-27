@@ -9,16 +9,19 @@ M.bpms = {}
 M.stops = {}
 
 M.time = 0
+M.playing = false
 
 ---@param chart XDRVChart
 function M.loadFromChart(chart, dir)
   M.time = 0
+  M.playing = false
 
   M.offset = chart.metadata.musicOffset
   local songPath = dir .. chart.metadata.musicAudio
   local file = io.open(songPath, 'rb')
   if file then
     local data = file:read('*a')
+    if song then song:release() end
     song = love.audio.newSource(love.filesystem.newFileData(data, chart.metadata.musicAudio), 'static')
     file:close()
   end
@@ -56,7 +59,7 @@ function M.getBPMAtBeat(b)
   return bpm
 end
 function M.getBPM()
-  return M.getBPMAtBeat(M.getBeat())
+  return M.getBPMAtBeat(M.beat)
 end
 
 -- kindly borrowed from taro
@@ -119,17 +122,27 @@ function M.timeAtBeat(t)
 end
 
 function M.play()
-  if not song then return end
-  song:play()
+  M.playing = true
 end
 function M.pause()
-  if not song then return end
-  song:pause()
+  M.playing = false
 end
 
 local function updateSongPos()
   if not song then return end
-  song:seek(math.min(math.max(M.time - M.offset, 0), song:getDuration()))
+  local position = M.time - M.offset
+  local min = 0
+  local max = song:getDuration()
+  if position >= min and position < max then
+    song:seek(position)
+    if M.playing and not song:isPlaying() then
+      song:play()
+    elseif not M.playing and song:isPlaying() then
+      song:pause()
+    end
+  else
+    song:stop()
+  end
 end
 
 function M.seek(s)
@@ -141,14 +154,16 @@ function M.seekDelta(s)
   updateSongPos()
 end
 function M.isPlaying()
-  if not song then return false end
-  return song:isPlaying()
+  return M.playing
 end
 
 function M.update(dt)
   M.beat = M.beatAtTime(M.time)
   if M.isPlaying() then
     M.time = M.time + dt
+  end
+  if song and M.playing ~= song:isPlaying() then
+    updateSongPos()
   end
 end
 
