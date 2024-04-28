@@ -5,8 +5,8 @@ function love.conf(t)
 
   t.window.title = 'trackmaker'
   t.window.icon = nil
-  t.window.width = 640
-  t.window.height = 480
+  t.window.width = 1120
+  t.window.height = 800
   t.window.resizable = true
   t.window.minwidth = 600
   t.window.minheight = 400

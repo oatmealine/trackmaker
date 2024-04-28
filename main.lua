@@ -18,6 +18,7 @@ keybinds        = require 'src.keybinds'
 local edit      = require 'src.edit'
 local renderer  = require 'src.renderer'
 local chart     = require 'src.chart'
+local widgets   = require 'src.widgets'
 
 fonts = {
   inter_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
@@ -39,6 +40,8 @@ function love.draw()
   love.graphics.setFont(fonts.inter_12)
 
   renderer.draw()
+
+  widgets.draw()
 
   local footerFields = {
     { 'Difficulty', xdrv.formatDifficulty(chart.metadata.chartDifficulty) .. ' ' .. chart.metadata.chartLevel },
@@ -96,6 +99,13 @@ function love.mousepressed(x, y, button)
   if button == 1 and not chart.loaded then
     chart.openChart()
   end
+  widgets.mousepressed(x, y, button)
+end
+function love.mousemoved(x, y)
+  widgets.mousemoved(x, y)
+end
+function love.mousereleased(x, y, button)
+  widgets.mousereleased(x, y, button)
 end
 function love.keypressed(key, scancode)
   edit.keypressed(key, scancode)
