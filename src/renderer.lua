@@ -90,16 +90,25 @@ function self.draw()
   love.graphics.rectangle('fill', getLeft(), 0, getMLeft() - getLeft(), sh)
   love.graphics.rectangle('fill', getMRight(), 0, getRight() - getMRight(), sh)
 
-  local topB = yToBeat(0)
-  local botB = yToBeat(sh)
-  local measureSize = 4
-  local topM = math.ceil(topB / measureSize) * measureSize
-  local botM = math.floor(botB / measureSize) * measureSize
+  local topB = math.floor(yToBeat(0))
+  local botB = math.ceil(yToBeat(sh))
 
+  local measureSize = 4
   love.graphics.setLineWidth(1 * scale())
-  love.graphics.setColor(MEASURE_COL:unpack())
-  for b = botM, topM, measureSize do
+  for b = botB, topB do
     local y = beatToY(b)
+
+    if b % measureSize == 0 then
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.print(tostring(b / measureSize), getRight() + 4, y - fonts.inter_12:getHeight()/2)
+
+      love.graphics.setColor(MEASURE_COL:unpack())
+    elseif b % measureSize == 2 then
+      love.graphics.setColor(MEASURE_COL:alpha(0.5):unpack())
+    else
+      love.graphics.setColor(0, 0, 0, 0)
+    end
+
     love.graphics.line(getLeft(), y, getMLeft(), y)
     love.graphics.line(getRight(), y, getMRight(), y)
   end
@@ -118,12 +127,6 @@ function self.draw()
   love.graphics.setColor(LANE_2_COL:alpha(0.8):unpack())
   love.graphics.line(getRight(), sh, getRight(), 0)
   love.graphics.line(getMRight(), sh, getMRight(), 0)
-
-  love.graphics.setLineWidth(5 * scale())
-  love.graphics.setColor(LANE_1_COL:unpack())
-  love.graphics.line(getLeft(), sh - PAD_BOTTOM, getMLeft(), sh - PAD_BOTTOM)
-  love.graphics.setColor(LANE_2_COL:unpack())
-  love.graphics.line(getRight(), sh - PAD_BOTTOM, getMRight(), sh - PAD_BOTTOM)
 
   local events = chart.chart
 
@@ -176,12 +179,22 @@ function self.draw()
     end
   end
 
+  love.graphics.setColor(BACK_COL:alpha(0.8):unpack())
+  love.graphics.rectangle('fill', getLeft(), sh - PAD_BOTTOM, getMLeft() - getLeft(), PAD_BOTTOM)
+  love.graphics.rectangle('fill', getRight(), sh - PAD_BOTTOM, getMRight() - getRight(), PAD_BOTTOM)
+
+  love.graphics.setLineWidth(5 * scale())
+  love.graphics.setColor(LANE_1_COL:unpack())
+  love.graphics.line(getLeft(), sh - PAD_BOTTOM, getMLeft(), sh - PAD_BOTTOM)
+  love.graphics.setColor(LANE_2_COL:unpack())
+  love.graphics.line(getRight(), sh - PAD_BOTTOM, getMRight(), sh - PAD_BOTTOM)
+
   love.graphics.pop()
 end
 
 function self.wheelmoved(delta)
   if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
-    zoom = zoom * (1 + math.max(math.min(delta / 15, 0.5), -0.5))
+    zoom = zoom * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
   else
     conductor.seekDelta(delta * 0.7 / zoom)
   end

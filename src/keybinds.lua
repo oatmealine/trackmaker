@@ -63,6 +63,14 @@ self.binds = {
     trigger = function()
       edit.viewBinds = not edit.viewBinds
     end
+  },
+  dumpChart = {
+    name = 'Dump chart to log',
+    ctrl = true,
+    keys = { 'l' },
+    trigger = function()
+      print(pretty(chart.chart))
+    end
   }
 }
 
