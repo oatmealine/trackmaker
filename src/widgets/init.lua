@@ -97,6 +97,7 @@ function Widget:draw()
 end
 
 local CatjamWidget = require 'src.widgets.catjam'
+local InfobarWidget = require 'src.widgets.infobar'
 
 ---@type Widget?
 local draggingWidget = nil
@@ -104,7 +105,7 @@ local draggingWidget = nil
 local dragX, dragY = nil, nil
 
 ---@type Widget[]
-local widgets = { CatjamWidget() }
+local widgets = { CatjamWidget(), InfobarWidget() }
 
 function self.draw()
   for _, widget in ipairs(widgets) do

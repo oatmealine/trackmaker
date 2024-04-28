@@ -105,6 +105,13 @@ local function formatDifficulty(d)
   return 'BEGINNER'
 end
 M.formatDifficulty = formatDifficulty
+function M.formatDifficultyShort(d)
+  if d == M.XDRVDifficulty.Beginner then return 'BG' end
+  if d == M.XDRVDifficulty.Normal   then return 'NM' end
+  if d == M.XDRVDifficulty.Hyper    then return 'HY' end
+  if d == M.XDRVDifficulty.Extreme  then return 'EX' end
+  return 'BG'
+end
 
 ---@enum XDRVLane
 M.XDRVLane = {

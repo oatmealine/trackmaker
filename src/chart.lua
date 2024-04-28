@@ -19,8 +19,12 @@ self.dirty = false
 local function updateTitle()
   if self.loaded then
     local dirtyMark = ''
-    if self.dirty then dirtyMark = '●︎' end
-    love.window.setTitle(self.metadata.musicTitle .. dirtyMark .. ' - trackmaker')
+    if self.dirty then dirtyMark = ' ·' end
+    love.window.setTitle(
+      self.metadata.musicTitle ..
+      ' [' .. xdrv.formatDifficultyShort(self.metadata.chartDifficulty) .. lpad(tostring(self.metadata.chartLevel), 2, '0') .. ']' ..
+      ' - trackmaker' .. dirtyMark
+    )
   else
     love.window.setTitle('trackmaker')
   end

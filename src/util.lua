@@ -54,7 +54,11 @@ end
 
 ---@param t number
 function formatTime(t)
-  return lpad(tostring(math.floor(t / 60)), 2, '0') .. ':' .. lpad(tostring(math.floor(t)), 2, '0')
+  t = math.max(t, 0)
+  return
+    lpad(tostring(math.floor(t / 60)), 2, '0') .. ':' ..
+    lpad(tostring(math.floor(t % 60)), 2, '0') .. '.' ..
+    lpad(tostring(math.floor((t * 100) % 100)), 2, '0')
 end
 
 ---@param o any
