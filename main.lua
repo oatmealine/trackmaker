@@ -1,6 +1,7 @@
 local conductor = require 'src.conductor'
 require 'lib.color'
 require 'src.util'
+keybinds = require 'src.keybinds'
 local edit      = require 'src.edit'
 
 local t = {}
@@ -14,6 +15,7 @@ local renderer = require 'src.renderer'
 local chart    = require 'src.chart'
 
 function love.load()
+  love.keyboard.setKeyRepeat(true)
   chart.openChart()
 end
 
@@ -23,6 +25,21 @@ end
 
 function love.draw()
   renderer.draw()
+
+  if edit.viewBinds then
+    love.graphics.setColor(0, 0, 0, 0.6)
+    love.graphics.rectangle('fill', 0, 0, sw, sh)
+
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.print('Keybinds', 16, 16)
+    local y = 48
+    for name, bind in pairs(keybinds.binds) do
+      if bind.name then
+        love.graphics.print(keybinds.formatBind(bind) .. ' - ' .. bind.name, 16, y)
+      end
+      y = y + 16
+    end
+  end
 
   if not chart.loaded then return end
 

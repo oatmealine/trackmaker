@@ -28,6 +28,8 @@ local mode = self.Mode.Insert
 self.write = false
 self.quantIndex = 1
 
+self.viewBinds = false
+
 local function cycleMode()
   mode = mode + 1
   if mode > self.Mode.Rewrite then
@@ -89,7 +91,66 @@ end
 
 ---@param key love.KeyConstant
 ---@param code love.Scancode
-function self.keypressed(key, code)
+function self.keypressed(key, code, isRepeat)
+  local ctrl = love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl')
+  local shift = love.keyboard.isDown('lshift') or love.keyboard.isDown('rshift')
+
+  ---@type Keybind[]
+  local triggeredKeybinds = {}
+  for _, bind in pairs(keybinds.binds) do
+    if
+      not (bind.ctrl and not ctrl) and
+      not (bind.shift and not shift) and
+      not (bind.viewOnly and self.write) and
+      not (bind.writeOnly and not self.write) and
+      not (not bind.canRepeat and isRepeat) and
+      not (not bind.alwaysUsable and self.viewBinds)
+    then
+      local isInvalid = false
+      for _, k in ipairs(bind.keys or {}) do
+        if not love.keyboard.isScancodeDown(k) then
+          isInvalid = true
+          break
+        end
+      end
+      for _, k in ipairs(bind.keyCodes or {}) do
+        if not love.keyboard.isDown(k) then
+          isInvalid = true
+          break
+        end
+      end
+      if not bind.keys and not bind.keyCodes then isInvalid = true end
+
+      if not isInvalid then
+        table.insert(triggeredKeybinds, bind)
+      end
+    end
+  end
+
+  if #triggeredKeybinds <= 1 then
+    local bind = triggeredKeybinds[1]
+    if bind and bind.trigger then bind.trigger() end
+  else
+    -- resolve via priority
+    local maxPrio = 0
+    local maxBind
+    for _, bind in ipairs(triggeredKeybinds) do
+      local prio = 0
+      if bind.shift then prio = prio + 2 end
+      if bind.ctrl then prio = prio + 2 end
+      if bind.keys then prio = prio + #bind.keys end
+      if bind.keyCodes then prio = prio + #bind.keyCodes end
+      if prio > maxPrio then
+        maxPrio = prio
+        maxBind = bind
+      end
+    end
+
+    if maxBind.trigger then maxBind.trigger() end
+  end
+
+  if self.viewBinds then return end
+
   if key == 'space' then
     if conductor.isPlaying() then
       conductor.pause()
@@ -139,11 +200,7 @@ function self.keypressed(key, code)
       self.placeGearShift(xdrv.XDRVLane.Right)
     end
   else
-    if key == 's' and love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
-      chart.saveChart()
-    elseif key == 'o' and love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
-      chart.openChart()
-    elseif key == 'tab' then
+    if key == 'tab' then
       self.write = true
     end
   end
