@@ -35,13 +35,26 @@ function getQuantIndex(beat)
   return #QUANTS
 end
 
-function getDivision(beat)
-  return 4 / QUANTS[getQuantIndex(beat)]
+function getDivision(quantIdx)
+  return 4 / QUANTS[quantIdx]
 end
 
 function quantize(beat, quantI)
   local quant = QUANTS[quantI]
   return round(beat / quant) * quant
+end
+
+---@param str string
+---@param len number
+---@param char string?
+function lpad(str, len, char)
+  char = char or ' '
+  return string.rep(char, len - #str) .. str
+end
+
+---@param t number
+function formatTime(t)
+  return lpad(tostring(math.floor(t / 60)), 2, '0') .. ':' .. lpad(tostring(math.floor(t)), 2, '0')
 end
 
 ---@param o any

@@ -4,11 +4,11 @@ local conductor = require 'src.conductor'
 local xdrv      = require 'lib.xdrv'
 local chart     = require 'src.chart'
 
-local PAD_BOTTOM = 48
+local PAD_BOTTOM = 96
 
-local NOTE_WIDTH = 32
-local NOTE_HEIGHT = 8
-local GAP_WIDTH = 32
+local NOTE_WIDTH = 48
+local NOTE_HEIGHT = 10
+local GAP_WIDTH = 48
 
 local BACK_COL = hex('141214')
 local SEP_COL = hex('86898c')

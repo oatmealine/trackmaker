@@ -65,11 +65,7 @@ end
 
 ---@param m XDRVMetadata
 local function makeChartFilename(m)
-  if m.chartDifficulty == xdrv.XDRVDifficulty.Beginner then return 'BEGINNER.xdrv' end
-  if m.chartDifficulty == xdrv.XDRVDifficulty.Normal   then return 'NORMAL.xdrv'   end
-  if m.chartDifficulty == xdrv.XDRVDifficulty.Hyper    then return 'HYPER.xdrv'    end
-  if m.chartDifficulty == xdrv.XDRVDifficulty.Extreme  then return 'EXTREME.xdrv'  end
-  return 'UNKNOWN.xdrv'
+  return xdrv.formatDifficulty(m.chartDifficulty) .. '.xdrv'
 end
 
 ---@param event XDRVEvent
