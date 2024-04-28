@@ -18,6 +18,7 @@ function Widget:new(x, y)
   self.hasWindowDecorations = true
   self.isMovable = true
   self.dragAnywhere = false
+  self.delete = false
 end
 
 function Widget:getBoundingBox()
@@ -35,23 +36,31 @@ local WidgetPointState = {
   Bar = 3,
 }
 
+function Widget:loseFocus()
+end
+function Widget:focus()
+end
+
 function Widget:click(x, y)
 end
 
-function Widget:clickFrame(x, y)
+function Widget:pointInside(x, y)
   local x1, y1, x2, y2 = self:getBoundingBox()
-  local aabb = x >= x1 and x <= x2 and y >= y1 and y <= y2
-  if not aabb then
+  return x >= x1 and x <= x2 and y >= y1 and y <= y2
+end
+
+function Widget:clickFrame(x, y)
+  if not self:pointInside(x, y) then
     return WidgetPointState.None
   end
+
+  x = x - self.x
+  y = y - self.y
 
   if not self.hasWindowDecorations then
     self:click(x, y)
     return WidgetPointState.Inside
   end
-
-  x = x - x1
-  y = y - y1
 
   if x > BORDER_WIDTH and x < self.width - BORDER_WIDTH and y > BORDER_WIDTH and y < self.height - BORDER_WIDTH then
     if y > BORDER_WIDTH + BAR_HEIGHT then
@@ -98,6 +107,7 @@ end
 
 local CatjamWidget = require 'src.widgets.catjam'
 local InfobarWidget = require 'src.widgets.infobar'
+local ContextWidget = require 'src.widgets.context'
 
 ---@type Widget?
 local draggingWidget = nil
@@ -107,6 +117,18 @@ local dragX, dragY = nil, nil
 ---@type Widget[]
 local widgets = { CatjamWidget(), InfobarWidget() }
 
+function self.update()
+  for i = #widgets, 1, -1 do
+    local widget = widgets[i]
+    if widget.delete then
+      table.remove(widgets, i)
+      if i > #widgets and #widgets ~= 0 then
+        widgets[#widgets]:focus()
+      end
+    end
+  end
+end
+
 function self.draw()
   for _, widget in ipairs(widgets) do
     widget:draw()
@@ -114,15 +136,30 @@ function self.draw()
 end
 
 function self.mousepressed(x, y, button)
-  if button == 1 then
-    for i = #widgets, 1, -1 do
-      local widget = widgets[i]
+  for i = #widgets, 1, -1 do
+    local widget = widgets[i]
+    if button == 1 then
       local res = widget:clickFrame(x, y)
       if res ~= WidgetPointState.None then
         if (res == WidgetPointState.Bar or widget.dragAnywhere) and widget.isMovable then
           draggingWidget = widget
           dragX, dragY = x - widget.x, y - widget.y
         end
+        -- move to front
+        if i ~= #widgets then
+          table.remove(widgets, i)
+          widgets[#widgets]:loseFocus()
+          table.insert(widgets, widget)
+          widget:focus()
+        end
+        self.update()
+        return
+      end
+    elseif button == 2 then
+      if widget:pointInside(x, y) and widget.dragAnywhere then
+        table.insert(widgets, ContextWidget(x, y, {
+          { 'Close', function() widget.delete = true end }
+        }))
       end
     end
   end

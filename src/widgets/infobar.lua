@@ -19,6 +19,14 @@ local GAP = 14
 local MARGIN = 12
 local ROUND = 10
 local HEIGHT = 40
+local MODE_WIDTH = 72
+
+function InfobarWidget:click(x, y)
+  if x > self.width - MODE_WIDTH then
+    -- janky way to do this, but i cba
+    edit.keypressed('tab', 'tab', false)
+  end
+end
 
 function InfobarWidget:draw()
   local footerFields = {
@@ -41,7 +49,7 @@ function InfobarWidget:draw()
   end
   width = width - GAP + MARGIN
 
-  self.width = width
+  self.width = width + MARGIN + MODE_WIDTH
   self.height = HEIGHT
   self.x = scx - width / 2
   self.y = sh - 16 - self.height
@@ -66,7 +74,6 @@ function InfobarWidget:draw()
   end
 
   local mode = edit.getMode()
-  local modeWidth = 72
 
   if mode == edit.Mode.None then
     love.graphics.setColor(0.1, 0.1, 0.1, 0.8)
@@ -77,14 +84,14 @@ function InfobarWidget:draw()
   elseif mode == edit.Mode.Rewrite then
     love.graphics.setColor(0.9, 0.1, 1, 1)
   end
-  love.graphics.rectangle('fill', self.width, 0, modeWidth, self.height, ROUND, ROUND)
+  love.graphics.rectangle('fill', width + MARGIN, 0, MODE_WIDTH, self.height, ROUND, ROUND)
   if mode == edit.Mode.None or mode == edit.Mode.Insert then
     love.graphics.setColor(1, 1, 1, 1)
   else
     love.graphics.setColor(0, 0, 0, 1)
   end
   love.graphics.setFont(fonts.inter_16)
-  love.graphics.printf(edit.modeName(mode), round(self.width), round(self.height/2 - fonts.inter_16:getHeight()/2), modeWidth, 'center')
+  love.graphics.printf(edit.modeName(mode), round(width + MARGIN), round(self.height/2 - fonts.inter_16:getHeight()/2), MODE_WIDTH, 'center')
   love.graphics.setFont(fonts.inter_12)
 
   love.graphics.pop()

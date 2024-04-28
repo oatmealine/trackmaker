@@ -166,15 +166,9 @@ function self.keypressed(key, code, isRepeat)
   elseif key == 'pageup' then
     setBeat(conductor.beat + 4)
   elseif key == 'left' then
-    self.quantIndex = self.quantIndex - 1
-    if self.quantIndex < 1 then
-      self.quantIndex = #QUANTS
-    end
+    self.quantIndex = math.max(self.quantIndex - 1, 1)
   elseif key == 'right' then
-    self.quantIndex = self.quantIndex + 1
-    if self.quantIndex > #QUANTS then
-      self.quantIndex = 1
-    end
+    self.quantIndex = math.min(self.quantIndex + 1, #QUANTS)
   end
 
   if self.write then
