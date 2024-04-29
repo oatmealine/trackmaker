@@ -3,6 +3,7 @@ local self = {}
 local conductor = require 'src.conductor'
 local xdrv      = require 'lib.xdrv'
 local chart     = require 'src.chart'
+local edit      = require 'src.edit'
 
 local PAD_BOTTOM = 96
 
@@ -188,6 +189,23 @@ function self.draw()
   love.graphics.line(getLeft(), sh - PAD_BOTTOM, getMLeft(), sh - PAD_BOTTOM)
   love.graphics.setColor(LANE_2_COL:unpack())
   love.graphics.line(getRight(), sh - PAD_BOTTOM, getMRight(), sh - PAD_BOTTOM)
+
+  local quantCol = QUANT_COLORS[edit.quantIndex]
+  if quantCol then
+    love.graphics.setColor(quantCol:unpack())
+    love.graphics.polygon('fill',
+      getLeft() - 15, sh - PAD_BOTTOM,
+      getLeft() - 30, sh - PAD_BOTTOM - 15,
+      getLeft() - 45, sh - PAD_BOTTOM,
+      getLeft() - 30, sh - PAD_BOTTOM + 15
+    )
+    love.graphics.polygon('fill',
+      getRight() + 15, sh - PAD_BOTTOM,
+      getRight() + 30, sh - PAD_BOTTOM - 15,
+      getRight() + 45, sh - PAD_BOTTOM,
+      getRight() + 30, sh - PAD_BOTTOM + 15
+    )
+  end
 
   love.graphics.pop()
 end

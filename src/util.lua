@@ -26,6 +26,19 @@ QUANTS = {
   1 / 48,
 }
 
+QUANT_COLORS = {
+  rgb(1, 0, 0),
+  rgb(0.2, 0, 1),
+  rgb(0.75, 0, 1),
+  rgb(0.2, 1, 0),
+  nil,
+  rgb(1, 0, 0.75),
+  rgb(1, 1, 0.2),
+  rgb(0.2, 1, 1),
+  rgb(0, 1, 0),
+  nil,
+}
+
 function getQuantIndex(beat)
   for i, quant in ipairs(QUANTS) do
     if math.abs(beat - round(beat / quant) * quant) < 0.01 then
