@@ -20,6 +20,7 @@ function Widget:new(x, y)
   self.dragAnywhere = false
   self.delete = false
   self.ignoreFocus = false
+  self.focused = false
 end
 
 function Widget:update()
@@ -103,6 +104,12 @@ function Widget:draw()
     love.graphics.setLineWidth(BORDER_WIDTH)
     love.graphics.rectangle('line', 0, 0, self.width + BORDER_WIDTH * 2, self.height + BAR_HEIGHT + BORDER_WIDTH * 2, 1, 1)
 
+    if self.focused then
+      love.graphics.setColor(0.2, 0.2, 0.2, 1)
+    else
+      love.graphics.setColor(0.15, 0.15, 0.15, 1)
+    end
+
     love.graphics.rectangle('fill', BORDER_WIDTH, BORDER_WIDTH, self.width, BAR_HEIGHT)
   end
 
@@ -126,9 +133,11 @@ local widgets = { }
 function openWidget(w)
   if widgets[#widgets] then
     widgets[#widgets]:loseFocus()
+    widgets[#widgets].focused = false
   end
   table.insert(widgets, w)
   w:focus()
+  w.focused = true
   self.update()
 end
 
@@ -152,6 +161,7 @@ function self.update()
       table.remove(widgets, i)
       if i > #widgets and #widgets ~= 0 then
         widgets[#widgets]:focus()
+        widgets[#widgets].focused = true
       end
     end
   end
@@ -177,8 +187,10 @@ function self.mousepressed(x, y, button)
         if i ~= #widgets and not widget.ignoreFocus then
           table.remove(widgets, i)
           widgets[#widgets]:loseFocus()
+          widgets[#widgets].focused = false
           table.insert(widgets, widget)
           widget:focus()
+          widget.focused = true
         end
         self.update()
         return
