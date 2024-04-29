@@ -196,6 +196,26 @@ function self.draw()
     end
   end
 
+  for _, event in ipairs(events) do
+    if event.drift then
+      local dir = event.drift.direction
+      local y = beatToY(event.beat)
+      local t = 'x'
+      if dir == xdrv.XDRVDriftDirection.Left then
+        t = '<'
+      elseif dir == xdrv.XDRVDriftDirection.Right then
+        t = '>'
+      end
+      love.graphics.setColor(1, 1, 0, 1)
+      love.graphics.setFont(fonts.inter_16)
+      love.graphics.print('DRIFT: ' .. t, getRight() + 32, round(y - fonts.inter_16:getHeight()/2))
+
+      love.graphics.setColor(0.4, 0.4, 0.4, 1)
+      love.graphics.setFont(fonts.inter_12)
+      love.graphics.print('placeholder placeholder boooooo', getRight() + 32, round(y + 12))
+    end
+  end
+
   for _, ghost in ipairs(edit.getGhosts()) do
     if ghost.note then
       drawNote(ghost)

@@ -119,6 +119,13 @@ M.XDRVLane = {
   Right = 2,
 }
 
+---@enum XDRVDriftDirection
+M.XDRVDriftDirection = {
+  Left = 1,
+  Right = 2,
+  Neutral = 3,
+}
+
 ---@alias XDRVNoteColumn 1 | 2 | 3 | 4 | 5 | 6
 
 ---@alias XDRVNote { beat: number, note: { column: XDRVNoteColumn, length: number? } }
@@ -127,6 +134,7 @@ M.XDRVLane = {
 ---@alias XDRVGearShift { beat: number, gearShift: { lane: XDRVLane, length: number } }
 ---@alias XDRVGearShiftStart { beat: number, gearShiftStart: { lane: XDRVLane } }
 ---@alias XDRVGearShiftEnd { beat: number, gearShiftEnd: { lane: XDRVLane } }
+---@alias XDRVDrift { beat: number, drift: { direction: XDRVDriftDirection } }
 ---@alias XDRVBPMChange { beat: number, bpm: number }
 ---@alias XDRVWarp { beat: number, warp: number }
 ---@alias XDRVStop { beat: number, stop: number }
@@ -138,7 +146,7 @@ M.XDRVLane = {
 ---@alias XDRVFake { beat: number, fake: number }
 ---@alias XDRVSceneEvent { beat: number, event: { name: string, args: string[] } }
 ---@alias XDRVCheckpoint { beat: number, checkpoint: string }
----@alias XDRVEvent XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
+---@alias XDRVEvent XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVDrift | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
 
 ---@return XDRVEvent?
 local function parseTimingSegment(beat, s)
@@ -326,6 +334,19 @@ end
 local function formatGears(g)
   return gearEventToType(g[M.XDRVLane.Left]) .. gearEventToType(g[M.XDRVLane.Right])
 end
+---@param s XDRVDriftDirection
+local function formatDrift(s)
+  if s == M.XDRVDriftDirection.Left then
+    return '1'
+  end
+  if s == M.XDRVDriftDirection.Right then
+    return '2'
+  end
+  if s == M.XDRVDriftDirection.Neutral then
+    return '3'
+  end
+  return '0'
+end
 local function noteEvent(beat, s, c)
   if s == '1' then
     return { beat = beat, note = { column = c } }
@@ -344,6 +365,18 @@ local function gearShiftEvent(beat, s, lane)
   end
   if s == '2' then
     return { beat = beat, gearShiftEnd = { lane = lane } }
+  end
+  return nil
+end
+local function driftEvent(beat, s)
+  if s == '1' then
+    return { beat = beat, drift = { direction = M.XDRVDriftDirection.Left }}
+  end
+  if s == '2' then
+    return { beat = beat, drift = { direction = M.XDRVDriftDirection.Right }}
+  end
+  if s == '3' then
+    return { beat = beat, drift = { direction = M.XDRVDriftDirection.Neutral }}
   end
   return nil
 end
@@ -396,6 +429,7 @@ local function serializeChart(events)
 
       local cols = {}
       local gears = {}
+      local drift = nil
 
       for i, event in ipairs(segment) do
         if math.abs(event.beat - (b + offset)) < 0.001 then
@@ -404,8 +438,9 @@ local function serializeChart(events)
             cols[note.column] = event
           elseif event.gearShiftStart or event.gearShiftEnd then
             local gear = event.gearShiftStart or event.gearShiftEnd
-            print(pretty(event))
             gears[gear.lane] = event
+          elseif event.drift then
+            drift = event.drift.direction
           elseif event.bpm then
             table.insert(segmentStr, '#BPM=' .. event.bpm)
           elseif event.warp then
@@ -433,7 +468,7 @@ local function serializeChart(events)
       end
 
       -- todo: drifts
-      table.insert(segmentStr, formatNotesCol(cols) .. '|' .. formatGears(gears) .. '|' .. '0')
+      table.insert(segmentStr, formatNotesCol(cols) .. '|' .. formatGears(gears) .. '|' .. formatDrift(drift))
     end
 
     --print(table.concat(segmentStr, '\n'))
@@ -537,6 +572,8 @@ local function deserializeChart(str)
           local ev = gearShiftEvent(b, gear, lane)
           if ev then table.insert(events, ev) end
         end
+        local ev = driftEvent(b, d)
+        if ev then table.insert(events, ev) end
       end
     end
 
