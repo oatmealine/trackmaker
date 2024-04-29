@@ -84,8 +84,11 @@ end
 function love.mousereleased(x, y, button)
   widgets.mousereleased(x, y, button)
 end
-function love.keypressed(key, scancode)
-  edit.keypressed(key, scancode)
+function love.keypressed(key, scancode, isrepeat)
+  edit.keypressed(key, scancode, isrepeat)
+end
+function love.keyreleased(key, scancode)
+  edit.keyreleased(key, scancode)
 end
 function love.wheelmoved(ox, oy)
   renderer.wheelmoved(oy)

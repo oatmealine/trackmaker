@@ -5,7 +5,7 @@ local xdrv      = require 'lib.xdrv'
 local chart     = require 'src.chart'
 local edit      = require 'src.edit'
 
-local PAD_BOTTOM = 96
+local PAD_BOTTOM = 256
 
 local NOTE_WIDTH = 48
 local NOTE_HEIGHT = 10
@@ -74,6 +74,51 @@ local function getMRight()
   return -getMLeft()
 end
 
+local function drawNote(event)
+  local note = event.note
+  local x = getColumnX(note.column) * scale()
+  local y = beatToY(event.beat)
+  local yEnd = beatToY(event.beat + (note.length or 0))
+
+  if y < -NOTE_HEIGHT/2 then return -1 end
+  if yEnd > sh then return end
+
+  if note.length then
+    love.graphics.setColor(getColumnColor(note.column):alpha(0.5):unpack())
+    love.graphics.rectangle('fill', x - (NOTE_WIDTH/2) * scale(), yEnd, NOTE_WIDTH * scale(), y - yEnd)
+  end
+
+  love.graphics.setColor(getColumnColor(note.column):unpack())
+  love.graphics.rectangle('fill', x - (NOTE_WIDTH/2) * scale(), y - (NOTE_HEIGHT/2) * scale(), NOTE_WIDTH * scale(), NOTE_HEIGHT * scale())
+end
+
+local function drawGearShift(event)
+  local gear = event.gearShift
+
+  local color
+  local offset = 1
+  if gear.lane == xdrv.XDRVLane.Left then
+    color = LANE_1_COL
+    offset = -1
+  else
+    color = LANE_2_COL
+  end
+
+  local y = beatToY(event.beat)
+  local yEnd = beatToY(event.beat + gear.length)
+
+  if y < -NOTE_HEIGHT/2 then return -1 end
+  if yEnd > sh then return end
+
+  love.graphics.setLineWidth(3 * scale())
+
+  love.graphics.setColor(color:alpha(0.3):unpack())
+  love.graphics.rectangle('fill', (GAP_WIDTH/2) * offset * scale(), yEnd, NOTE_WIDTH * 3 * offset * scale(), y - yEnd)
+  love.graphics.setColor(color:unpack())
+  love.graphics.line(getRight() * offset, y, getMRight() * offset, y)
+  love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
+end
+
 function self.draw()
   sw, sh = love.graphics.getDimensions()
   scx, scy = sw/2, sh/2
@@ -129,66 +174,36 @@ function self.draw()
   love.graphics.line(getRight(), sh, getRight(), 0)
   love.graphics.line(getMRight(), sh, getMRight(), 0)
 
-  local events = chart.chart
-
-  for _, event in ipairs(events) do
-    if event.gearShift then
-      local gear = event.gearShift
-
-      local color
-      local offset = 1
-      if gear.lane == xdrv.XDRVLane.Left then
-        color = LANE_1_COL
-        offset = -1
-      else
-        color = LANE_2_COL
-      end
-
-      local y = beatToY(event.beat)
-      local yEnd = beatToY(event.beat + gear.length)
-
-      if y < -NOTE_HEIGHT/2 then break end
-      if yEnd < sh then
-        love.graphics.setLineWidth(3 * scale())
-
-        love.graphics.setColor(color:alpha(0.3):unpack())
-        love.graphics.rectangle('fill', (GAP_WIDTH/2) * offset * scale(), yEnd, NOTE_WIDTH * 3 * offset * scale(), y - yEnd)
-        love.graphics.setColor(color:unpack())
-        love.graphics.line(getRight() * offset, y, getMRight() * offset, y)
-        love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
-      end
-    end
-  end
-
-  for _, event in ipairs(events) do
-    if event.note then
-      local note = event.note
-      local x = getColumnX(note.column) * scale()
-      local y = beatToY(event.beat)
-      local yEnd = beatToY(event.beat + (note.length or 0))
-
-      if y < -NOTE_HEIGHT/2 then break end
-      if yEnd < sh then
-        if note.length then
-          love.graphics.setColor(getColumnColor(note.column):alpha(0.5):unpack())
-          love.graphics.rectangle('fill', x - (NOTE_WIDTH/2) * scale(), yEnd, NOTE_WIDTH * scale(), y - yEnd)
-        end
-
-        love.graphics.setColor(getColumnColor(note.column):unpack())
-        love.graphics.rectangle('fill', x - (NOTE_WIDTH/2) * scale(), y - (NOTE_HEIGHT/2) * scale(), NOTE_WIDTH * scale(), NOTE_HEIGHT * scale())
-      end
-    end
-  end
-
-  love.graphics.setColor(BACK_COL:alpha(0.8):unpack())
-  love.graphics.rectangle('fill', getLeft(), sh - PAD_BOTTOM, getMLeft() - getLeft(), PAD_BOTTOM)
-  love.graphics.rectangle('fill', getRight(), sh - PAD_BOTTOM, getMRight() - getRight(), PAD_BOTTOM)
-
   love.graphics.setLineWidth(5 * scale())
   love.graphics.setColor(LANE_1_COL:unpack())
   love.graphics.line(getLeft(), sh - PAD_BOTTOM, getMLeft(), sh - PAD_BOTTOM)
   love.graphics.setColor(LANE_2_COL:unpack())
   love.graphics.line(getRight(), sh - PAD_BOTTOM, getMRight(), sh - PAD_BOTTOM)
+
+  local events = chart.chart
+
+  for _, event in ipairs(events) do
+    if event.gearShift then
+      local res = drawGearShift(event)
+      if res == -1 then break end
+    end
+  end
+
+  for _, event in ipairs(events) do
+    if event.note then
+      local res = drawNote(event)
+      if res == -1 then break end
+    end
+  end
+
+  for _, ghost in ipairs(edit.getGhosts()) do
+    if ghost.note then
+      drawNote(ghost)
+    end
+    if ghost.gearShift then
+      drawGearShift(ghost)
+    end
+  end
 
   local quantCol = QUANT_COLORS[edit.quantIndex]
   if quantCol then
@@ -215,6 +230,7 @@ function self.wheelmoved(delta)
     zoom = zoom * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
   else
     conductor.seekDelta(delta * 0.7 / zoom)
+    edit.updateGhosts()
   end
 end
 

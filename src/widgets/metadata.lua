@@ -3,8 +3,8 @@ local MetadataWidget = Widget:extend()
 
 function MetadataWidget:new(x, y)
   MetadataWidget.super.new(self, x, y)
-  self.width = 180
-  self.height = 300
+  self.width = 220
+  self.height = 350
 end
 
 function MetadataWidget:drawInner()
