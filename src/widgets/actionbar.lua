@@ -10,7 +10,7 @@ local ActionBarWidget = Widget:extend()
 
 local HEIGHT = 24
 local GAP = 14
-local MARGIN = 12
+local MARGIN = GAP / 2
 
 local items = {
   { 'File', function()
