@@ -1,5 +1,6 @@
 local chart = require 'src.chart'
 local edit  = require 'src.edit'
+local logs  = require 'src.logs'
 
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
@@ -30,8 +31,15 @@ local items = {
     }
   end},
   { 'Help', function()
+    local width, height, flags = love.window.getMode()
     return {
       { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
+      { 'VSync: ' .. ((flags.vsync == 1) and 'ON' or 'OFF'), function()
+        flags.vsync = 1 - flags.vsync
+        logs.log('VSync: ' .. ((flags.vsync == 1) and 'ON' or 'OFF'))
+        ---@diagnostic disable-next-line: param-type-mismatch
+        love.window.setMode(width, height, flags)
+      end },
       { 'About',         function() openWidget(AboutWidget(150, 150)) end }
     }
   end},
