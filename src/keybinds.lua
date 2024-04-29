@@ -28,6 +28,7 @@ self.binds = {
   save = {
     name = 'Save as...',
     ctrl = true,
+    shift = true,
     viewOnly = true,
     keys = { 's' },
     trigger = function()
@@ -37,24 +38,32 @@ self.binds = {
   quicksave = {
     name = 'Save',
     ctrl = true,
-    shift = true,
     viewOnly = true,
     keys = { 's' },
     trigger = function()
       chart.quickSave()
     end
   },
+  cut = {
+    name = 'Cut',
+    ctrl = true,
+    writeOnly = true,
+    keyCodes = { 'x' },
+    trigger = edit.cut,
+  },
   copy = {
     name = 'Copy',
     ctrl = true,
     writeOnly = true,
     keyCodes = { 'c' },
+    trigger = edit.copy,
   },
   paste = {
     name = 'Paste',
     ctrl = true,
     writeOnly = true,
     keyCodes = { 'v' },
+    trigger = edit.paste,
   },
   viewBinds = {
     name = 'View keybinds',

@@ -3,6 +3,7 @@ local self = {}
 local xdrv = require 'lib.xdrv'
 local nfd = require 'nfd'
 local conductor = require 'src.conductor'
+local logs      = require 'src.logs'
 
 self.loaded = false
 ---@type XDRVEvent[]
@@ -16,13 +17,17 @@ self.chartLocation = nil
 
 self.dirty = false
 
+function self.diffMark()
+  return '[' .. xdrv.formatDifficultyShort(self.metadata.chartDifficulty) .. lpad(tostring(self.metadata.chartLevel), 2, '0') .. ']'
+end
+
 local function updateTitle()
   if self.loaded then
     local dirtyMark = ''
     if self.dirty then dirtyMark = ' ·' end
     love.window.setTitle(
       self.metadata.musicTitle ..
-      ' [' .. xdrv.formatDifficultyShort(self.metadata.chartDifficulty) .. lpad(tostring(self.metadata.chartLevel), 2, '0') .. ']' ..
+      ' ' .. self.diffMark() ..
       ' - trackmaker' .. dirtyMark
     )
   else
@@ -53,6 +58,8 @@ function self.openChart()
 
   self.loaded = true
   updateTitle()
+
+  logs.log('Loaded chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
 end
 
 local function save(filepath)
@@ -65,6 +72,8 @@ local function save(filepath)
   file:close()
   self.dirty = false
   updateTitle()
+
+  logs.log('Saved chart to ' .. filepath)
 end
 
 ---@param m XDRVMetadata

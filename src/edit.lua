@@ -1,6 +1,7 @@
 local conductor = require 'src.conductor'
 local chart     = require 'src.chart'
 local xdrv      = require 'lib.xdrv'
+local logs      = require 'src.logs'
 local self = {}
 
 ---@enum Mode
@@ -89,9 +90,24 @@ function self.placeGearShift(lane)
   chart.placeEvent({ beat = getBeat(), gearShift = { lane = lane, length = 1 } })
 end
 
+function self.cut()
+  logs.log('Cut - Not implemented')
+end
+function self.copy()
+  logs.log('Copy - Not implemented')
+end
+function self.paste()
+  logs.log('Paste - Not implemented')
+end
+
 ---@param key love.KeyConstant
 ---@param code love.Scancode
 function self.keypressed(key, code, isRepeat)
+  if key == 'escape' and self.viewBinds then
+    self.viewBinds = false
+    return
+  end
+
   local ctrl = love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl')
   local shift = love.keyboard.isDown('lshift') or love.keyboard.isDown('rshift')
 

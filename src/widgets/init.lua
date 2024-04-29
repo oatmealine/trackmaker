@@ -19,6 +19,10 @@ function Widget:new(x, y)
   self.isMovable = true
   self.dragAnywhere = false
   self.delete = false
+  self.ignoreFocus = false
+end
+
+function Widget:update()
 end
 
 function Widget:getBoundingBox()
@@ -74,6 +78,16 @@ function Widget:clickFrame(x, y)
   return WidgetPointState.None
 end
 
+function Widget:move(x, y)
+end
+
+function Widget:moveFrame(x, y)
+  -- todo: does not account for window decorations
+  if self:pointInside(x, y) then
+    self:move(x - self.x, y - self.y)
+  end
+end
+
 function Widget:drawInner()
   love.graphics.setColor(0.1, 0.1, 0.1, 1)
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
@@ -87,7 +101,7 @@ function Widget:draw()
   if self.hasWindowDecorations then
     love.graphics.setColor(0.2, 0.2, 0.2, 1)
     love.graphics.setLineWidth(BORDER_WIDTH)
-    love.graphics.rectangle('line', -BORDER_WIDTH/2, -BORDER_WIDTH/2, self.width + BORDER_WIDTH * 2.5, self.height + BAR_HEIGHT + BORDER_WIDTH * 2.5, 1, 1)
+    love.graphics.rectangle('line', 0, 0, self.width + BORDER_WIDTH * 2, self.height + BAR_HEIGHT + BORDER_WIDTH * 2, 1, 1)
 
     love.graphics.rectangle('fill', BORDER_WIDTH, BORDER_WIDTH, self.width, BAR_HEIGHT)
   end
@@ -105,21 +119,35 @@ function Widget:draw()
   love.graphics.pop()
 end
 
+---@type Widget[]
+local widgets = { }
+
+---@param w Widget
+function openWidget(w)
+  if widgets[#widgets] then
+    widgets[#widgets]:loseFocus()
+  end
+  table.insert(widgets, w)
+  w:focus()
+  self.update()
+end
+
 local CatjamWidget = require 'src.widgets.catjam'
 local InfobarWidget = require 'src.widgets.infobar'
 local ContextWidget = require 'src.widgets.context'
+local ActionBarWidget = require 'src.widgets.actionbar'
 
 ---@type Widget?
 local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
----@type Widget[]
-local widgets = { CatjamWidget(), InfobarWidget() }
+widgets = { CatjamWidget(), InfobarWidget(), ActionBarWidget() }
 
 function self.update()
   for i = #widgets, 1, -1 do
     local widget = widgets[i]
+    widget:update()
     if widget.delete then
       table.remove(widgets, i)
       if i > #widgets and #widgets ~= 0 then
@@ -146,7 +174,7 @@ function self.mousepressed(x, y, button)
           dragX, dragY = x - widget.x, y - widget.y
         end
         -- move to front
-        if i ~= #widgets then
+        if i ~= #widgets and not widget.ignoreFocus then
           table.remove(widgets, i)
           widgets[#widgets]:loseFocus()
           table.insert(widgets, widget)
@@ -167,6 +195,9 @@ end
 function self.mousemoved(x, y)
   if draggingWidget then
     draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
+  end
+  for _, widget in ipairs(widgets) do
+    widget:moveFrame(x, y)
   end
 end
 function self.mousereleased(x, y, button)

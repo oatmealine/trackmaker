@@ -1,4 +1,3 @@
-local xdrv = require "lib.xdrv"
 release = nil
 do 
   local t = {}
@@ -9,9 +8,15 @@ do
   release = t.releases
 end
 
+local xdrv = require 'lib.xdrv'
 require 'lib.color'
 
 require 'src.util'
+
+fonts = {
+  inter_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
+  inter_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),
+}
 
 local conductor = require 'src.conductor'
 keybinds        = require 'src.keybinds'
@@ -19,11 +24,7 @@ local edit      = require 'src.edit'
 local renderer  = require 'src.renderer'
 local chart     = require 'src.chart'
 local widgets   = require 'src.widgets'
-
-fonts = {
-  inter_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
-  inter_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),
-}
+local logs      = require 'src.logs'
 
 function love.load()
   love.keyboard.setKeyRepeat(true)
@@ -32,6 +33,7 @@ end
 
 function love.update(dt)
   conductor.update(dt)
+  logs.update(dt)
 end
 
 function love.draw()
@@ -41,12 +43,18 @@ function love.draw()
 
   widgets.draw()
 
+  logs.draw()
+
   if edit.viewBinds then
     love.graphics.setColor(0, 0, 0, 0.6)
     love.graphics.rectangle('fill', 0, 0, sw, sh)
 
     love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setFont(fonts.inter_16)
     love.graphics.print('Keybinds', 16, 16)
+
+    love.graphics.setFont(fonts.inter_12)
+
     local y = 48
     for name, bind in pairs(keybinds.binds) do
       if bind.name then
@@ -61,7 +69,7 @@ function love.draw()
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(
     'FPS ' .. love.timer.getFPS()
-  )
+  , 0, sh - fonts.inter_12:getHeight())
 end
 
 function love.mousepressed(x, y, button)
