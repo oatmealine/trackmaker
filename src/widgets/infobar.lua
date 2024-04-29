@@ -30,7 +30,7 @@ end
 
 function InfobarWidget:draw()
   local footerFields = {
-    { 'Difficulty', xdrv.formatDifficulty(chart.metadata.chartDifficulty) .. ' ' .. chart.metadata.chartLevel },
+    { 'Difficulty', chart.loaded and (xdrv.formatDifficulty(chart.metadata.chartDifficulty) .. ' ' .. chart.metadata.chartLevel) or '' },
     { 'Snap', getDivision(edit.quantIndex) .. 'th' },
     { 'Beat', string.format('%.3f', conductor.beat) },
     { 'Time', formatTime(conductor.time) },

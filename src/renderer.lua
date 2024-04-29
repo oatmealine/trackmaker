@@ -125,7 +125,7 @@ function self.draw()
 
   if not chart.loaded then
     love.graphics.setColor(0.7, 0.7, 0.7, 1)
-    love.graphics.printf('No chart opened... (click to open)', 0, scy, sw, 'center')
+    love.graphics.printf('No chart opened... (' .. keybinds.formatBind(keybinds.binds.open) .. ' to open)', 0, scy, sw, 'center')
     return
   end
 

@@ -73,9 +73,6 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button)
-  if button == 1 and not chart.loaded then
-    chart.openChart()
-  end
   widgets.mousepressed(x, y, button)
 end
 function love.mousemoved(x, y)

@@ -3,6 +3,7 @@ local edit  = require 'src.edit'
 
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
+local AboutWidget = require 'src.widgets.about'
 
 ---@class ActionBarWidget : Widget
 local ActionBarWidget = Widget:extend()
@@ -31,6 +32,7 @@ local items = {
   { 'Help', function()
     return {
       { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
+      { 'About',         function() openWidget(AboutWidget(150, 150)) end }
     }
   end},
 }
