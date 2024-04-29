@@ -248,7 +248,6 @@ function self.keypressed(key, code, isRepeat)
   end
 
   if self.viewBinds then return end
-  if isRepeat then return end
 
   if key == 'space' then
     if conductor.isPlaying() then
@@ -273,6 +272,8 @@ function self.keypressed(key, code, isRepeat)
   elseif key == 'right' then
     self.quantIndex = math.min(self.quantIndex + 1, #QUANTS)
   end
+
+  if isRepeat then return end
 
   if self.write then
     if key == 'escape' then

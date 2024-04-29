@@ -9,6 +9,8 @@ Widget = Object:extend()
 local BORDER_WIDTH = 1
 local BAR_HEIGHT = 24
 
+local crossIcon = love.graphics.newImage('assets/sprites/icons/cross.png')
+
 function Widget:new(x, y)
   self.x = x or 0
   self.y = y or 0
@@ -72,6 +74,9 @@ function Widget:clickFrame(x, y)
       self:click(x - BORDER_WIDTH, y - BORDER_WIDTH - BAR_HEIGHT)
       return WidgetPointState.Inside
     else
+      if x > (BORDER_WIDTH + self.width - BAR_HEIGHT) then
+        self.delete = true
+      end
       return WidgetPointState.Bar
     end
   end
@@ -111,6 +116,10 @@ function Widget:draw()
     end
 
     love.graphics.rectangle('fill', BORDER_WIDTH, BORDER_WIDTH, self.width, BAR_HEIGHT)
+
+    local crossScale = BAR_HEIGHT / crossIcon:getHeight()
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(crossIcon, BORDER_WIDTH + self.width - BAR_HEIGHT/2, BORDER_WIDTH + BAR_HEIGHT/2, 0, crossScale, crossScale, crossIcon:getWidth()/2, crossIcon:getWidth()/2)
   end
 
   love.graphics.push()
