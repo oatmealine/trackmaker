@@ -31,10 +31,14 @@ self.quantIndex = 1
 
 self.viewBinds = false
 
-local function cycleMode()
-  mode = mode + 1
-  if mode > self.Mode.Rewrite then
-    mode = 1
+function self.cycleMode()
+  if self.write then
+    mode = mode + 1
+    if mode > self.Mode.Rewrite then
+      mode = 1
+    end
+  else
+    self.write = true
   end
 end
 
@@ -292,23 +296,19 @@ function self.keypressed(key, code, isRepeat)
   if isRepeat then return end
 
   if self.write then
-    if key == 'escape' then
-      self.write = false
-    elseif key == 'tab' then
-      cycleMode()
-    elseif code == 'lshift' then
+    if code == 'lshift' then
       self.beginGearShift(xdrv.XDRVLane.Left)
-    elseif code == 'a' then
+    elseif code == 'a' or code == '1' then
       self.beginNote(1)
-    elseif code == 's' then
+    elseif code == 's' or code == '2' then
       self.beginNote(2)
-    elseif code == 'd' then
+    elseif code == 'd' or code == '3' then
       self.beginNote(3)
-    elseif code == 'l' then
+    elseif code == 'l' or code == '4' then
       self.beginNote(4)
-    elseif code == ';' then
+    elseif code == ';' or code == '5' then
       self.beginNote(5)
-    elseif code == '\'' then
+    elseif code == '\'' or code == '6' then
       self.beginNote(6)
     elseif code == 'rshift' then
       self.beginGearShift(xdrv.XDRVLane.Right)
@@ -320,8 +320,15 @@ function self.keypressed(key, code, isRepeat)
       self.placeDrift(xdrv.XDRVDriftDirection.Neutral)
     end
   else
-    if key == 'tab' then
-      self.write = true
+    if
+      code == 'a' or code == '1' or
+      code == 's' or code == '2' or
+      code == 'd' or code == '3' or
+      code == 'l' or code == '4' or
+      code == ';' or code == '5' or
+      code == '\'' or code == '6'
+    then
+      logs.log('You must be in write mode to do this! (Press ' .. keybinds.formatBind(keybinds.binds.cycleMode) .. ')')
     end
   end
 end
@@ -332,17 +339,17 @@ function self.keyreleased(key, code)
   if self.write then
     if code == 'lshift' then
       self.endGearShift(xdrv.XDRVLane.Left)
-    elseif code == 'a' then
+    elseif code == 'a' or code == '1' then
       self.endNote(1)
-    elseif code == 's' then
+    elseif code == 's' or code == '2' then
       self.endNote(2)
-    elseif code == 'd' then
+    elseif code == 'd' or code == '3' then
       self.endNote(3)
-    elseif code == 'l' then
+    elseif code == 'l' or code == '4' then
       self.endNote(4)
-    elseif code == ';' then
+    elseif code == ';' or code == '5' then
       self.endNote(5)
-    elseif code == '\'' then
+    elseif code == '\'' or code == '6' then
       self.endNote(6)
     elseif code == 'rshift' then
       self.endGearShift(xdrv.XDRVLane.Right)
