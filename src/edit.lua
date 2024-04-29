@@ -129,6 +129,22 @@ function self.beginGearShift(lane)
   table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
 end
 
+---@param dir XDRVDriftDirection
+function self.placeDrift(dir)
+  local beat = getBeat()
+  local event = { beat = beat, drift = { } }
+  local eventIdx = chart.findEvent(event)
+  local cmpEvent = chart.chart[eventIdx]
+
+  if eventIdx then
+    chart.removeEvent(eventIdx)
+  end
+
+  if not eventIdx or cmpEvent.drift.direction ~= dir then
+    chart.placeEvent({ beat = beat, drift = { direction = dir } })
+  end
+end
+
 function self.endNote(column)
   for i = #ghosts, 1, -1 do
     local ghost = ghosts[i]
@@ -296,6 +312,12 @@ function self.keypressed(key, code, isRepeat)
       self.beginNote(6)
     elseif code == 'rshift' then
       self.beginGearShift(xdrv.XDRVLane.Right)
+    elseif code == ',' then
+      self.placeDrift(xdrv.XDRVDriftDirection.Left)
+    elseif code == '.' then
+      self.placeDrift(xdrv.XDRVDriftDirection.Right)
+    elseif code == '/' then
+      self.placeDrift(xdrv.XDRVDriftDirection.Neutral)
     end
   else
     if key == 'tab' then
