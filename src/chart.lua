@@ -1,10 +1,10 @@
 local self = {}
 
-local xdrv = require 'lib.xdrv'
-local nfd = require 'nfd'
-local conductor = require 'src.conductor'
-local logs      = require 'src.logs'
-local config    = require 'src.config'
+local xdrv       = require 'lib.xdrv'
+local conductor  = require 'src.conductor'
+local logs       = require 'src.logs'
+local config     = require 'src.config'
+local filesystem = require 'src.filesystem'
 
 self.loaded = false
 ---@type XDRVEvent[]
@@ -63,12 +63,16 @@ function self.openPath(filepath)
   config.appendRecent(filepath)
 end
 
+local FILE_FILTER = 'xdrv'
+
 function self.openChart()
-  local filepath = nfd.open('xdrv')
-
-  if not filepath then return end
-
-  self.openPath(filepath)
+  filesystem.openDialog(nil, FILE_FILTER, function(path)
+    if path then
+      self.openPath(path)
+    else
+      logs.log('Open cancelled.')
+    end
+  end)
 end
 
 local function save(filepath)
@@ -123,10 +127,13 @@ end
 function self.saveChart()
   if not self.chart then return end
 
-  local filepath = nfd.save('xdrv', self.chartDir .. '/' .. makeChartFilename(self.metadata))
-
-  if not filepath then return end
-  save(filepath)
+  filesystem.saveDialog(self.chartDir .. makeChartFilename(self.metadata), FILE_FILTER, function(path)
+    if path then
+      save(path)
+    else
+      logs.log('Save cancelled.')
+    end
+  end)
 end
 
 function self.quickSave()

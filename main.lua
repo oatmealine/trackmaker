@@ -26,6 +26,7 @@ local chart     = require 'src.chart'
 local widgets   = require 'src.widgets'
 local logs      = require 'src.logs'
 local config    = require 'src.config'
+local threads   = require 'src.threads'
 
 function love.load()
   love.keyboard.setKeyRepeat(true)
@@ -36,6 +37,7 @@ end
 function love.update(dt)
   conductor.update(dt)
   logs.update(dt)
+  threads.update()
 end
 
 function love.draw()
