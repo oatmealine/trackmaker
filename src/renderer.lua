@@ -119,17 +119,18 @@ local function drawGearShift(event)
   love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
 end
 
-local QUANT_DEFAULT_COLOR = rgb(0.5, 0.5, 0.5)
+local QUANT_DEFAULT_COLOR = hex('a5a5a5')
 local QUANT_COLORS = {
-  rgb(1, 0, 0),
-  rgb(0.2, 0, 1),
-  rgb(0.75, 0, 1),
-  rgb(0.2, 1, 0),
+  hex('f15858'),
+  hex('5671e8'),
+  hex('ad66d4'),
+  hex('f5db41'),
   nil,
-  rgb(1, 0, 0.75),
-  rgb(1, 1, 0.2),
-  rgb(0.2, 1, 1),
-  rgb(0, 1, 0),
+  hex('f486ae'),
+  hex('f19848'),
+  hex('92f1ea'),
+  hex('89ee7d'),
+  nil,
   nil,
 }
 
@@ -256,7 +257,7 @@ function self.draw()
   )
 
   if not quantCol then
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(0, 0, 0, 1)
     love.graphics.printf(tostring(getDivision(edit.quantIndex)), getLeft() - 45, sh - PAD_BOTTOM - fonts.inter_12:getHeight()/2, 30, 'center')
     love.graphics.printf(tostring(getDivision(edit.quantIndex)), getRight() + 15, sh - PAD_BOTTOM - fonts.inter_12:getHeight()/2, 30, 'center')
   end
