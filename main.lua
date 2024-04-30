@@ -28,7 +28,7 @@ local logs      = require 'src.logs'
 
 function love.load()
   love.keyboard.setKeyRepeat(true)
-  chart.openChart()
+  --chart.openChart()
 end
 
 function love.update(dt)
