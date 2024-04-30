@@ -193,13 +193,14 @@ end
 local InfobarWidget = require 'src.widgets.infobar'
 local ContextWidget = require 'src.widgets.context'
 local ActionBarWidget = require 'src.widgets.actionbar'
+local UITestWidget = require 'src.widgets.uitest'
 
 ---@type Widget?
 local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { InfobarWidget(), ActionBarWidget() }
+widgets = { InfobarWidget(), ActionBarWidget(), UITestWidget(100, 100) }
 
 function self.update()
   for i = #widgets, 1, -1 do
@@ -228,13 +229,6 @@ function self.mousepressed(x, y, button)
     local res = widget:testPoint(x, y)
 
     if res ~= WidgetPointState.None then
-      widget:clickFrame(x, y, button)
-
-      if button == 1 and (res == WidgetPointState.Bar or widget.dragAnywhere) and widget.isMovable then
-        draggingWidget = widget
-        dragX, dragY = x - widget.x, y - widget.y
-      end
-
       -- move to front
       if i ~= #widgets and not widget.ignoreFocus then
         table.remove(widgets, i)
@@ -243,6 +237,13 @@ function self.mousepressed(x, y, button)
         table.insert(widgets, widget)
         widget:focus()
         widget.focused = true
+      end
+
+      widget:clickFrame(x, y, button)
+
+      if button == 1 and (res == WidgetPointState.Bar or widget.dragAnywhere) and widget.isMovable then
+        draggingWidget = widget
+        dragX, dragY = x - widget.x, y - widget.y
       end
 
       self.update()
