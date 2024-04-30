@@ -101,6 +101,7 @@ function self.beginNote(column)
     local eventIdx = chart.findEvent(event)
     if eventIdx then
       chart.removeEvent(eventIdx)
+      logs.log('Removed note')
     else
       table.insert(ghosts, event)
     end
@@ -137,6 +138,7 @@ function self.beginGearShift(lane)
 
   if eventIdx then
     chart.removeEvent(eventIdx)
+    logs.log('Removed gear shift')
   else
     table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
   end
@@ -155,6 +157,9 @@ function self.placeDrift(dir)
 
   if not eventIdx or cmpEvent.drift.direction ~= dir then
     chart.placeEvent({ beat = beat, drift = { direction = dir } })
+    logs.log(eventIdx and 'Replaced drift' or 'Placed drift')
+  else
+    logs.log('Removed drift')
   end
 end
 
@@ -171,6 +176,7 @@ function self.endNote(column)
         ghost.note.length = nil
       end
       chart.placeEvent(ghost)
+      logs.log('Placed note')
       table.remove(ghosts, i)
     end
   end
@@ -186,6 +192,7 @@ function self.endGearShift(lane)
       end
       if ghost.gearShift.length ~= 0 then
         chart.placeEvent(ghost)
+        logs.log('Placed gear shift')
       end
       table.remove(ghosts, i)
     end
