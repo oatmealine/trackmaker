@@ -1,6 +1,7 @@
-local chart = require 'src.chart'
-local edit  = require 'src.edit'
-local logs  = require 'src.logs'
+local chart  = require 'src.chart'
+local edit   = require 'src.edit'
+local logs   = require 'src.logs'
+local config = require 'src.config'
 
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
@@ -23,9 +24,14 @@ local items = {
     return {
       { 'Open',        function() chart.openChart()  end, bind = keybinds.binds.open },
       { 'Recent files', hover = function(self, i)
-        self:openChild(i, ContextWidget(0, 0, {
-          { 'Hello!', function() end }
-        }))
+        local entries = {}
+        for _, path in ipairs(config.config.recent) do
+          table.insert(entries, { path, function() chart.openPath(path) end })
+        end
+        if #entries == 0 then
+          table.insert(entries, { 'No recent files..' })
+        end
+        self:openChild(i, ContextWidget(0, 0, entries))
       end, expandable = true },
       { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave },
       { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save },

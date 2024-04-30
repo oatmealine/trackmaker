@@ -25,9 +25,11 @@ local renderer  = require 'src.renderer'
 local chart     = require 'src.chart'
 local widgets   = require 'src.widgets'
 local logs      = require 'src.logs'
+local config    = require 'src.config'
 
 function love.load()
   love.keyboard.setKeyRepeat(true)
+  config.load()
   --chart.openChart()
 end
 

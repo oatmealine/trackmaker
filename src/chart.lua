@@ -4,6 +4,7 @@ local xdrv = require 'lib.xdrv'
 local nfd = require 'nfd'
 local conductor = require 'src.conductor'
 local logs      = require 'src.logs'
+local config    = require 'src.config'
 
 self.loaded = false
 ---@type XDRVEvent[]
@@ -35,14 +36,11 @@ local function updateTitle()
   end
 end
 
-function self.openChart()
-  local filepath = nfd.open('xdrv')
-
-  if not filepath then return end
-
+function self.openPath(filepath)
   local file, err = io.open(filepath, 'r')
   if not file then
     print(err)
+    logs.log(err)
     return
   end
   local data = file:read('*a')
@@ -62,6 +60,15 @@ function self.openChart()
   updateTitle()
 
   logs.log('Loaded chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
+  config.appendRecent(filepath)
+end
+
+function self.openChart()
+  local filepath = nfd.open('xdrv')
+
+  if not filepath then return end
+
+  self.openPath(filepath)
 end
 
 local function save(filepath)

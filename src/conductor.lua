@@ -1,5 +1,7 @@
 local M = {}
 
+local logs = require 'src.logs'
+
 ---@type love.Source?
 local song
 
@@ -20,12 +22,14 @@ end
 function M.loadFromChart(chart, dir)
   M.offset = chart.metadata.musicOffset
   local songPath = dir .. chart.metadata.musicAudio
-  local file = io.open(songPath, 'rb')
+  local file, err = io.open(songPath, 'rb')
   if file then
     local data = file:read('*a')
     if song then song:release() end
     song = love.audio.newSource(love.filesystem.newFileData(data, chart.metadata.musicAudio), 'static')
     file:close()
+  else
+    logs.log(err)
   end
 
   M.initialBPM = chart.metadata.chartBPM

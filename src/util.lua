@@ -1,5 +1,27 @@
+---@generic T table<any>
+---@param tab T
+---@return T
 function copy(tab)
   return {unpack(tab)}
+end
+
+---@generic T table<any>
+---@param tab T
+---@return T
+function deepcopy(tab)
+  local new = {}
+  for k, v in pairs(tab) do
+    if type(v) == 'table' then
+      local mt = getmetatable(v)
+      new[k] = deepcopy(v)
+      if mt then
+        setmetatable(new[k], deepcopy(mt))
+      end
+    else
+      new[k] = v
+    end
+  end
+  return new
 end
 
 function countKeys(t)
