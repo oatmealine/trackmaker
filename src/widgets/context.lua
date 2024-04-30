@@ -6,7 +6,10 @@ local HEIGHT = 24
 local MARGIN = 7
 local GAP = 10
 
----@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)? }
+local LEFT_PAD = 14
+local RIGHT_PAD = 14
+
+---@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean? }
 
 ---@param entries ContextWidgetEntry[]
 function ContextWidget:new(x, y, entries)
@@ -37,7 +40,7 @@ function ContextWidget:new(x, y, entries)
     width = math.max(width, w)
   end
 
-  self.width = MARGIN * 2 + width
+  self.width = MARGIN * 2 + LEFT_PAD + RIGHT_PAD + width
   self.height = HEIGHT * #entries
 
   self.entries = entries
@@ -102,6 +105,8 @@ function ContextWidget:drawInner()
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
   love.graphics.setColor(1, 1, 1, 1)
   for i, text in ipairs(self.texts) do
+    local entry = self.entries[i]
+
     local y = (i - 1) * HEIGHT
     local botY = i * HEIGHT
 
@@ -112,12 +117,20 @@ function ContextWidget:drawInner()
     end
 
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(text, MARGIN, round(y + HEIGHT/2 - text:getHeight()/2))
+    love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
 
     local bindText = self.bindTexts[i]
     if bindText then
       love.graphics.setColor(0.8, 0.8, 0.8, 1)
-      love.graphics.draw(bindText, self.width - MARGIN - bindText:getWidth(), round(y + HEIGHT/2 - bindText:getHeight()/2))
+      love.graphics.draw(bindText, self.width - MARGIN - RIGHT_PAD - bindText:getWidth(), round(y + HEIGHT/2 - bindText:getHeight()/2))
+    end
+
+    if entry.toggle and entry.value then
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.print('✓', MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2)
+    end
+    if entry.expandable then
+      love.graphics.printf('►', MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
     end
   end
 end

@@ -18,9 +18,11 @@ local items = {
   { 'File', function()
     return {
       { 'Open',        function() chart.openChart()  end, bind = keybinds.binds.open },
-      { 'Recent >',    hover = function(self, i) self:openChild(i, ContextWidget(0, 0, {
-        { 'Hello!', function() end }
-      })) end },
+      { 'Recent files', hover = function(self, i)
+        self:openChild(i, ContextWidget(0, 0, {
+          { 'Hello!', function() end }
+        }))
+      end, expandable = true },
       { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave },
       { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save },
       { 'Metadata...', function() openWidget(MetadataWidget(100, 100)) end },
@@ -34,16 +36,20 @@ local items = {
       { 'Paste', function() edit.paste() end, bind = keybinds.binds.paste },
     }
   end},
-  { 'Help', function()
+  { 'Options', function()
     local width, height, flags = love.window.getMode()
     return {
-      { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
-      { 'VSync: ' .. ((flags.vsync == 1) and 'ON' or 'OFF'), function()
+      { 'VSync', function()
         flags.vsync = 1 - flags.vsync
         logs.log('VSync: ' .. ((flags.vsync == 1) and 'ON' or 'OFF'))
         ---@diagnostic disable-next-line: param-type-mismatch
         love.window.setMode(width, height, flags)
-      end },
+      end, toggle = true, value = flags.vsync == 1 },
+    }
+  end},
+  { 'Help', function()
+    return {
+      { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
       { 'About',         function() openWidget(AboutWidget(150, 150)) end }
     }
   end},
