@@ -264,6 +264,7 @@ function self.keypressed(key, code, isRepeat)
   if #triggeredKeybinds <= 1 then
     local bind = triggeredKeybinds[1]
     if bind and bind.trigger then bind.trigger() end
+    if bind then return end
   else
     -- resolve via priority
     local maxPrio = 0
@@ -281,6 +282,7 @@ function self.keypressed(key, code, isRepeat)
     end
 
     if maxBind.trigger then maxBind.trigger() end
+    return
   end
 
   if self.viewBinds then return end
@@ -352,7 +354,7 @@ end
 ---@param key love.KeyConstant
 ---@param code love.Scancode
 function self.keyreleased(key, code)
-  if self.write then
+  if self.write and #ghosts > 0 then
     if code == 'lshift' then
       self.endGearShift(xdrv.XDRVLane.Left)
     elseif code == 'a' or code == '1' then

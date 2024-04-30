@@ -80,6 +80,17 @@ self.binds = {
     keys = { 'l' },
     trigger = function()
       logs.logFile(pretty(chart.chart))
+      logs.log('Wrote chart to trackmaker.log')
+    end
+  },
+  dumpChartClipboard = {
+    name = 'Dump chart to clipboard',
+    ctrl = true,
+    shift = true,
+    keys = { 'l' },
+    trigger = function()
+      love.system.setClipboardText(pretty(chart.chart))
+      logs.log('Wrote chart to clipboard')
     end
   },
   cycleMode = {
