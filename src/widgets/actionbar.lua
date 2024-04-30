@@ -7,6 +7,7 @@ local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
 local AboutWidget = require 'src.widgets.about'
 local CatjamWidget = require 'src.widgets.catjam'
+local UITestWidget = require 'src.widgets.uitest'
 
 ---@class ActionBarWidget : Widget
 local ActionBarWidget = Widget:extend()
@@ -35,6 +36,11 @@ local items = {
       end, expandable = true },
       { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave },
       { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save },
+      { 'Import',   hover = function(self, i)
+        self:openChild(i, ContextWidget(0, 0, {
+          { '.SM/.SSC file', function() chart.importMenu('sm,ssc') end },
+        }))
+      end, expandable = true },
       { 'Metadata...', function() openWidget(MetadataWidget(100, 100)) end },
       { 'Exit',        function() love.event.quit(0) end}
     }
@@ -69,7 +75,8 @@ local items = {
   { 'Help', function()
     return {
       { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
-      { 'About',         function() openWidget(AboutWidget(150, 150)) end }
+      { 'UI Test',         function() openWidget(UITestWidget(150, 150)) end },
+      { 'About',         function() openWidget(AboutWidget(150, 150)) end },
     }
   end},
 }

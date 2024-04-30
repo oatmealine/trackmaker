@@ -190,7 +190,7 @@ end
 local widgets = { }
 
 ---@param w Widget
-function openWidget(w)
+function openWidget(w, centered)
   if widgets[#widgets] then
     widgets[#widgets]:loseFocus(w)
     widgets[#widgets].focused = false
@@ -198,20 +198,26 @@ function openWidget(w)
   table.insert(widgets, w)
   w:focus()
   w.focused = true
+  if centered then
+    w.x = love.graphics.getWidth()/2 - w.width/2
+    w.y = love.graphics.getHeight()/2 - w.height/2
+  end
   self.update()
 end
 
 local InfobarWidget = require 'src.widgets.infobar'
-local ContextWidget = require 'src.widgets.context'
 local ActionBarWidget = require 'src.widgets.actionbar'
-local UITestWidget = require 'src.widgets.uitest'
 
 ---@type Widget?
 local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { InfobarWidget(), ActionBarWidget(), UITestWidget(100, 100) }
+widgets = { InfobarWidget(), ActionBarWidget() }
+
+function getWidgets()
+  return widgets
+end
 
 function self.update()
   for i = #widgets, 1, -1 do

@@ -232,7 +232,7 @@ end
 
 ---@param events XDRVEvent[]
 ---@return XDRVEvent[]
-local function addHoldEnds(events)
+function M.addHoldEnds(events)
   local newEvents = {}
   for _, event in ipairs(events) do
     if event.note and event.note.length then
@@ -249,7 +249,7 @@ local function addHoldEnds(events)
 end
 ---@param events XDRVEvent[]
 ---@return XDRVEvent[]
-local function collapseHoldEnds(events)
+function M.collapseHoldEnds(events)
   local indices = {}
   local insertIndices = {}
 
@@ -383,7 +383,7 @@ end
 
 ---@param events XDRVEvent[]
 local function serializeChart(events)
-  events = addHoldEnds(events)
+  events = M.addHoldEnds(events)
 
   -- a lot of code assumes this table is sorted
   -- preferably we shouldn't sort it to do so, but making `addHoldEnds` work
@@ -585,7 +585,7 @@ local function deserializeChart(str)
     end
   end
 
-  return collapseHoldEnds(events)
+  return M.collapseHoldEnds(events)
 end
 
 ---@param m table<string, string>

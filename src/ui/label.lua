@@ -8,10 +8,14 @@ function Label:new(x, y, text)
   self.y = y
   self.text = text
 
-  self.textObj = love.graphics.newText(fonts.inter_12, self.text)
+  self:updateText()
 
   self.width = self.textObj:getWidth()
   self.height = self.textObj:getHeight()
+end
+
+function Label:updateText()
+  self.textObj = love.graphics.newText(fonts.inter_12, self.text)
 end
 
 function Label:draw()

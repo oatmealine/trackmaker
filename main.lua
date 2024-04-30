@@ -18,12 +18,12 @@ fonts = {
   inter_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),
 }
 
+local widgets   = require 'src.widgets'
 local conductor = require 'src.conductor'
 keybinds        = require 'src.keybinds'
 local edit      = require 'src.edit'
 local renderer  = require 'src.renderer'
 local chart     = require 'src.chart'
-local widgets   = require 'src.widgets'
 local logs      = require 'src.logs'
 local config    = require 'src.config'
 local threads   = require 'src.threads'
