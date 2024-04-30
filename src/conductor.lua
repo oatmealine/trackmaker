@@ -125,9 +125,11 @@ function M.timeAtBeat(b)
 end
 
 function M.play()
+  if not song then return end
   M.playing = true
 end
 function M.pause()
+  if not song then return end
   M.playing = false
 end
 
@@ -139,7 +141,11 @@ end
 local function updateSongPos()
   M.time = math.max(M.time, 0)
   M.time = math.min(M.time, M.getDuration())
-  if not song then return end
+  if not song then
+    M.playing = false
+    M.time = 0
+    return
+  end
   local position = M.time - M.offset
   local min = 0
   local max = song:getDuration()
