@@ -130,7 +130,16 @@ function self.beginNote(column)
 end
 ---@param lane XDRVLane
 function self.beginGearShift(lane)
-  table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
+  local beat = getBeat()
+  local event = { beat = beat, gearShift = { lane = lane } }
+
+  local eventIdx = chart.findEvent(event)
+
+  if eventIdx then
+    chart.removeEvent(eventIdx)
+  else
+    table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
+  end
 end
 
 ---@param dir XDRVDriftDirection
