@@ -2,7 +2,9 @@
 
 ![](docs/screenshot-1.png)
 
-Heavily work-in-progress GUI chart editor for [EX-XDRiVER](https://store.steampowered.com/app/2636020/EXXDRiVER/).
+Heavily work-in-progress GUI chart editor for
+[EX-XDRiVER](https://store.steampowered.com/app/2636020/EXXDRiVER/) written with
+[LÖVE](https://love2d.org/).
 
 ## Run
 
@@ -38,3 +40,26 @@ Download a [release](https://github.com/oatmealine/trackmaker/releases), and fol
     ```sh
     love .
     ```
+
+## Contributing
+
+Feel free to contribute anything you'd like to see. I'm following a pretty
+specific vision with the editor, but **contributions are always appreciated**
+and I'll always try my best to work out how to fit them well. Thank you!
+
+## Credits
+
+This project would not be possible without these projects:
+
+- [LÖVE](https://love2d.org/)
+- [json.lua](https://github.com/rxi/json.lua)
+- [classic](https://github.com/rxi/classic)
+- [Vexatos](https://github.com/Vexatos)'s fork of
+[nativefiledialog](https://github.com/Vexatos/nativefiledialog)
+- [Lönn](https://github.com/CelestialCartographers/Loenn/): A lot of the
+nativefiledialog handling code is stolen from them. Thank you very much!
+
+And these people:
+
+- [tari](https://github.com/tari-cat), [riley](https://github.com/rilegoat), and
+the rest of the [EX-XDRiVER team](https://xdrv.team). Thank you!
