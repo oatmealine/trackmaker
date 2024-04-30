@@ -23,8 +23,7 @@ local MODE_WIDTH = 72
 
 function InfobarWidget:click(x, y, button)
   if button == 1 and x > self.width - MODE_WIDTH then
-    -- janky way to do this, but i cba
-    edit.keypressed('tab', 'tab', false)
+    edit.cycleMode()
   end
 end
 
