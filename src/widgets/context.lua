@@ -2,7 +2,7 @@
 local ContextWidget = Widget:extend()
 
 local MIN_WIDTH = 100
-local HEIGHT = 24
+local HEIGHT = 22
 local MARGIN = 7
 local GAP = 10
 
