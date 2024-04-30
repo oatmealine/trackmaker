@@ -13,10 +13,14 @@ local HEIGHT = 24
 local GAP = 14
 local MARGIN = GAP / 2
 
+---@type { [1]: string, [2]: fun(): ContextWidgetEntry }[]
 local items = {
   { 'File', function()
     return {
       { 'Open',        function() chart.openChart()  end, bind = keybinds.binds.open },
+      { 'Recent >',    hover = function(self, i) self:openChild(i, ContextWidget(0, 0, {
+        { 'Hello!', function() end }
+      })) end },
       { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave },
       { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save },
       { 'Metadata...', function() openWidget(MetadataWidget(100, 100)) end },
@@ -83,6 +87,8 @@ function ActionBarWidget:mouse(x, y, click)
         self.openIdx = nil
         return
       end
+
+      if i == self.openIdx then break end
 
       local widget = ContextWidget(tx - GAP/2, self.y + self.height, self.items[i][2]())
       openWidget(widget)

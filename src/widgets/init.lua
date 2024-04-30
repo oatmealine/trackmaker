@@ -23,6 +23,16 @@ function Widget:new(x, y)
   self.delete = false
   self.ignoreFocus = false
   self.focused = false
+
+  self.name = 'Widget'
+end
+
+function Widget:__tostring()
+  local meta = getmetatable(self)
+  local t = setmetatable(self, nil)
+  local hash = string.match(tostring(t), '(0x%S+)')
+  setmetatable(self, meta)
+  return self.name .. ' (' .. hash .. ')'
 end
 
 function Widget:update()
@@ -43,7 +53,8 @@ local WidgetPointState = {
   Bar = 3,
 }
 
-function Widget:loseFocus()
+---@param to Widget
+function Widget:loseFocus(to)
 end
 function Widget:focus()
 end
@@ -141,7 +152,7 @@ local widgets = { }
 ---@param w Widget
 function openWidget(w)
   if widgets[#widgets] then
-    widgets[#widgets]:loseFocus()
+    widgets[#widgets]:loseFocus(w)
     widgets[#widgets].focused = false
   end
   table.insert(widgets, w)
@@ -195,7 +206,7 @@ function self.mousepressed(x, y, button)
         -- move to front
         if i ~= #widgets and not widget.ignoreFocus then
           table.remove(widgets, i)
-          widgets[#widgets]:loseFocus()
+          widgets[#widgets]:loseFocus(widget)
           widgets[#widgets].focused = false
           table.insert(widgets, widget)
           widget:focus()
@@ -220,6 +231,7 @@ function self.mousemoved(x, y)
   for _, widget in ipairs(widgets) do
     widget:moveFrame(x, y)
   end
+  self.update()
 end
 function self.mousereleased(x, y, button)
   if button == 1 and draggingWidget then
