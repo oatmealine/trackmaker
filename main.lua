@@ -86,11 +86,20 @@ function love.mousereleased(x, y, button)
   widgets.mousereleased(x, y, button)
 end
 function love.keypressed(key, scancode, isrepeat)
+  if widgets.keypressed(key, scancode, isrepeat) then
+    return
+  end
+  if widgets.eatsInputs() then return end
   edit.keypressed(key, scancode, isrepeat)
 end
 function love.keyreleased(key, scancode)
+  if widgets.eatsInputs() then return end
   edit.keyreleased(key, scancode)
 end
 function love.wheelmoved(ox, oy)
   renderer.wheelmoved(oy)
+end
+
+function love.textinput(t)
+  widgets.textinput(t)
 end

@@ -1,3 +1,12 @@
+local utf8 = require 'utf8'
+
+function utf8sub(s, a, b)
+  a = a or 0
+  b = b or utf8.len(s)
+  if b < a then return '' end
+  return string.sub(s, (utf8.offset(s, a) or 1), (utf8.offset(s, b + 1) or (string.len(s) + 1)) - 1)
+end
+
 ---@generic T table<any>
 ---@param tab T
 ---@return T

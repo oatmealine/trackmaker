@@ -75,6 +75,17 @@ function Widget:translateInside(x, y)
   return x - BORDER_WIDTH, y - BORDER_WIDTH - BAR_HEIGHT
 end
 
+---@param key love.KeyConstant
+---@param scancode love.Scancode
+---@param isRepeat boolean
+function Widget:key(key, scancode, isRepeat)
+end
+function Widget:textInput(t)
+end
+function Widget:eatsInputs()
+  return false
+end
+
 function Widget:testPoint(x, y)
   if not self:pointInside(x, y) then
     return WidgetPointState.None
@@ -222,6 +233,12 @@ function self.draw()
   end
 end
 
+function self.eatsInputs()
+  if widgets[#widgets] then
+    return widgets[#widgets]:eatsInputs()
+  end
+end
+
 function self.mousepressed(x, y, button)
   for i = #widgets, 1, -1 do
     local widget = widgets[i]
@@ -265,6 +282,16 @@ function self.mousereleased(x, y, button)
   if button == 1 and draggingWidget then
     draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
     draggingWidget = nil
+  end
+end
+function self.textinput(t)
+  if widgets[#widgets] then
+    widgets[#widgets]:textInput(t)
+  end
+end
+function self.keypressed(key, scancode, isRepeat)
+  if widgets[#widgets] then
+    return widgets[#widgets]:key(key, scancode, isRepeat)
   end
 end
 

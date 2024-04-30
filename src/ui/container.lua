@@ -16,7 +16,11 @@ end
 
 function Container:click(x, y, button)
   for _, child in ipairs(self.children) do
+    child.active = false
+  end
+  for _, child in ipairs(self.children) do
     if child:inBounds(x, y) then
+      child.active = true
       child:click(x - child.x, y - child.y, button)
       return
     end
@@ -25,6 +29,34 @@ end
 function Container:move(x, y)
   for _, child in ipairs(self.children) do
     child:move(x - child.x, y - child.y)
+  end
+end
+function Container:textInput(t)
+  for _, child in ipairs(self.children) do
+    if child.active then
+      child:textInput(t)
+    end
+  end
+end
+function Container:key(key, scancode, isRepeat)
+  for _, child in ipairs(self.children) do
+    if child.active then
+      child:key(key, scancode, isRepeat)
+    end
+  end
+end
+function Container:eatsInputs()
+  for _, child in ipairs(self.children) do
+    if child.active then
+      return child:eatsInputs()
+    end
+  end
+  return false
+end
+
+function Container:loseFocus()
+  for _, child in ipairs(self.children) do
+    child.active = false
   end
 end
 
