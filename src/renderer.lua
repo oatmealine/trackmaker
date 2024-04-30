@@ -119,6 +119,20 @@ local function drawGearShift(event)
   love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
 end
 
+local QUANT_DEFAULT_COLOR = rgb(0.5, 0.5, 0.5)
+local QUANT_COLORS = {
+  rgb(1, 0, 0),
+  rgb(0.2, 0, 1),
+  rgb(0.75, 0, 1),
+  rgb(0.2, 1, 0),
+  nil,
+  rgb(1, 0, 0.75),
+  rgb(1, 1, 0.2),
+  rgb(0.2, 1, 1),
+  rgb(0, 1, 0),
+  nil,
+}
+
 function self.draw()
   sw, sh = love.graphics.getDimensions()
   scx, scy = sw/2, sh/2
@@ -226,20 +240,25 @@ function self.draw()
   end
 
   local quantCol = QUANT_COLORS[edit.quantIndex]
-  if quantCol then
-    love.graphics.setColor(quantCol:unpack())
-    love.graphics.polygon('fill',
-      getLeft() - 15, sh - PAD_BOTTOM,
-      getLeft() - 30, sh - PAD_BOTTOM - 15,
-      getLeft() - 45, sh - PAD_BOTTOM,
-      getLeft() - 30, sh - PAD_BOTTOM + 15
-    )
-    love.graphics.polygon('fill',
-      getRight() + 15, sh - PAD_BOTTOM,
-      getRight() + 30, sh - PAD_BOTTOM - 15,
-      getRight() + 45, sh - PAD_BOTTOM,
-      getRight() + 30, sh - PAD_BOTTOM + 15
-    )
+
+  love.graphics.setColor((quantCol or QUANT_DEFAULT_COLOR):unpack())
+  love.graphics.polygon('fill',
+    getLeft() - 15, sh - PAD_BOTTOM,
+    getLeft() - 30, sh - PAD_BOTTOM - 15,
+    getLeft() - 45, sh - PAD_BOTTOM,
+    getLeft() - 30, sh - PAD_BOTTOM + 15
+  )
+  love.graphics.polygon('fill',
+    getRight() + 15, sh - PAD_BOTTOM,
+    getRight() + 30, sh - PAD_BOTTOM - 15,
+    getRight() + 45, sh - PAD_BOTTOM,
+    getRight() + 30, sh - PAD_BOTTOM + 15
+  )
+
+  if not quantCol then
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.printf(tostring(getDivision(edit.quantIndex)), getLeft() - 45, sh - PAD_BOTTOM - fonts.inter_12:getHeight()/2, 30, 'center')
+    love.graphics.printf(tostring(getDivision(edit.quantIndex)), getRight() + 15, sh - PAD_BOTTOM - fonts.inter_12:getHeight()/2, 30, 'center')
   end
 
   love.graphics.pop()

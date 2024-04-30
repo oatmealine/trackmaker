@@ -26,19 +26,6 @@ QUANTS = {
   1 / 48,
 }
 
-QUANT_COLORS = {
-  rgb(1, 0, 0),
-  rgb(0.2, 0, 1),
-  rgb(0.75, 0, 1),
-  rgb(0.2, 1, 0),
-  nil,
-  rgb(1, 0, 0.75),
-  rgb(1, 1, 0.2),
-  rgb(0.2, 1, 1),
-  rgb(0, 1, 0),
-  nil,
-}
-
 function getQuantIndex(beat)
   for i, quant in ipairs(QUANTS) do
     if math.abs(beat - round(beat / quant) * quant) < 0.01 then
@@ -55,6 +42,17 @@ end
 function quantize(beat, quantI)
   local quant = QUANTS[quantI]
   return round(beat / quant) * quant
+end
+
+local function suffixSnap(n)
+  if n % 10 == 1 and n ~= 11 then return 'st' end
+  if n % 10 == 2 and n ~= 12 then return 'nd' end
+  if n % 10 == 3 and n ~= 13 then return 'rd' end
+  return 'th'
+end
+function formatSnap(n)
+  local div = getDivision(n)
+  return tostring(div) .. suffixSnap(div)
 end
 
 ---@param str string
