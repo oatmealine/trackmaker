@@ -59,6 +59,15 @@ end
 function Widget:focus()
 end
 
+function Widget:rightClick(x, y)
+end
+function Widget:rightClickFrame(x, y)
+  -- todo: does not account for window decorations
+  if self:pointInside(x, y) then
+    self:rightClick(x - self.x, y - self.y)
+  end
+end
+
 function Widget:click(x, y)
 end
 
@@ -215,10 +224,8 @@ function self.mousepressed(x, y, button)
         return
       end
     elseif button == 2 then
-      if widget:pointInside(x, y) and widget.dragAnywhere then
-        table.insert(widgets, ContextWidget(x, y, {
-          { 'Close', function() widget.delete = true end }
-        }))
+      if widget:pointInside(x, y) then
+        widget:rightClickFrame(x, y)
       end
     end
   end
