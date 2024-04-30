@@ -5,6 +5,7 @@ local logs  = require 'src.logs'
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
 local AboutWidget = require 'src.widgets.about'
+local CatjamWidget = require 'src.widgets.catjam'
 
 ---@class ActionBarWidget : Widget
 local ActionBarWidget = Widget:extend()
@@ -12,6 +13,9 @@ local ActionBarWidget = Widget:extend()
 local HEIGHT = 24
 local GAP = 14
 local MARGIN = GAP / 2
+
+---@type CatjamWidget?
+local catjam = nil
 
 ---@type { [1]: string, [2]: fun(): ContextWidgetEntry }[]
 local items = {
@@ -45,6 +49,15 @@ local items = {
         ---@diagnostic disable-next-line: param-type-mismatch
         love.window.setMode(width, height, flags)
       end, toggle = true, value = flags.vsync == 1 },
+      { 'Cat', function()
+        if not catjam or catjam.delete then
+          catjam = CatjamWidget(32, 32)
+          openWidget(catjam)
+        else
+          catjam.delete = true
+          catjam = nil
+        end
+      end, toggle = true, value = not (not catjam or catjam.delete) },
     }
   end},
   { 'Help', function()

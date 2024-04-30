@@ -161,7 +161,6 @@ function openWidget(w)
   self.update()
 end
 
-local CatjamWidget = require 'src.widgets.catjam'
 local InfobarWidget = require 'src.widgets.infobar'
 local ContextWidget = require 'src.widgets.context'
 local ActionBarWidget = require 'src.widgets.actionbar'
@@ -171,7 +170,7 @@ local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { CatjamWidget(), InfobarWidget(), ActionBarWidget() }
+widgets = { InfobarWidget(), ActionBarWidget() }
 
 function self.update()
   for i = #widgets, 1, -1 do
