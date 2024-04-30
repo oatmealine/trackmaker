@@ -27,8 +27,20 @@ function self.draw()
   end
 end
 
+function self.logStdout(text)
+  print(text)
+end
+function self.logFile(text)
+  local timestamped = '[' .. os.date('%c') .. '] ' .. text
+
+  love.filesystem.append('trackmaker.log', timestamped .. '\n')
+  self.logStdout(timestamped)
+end
 function self.log(text)
+  self.logFile(text)
   table.insert(logs, { text, t = t })
 end
+
+love.filesystem.write('trackmaker.log', '')
 
 return self

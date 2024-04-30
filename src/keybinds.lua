@@ -1,5 +1,6 @@
 local chart = require 'src.chart'
 local edit  = require 'src.edit'
+local logs  = require 'src.logs'
 local self = {}
 
 ---@class Keybind
@@ -78,7 +79,7 @@ self.binds = {
     ctrl = true,
     keys = { 'l' },
     trigger = function()
-      print(pretty(chart.chart))
+      logs.logFile(pretty(chart.chart))
     end
   },
   cycleMode = {
