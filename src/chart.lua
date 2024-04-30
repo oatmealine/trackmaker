@@ -49,7 +49,7 @@ function self.openChart()
   file:close()
 
   local loaded = xdrv.deserialize(data)
-  self.chart = loaded.chart
+  self.chart = loaded.chart or {}
   self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
