@@ -5,9 +5,10 @@ function MetadataWidget:new(x, y)
   MetadataWidget.super.new(self, x, y)
   self.width = 220
   self.height = 350
+  self.title = 'Metadata'
 end
 
-function MetadataWidget:drawInner()
+function MetadataWidget:draw()
   love.graphics.setColor(0.1, 0.1, 0.1, 1)
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
   love.graphics.setColor(0.6, 0.6, 0.6, 1)

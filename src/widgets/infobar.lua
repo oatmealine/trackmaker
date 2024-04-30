@@ -21,14 +21,14 @@ local ROUND = 10
 local HEIGHT = 40
 local MODE_WIDTH = 72
 
-function InfobarWidget:click(x, y)
-  if x > self.width - MODE_WIDTH then
+function InfobarWidget:click(x, y, button)
+  if button == 1 and x > self.width - MODE_WIDTH then
     -- janky way to do this, but i cba
     edit.keypressed('tab', 'tab', false)
   end
 end
 
-function InfobarWidget:draw()
+function InfobarWidget:drawFrame()
   local footerFields = {
     { 'Difficulty', chart.loaded and (xdrv.formatDifficulty(chart.metadata.chartDifficulty) .. ' ' .. chart.metadata.chartLevel) or '' },
     { 'Snap', formatSnap(edit.quantIndex) },

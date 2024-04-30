@@ -89,7 +89,9 @@ function ContextWidget:move(x, y)
   end
 end
 
-function ContextWidget:click(x, y)
+function ContextWidget:click(x, y, button)
+  if button ~= 1 then return end
+
   local i = math.floor(y / HEIGHT) + 1
   local entry = self.entries[i]
   if entry and entry[2] then
@@ -100,7 +102,7 @@ function ContextWidget:click(x, y)
   end
 end
 
-function ContextWidget:drawInner()
+function ContextWidget:draw()
   love.graphics.setColor(0.1, 0.1, 0.1, 1)
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
   love.graphics.setColor(1, 1, 1, 1)

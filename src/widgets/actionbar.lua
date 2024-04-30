@@ -129,7 +129,8 @@ function ActionBarWidget:move(x, y)
     self:mouse(x, y)
   end
 end
-function ActionBarWidget:click(x, y)
+function ActionBarWidget:click(x, y, button)
+  if button ~= 1 then return end
   self:mouse(x, y, true)
 end
 

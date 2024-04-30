@@ -13,9 +13,10 @@ function AboutWidget:new(x, y)
   self.height = 200
 
   self.lastClick = 0
+  self.title = 'About'
 end
 
-function AboutWidget:click(x, y)
+function AboutWidget:click(x, y, button)
   local jy = 128
   if
     x > self.width/2 - jillo:getWidth() / 2 * JILLO_SCALE and
@@ -27,7 +28,7 @@ function AboutWidget:click(x, y)
   end
 end
 
-function AboutWidget:drawInner()
+function AboutWidget:draw()
   love.graphics.setColor(0.1, 0.1, 0.1, 1)
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
 

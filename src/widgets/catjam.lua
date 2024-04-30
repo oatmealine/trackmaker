@@ -42,7 +42,9 @@ function CatjamWidget:new(x, y)
   self.jammer = JAMMERS[1]
 end
 
-function CatjamWidget:rightClickFrame(x, y)
+function CatjamWidget:click(x, y, button)
+  if button ~= 2 then return end
+
   local entries = {}
 
   for _, jam in ipairs(JAMMERS) do
@@ -51,14 +53,14 @@ function CatjamWidget:rightClickFrame(x, y)
 
   table.insert(entries, { 'Close', function() self.delete = true end })
 
-  openWidget(ContextWidget(x, y, entries))
+  openWidget(ContextWidget(self.x + x, self.y + y, entries))
 end
 
 local function pingpong(x)
   return math.abs(x % 2 - 1)
 end
 
-function CatjamWidget:drawInner()
+function CatjamWidget:draw()
   local b = conductor.beat
 
   local jam = self.jammer

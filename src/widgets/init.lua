@@ -25,6 +25,7 @@ function Widget:new(x, y)
   self.focused = false
 
   self.name = 'Widget'
+  self.title = nil
 end
 
 function Widget:__tostring()
@@ -59,44 +60,37 @@ end
 function Widget:focus()
 end
 
-function Widget:rightClick(x, y)
-end
-function Widget:rightClickFrame(x, y)
-  -- todo: does not account for window decorations
-  if self:pointInside(x, y) then
-    self:rightClick(x - self.x, y - self.y)
-  end
-end
-
-function Widget:click(x, y)
-end
-
 function Widget:pointInside(x, y)
   local x1, y1, x2, y2 = self:getBoundingBox()
   return x >= x1 and x <= x2 and y >= y1 and y <= y2
 end
 
-function Widget:clickFrame(x, y)
+function Widget:translateLocal(x, y)
+  return x - self.x, y - self.y
+end
+function Widget:translateInside(x, y)
+  if not self.hasWindowDecorations then
+    return x, y
+  end
+  return x - BORDER_WIDTH, y - BORDER_WIDTH - BAR_HEIGHT
+end
+
+function Widget:testPoint(x, y)
   if not self:pointInside(x, y) then
     return WidgetPointState.None
   end
 
-  x = x - self.x
-  y = y - self.y
-
   if not self.hasWindowDecorations then
-    self:click(x, y)
     return WidgetPointState.Inside
   end
 
-  if x > BORDER_WIDTH and x < self.width - BORDER_WIDTH and y > BORDER_WIDTH and y < self.height - BORDER_WIDTH then
-    if y > BORDER_WIDTH + BAR_HEIGHT then
-      self:click(x - BORDER_WIDTH, y - BORDER_WIDTH - BAR_HEIGHT)
+  x, y = self:translateLocal(x, y)
+  x, y = self:translateInside(x, y)
+
+  if x >= 0 and x <= self.width and y <= self.height then
+    if y >= 0 then
       return WidgetPointState.Inside
     else
-      if x > (BORDER_WIDTH + self.width - BAR_HEIGHT) then
-        self.delete = true
-      end
       return WidgetPointState.Bar
     end
   end
@@ -104,22 +98,44 @@ function Widget:clickFrame(x, y)
   return WidgetPointState.None
 end
 
+function Widget:click(x, y, button)
+end
+
+function Widget:clickFrame(x, y, button)
+  local state = self:testPoint(x, y)
+
+  x, y = self:translateLocal(x, y)
+  x, y = self:translateInside(x, y)
+
+  if state == WidgetPointState.Bar then
+    if button == 1 and x > (self.width - BAR_HEIGHT) then
+      self.delete = true
+    end
+  elseif state == WidgetPointState.Inside then
+    self:click(x, y, button)
+  end
+end
+
 function Widget:move(x, y)
 end
 
 function Widget:moveFrame(x, y)
-  -- todo: does not account for window decorations
-  if self:pointInside(x, y) then
-    self:move(x - self.x, y - self.y)
+  local state = self:testPoint(x, y)
+
+  x, y = self:translateLocal(x, y)
+  x, y = self:translateInside(x, y)
+
+  if state == WidgetPointState.Inside then
+    self:move(x, y)
   end
 end
 
-function Widget:drawInner()
+function Widget:draw()
   love.graphics.setColor(0.1, 0.1, 0.1, 1)
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
 end
 
-function Widget:draw()
+function Widget:drawFrame()
   love.graphics.push()
 
   love.graphics.translate(self.x, self.y)
@@ -140,6 +156,10 @@ function Widget:draw()
     local crossScale = BAR_HEIGHT / crossIcon:getHeight()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(crossIcon, BORDER_WIDTH + self.width - BAR_HEIGHT/2, BORDER_WIDTH + BAR_HEIGHT/2, 0, crossScale, crossScale, crossIcon:getWidth()/2, crossIcon:getWidth()/2)
+
+    if self.title then
+      love.graphics.printf(self.title, BORDER_WIDTH, round(BAR_HEIGHT/2 - fonts.inter_12:getHeight()/2), self.width, 'center')
+    end
   end
 
   love.graphics.push()
@@ -148,7 +168,7 @@ function Widget:draw()
     love.graphics.translate(BORDER_WIDTH, BAR_HEIGHT + BORDER_WIDTH)
   end
 
-  self:drawInner()
+  self:draw()
 
   love.graphics.pop()
 
@@ -197,36 +217,37 @@ end
 
 function self.draw()
   for _, widget in ipairs(widgets) do
-    widget:draw()
+    widget:drawFrame()
   end
 end
 
 function self.mousepressed(x, y, button)
   for i = #widgets, 1, -1 do
     local widget = widgets[i]
-    if button == 1 then
-      local res = widget:clickFrame(x, y)
-      if res ~= WidgetPointState.None then
-        if (res == WidgetPointState.Bar or widget.dragAnywhere) and widget.isMovable then
-          draggingWidget = widget
-          dragX, dragY = x - widget.x, y - widget.y
-        end
-        -- move to front
-        if i ~= #widgets and not widget.ignoreFocus then
-          table.remove(widgets, i)
-          widgets[#widgets]:loseFocus(widget)
-          widgets[#widgets].focused = false
-          table.insert(widgets, widget)
-          widget:focus()
-          widget.focused = true
-        end
-        self.update()
-        return
+
+    local res = widget:testPoint(x, y)
+
+    if res ~= WidgetPointState.None then
+      widget:clickFrame(x, y, button)
+
+      if button == 1 and (res == WidgetPointState.Bar or widget.dragAnywhere) and widget.isMovable then
+        draggingWidget = widget
+        dragX, dragY = x - widget.x, y - widget.y
       end
-    elseif button == 2 then
-      if widget:pointInside(x, y) then
-        widget:rightClickFrame(x, y)
+
+      -- move to front
+      if i ~= #widgets and not widget.ignoreFocus then
+        table.remove(widgets, i)
+        widgets[#widgets]:loseFocus(widget)
+        widgets[#widgets].focused = false
+        table.insert(widgets, widget)
+        widget:focus()
+        widget.focused = true
       end
+
+      self.update()
+
+      return
     end
   end
 end
