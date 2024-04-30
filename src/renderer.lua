@@ -80,8 +80,8 @@ local function drawNote(event)
   local y = beatToY(event.beat)
   local yEnd = beatToY(event.beat + (note.length or 0))
 
-  if y < -NOTE_HEIGHT/2 then return -1 end
-  if yEnd > sh then return end
+  if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
+  if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
 
   if note.length then
     love.graphics.setColor(getColumnColor(note.column):alpha(0.5):unpack())
@@ -107,8 +107,8 @@ local function drawGearShift(event)
   local y = beatToY(event.beat)
   local yEnd = beatToY(event.beat + gear.length)
 
-  if y < -NOTE_HEIGHT/2 then return -1 end
-  if yEnd > sh then return end
+  if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
+  if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
 
   love.graphics.setLineWidth(3 * scale())
 
@@ -136,8 +136,8 @@ function self.draw()
   love.graphics.rectangle('fill', getLeft(), 0, getMLeft() - getLeft(), sh)
   love.graphics.rectangle('fill', getMRight(), 0, getRight() - getMRight(), sh)
 
-  local topB = math.floor(yToBeat(0))
-  local botB = math.ceil(yToBeat(sh))
+  local topB = math.ceil(yToBeat(0)) + 1
+  local botB = math.floor(yToBeat(sh)) - 1
 
   local measureSize = 4
   love.graphics.setLineWidth(1 * scale())

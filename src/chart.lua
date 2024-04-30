@@ -50,6 +50,8 @@ function self.openChart()
 
   local loaded = xdrv.deserialize(data)
   self.chart = loaded.chart or {}
+  -- sanity check
+  table.sort(self.chart, function (a, b) return a.beat < b.beat end)
   self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
