@@ -28,10 +28,21 @@ function InfobarWidget:click(x, y)
   end
 end
 
+local function suffixSnap(n)
+  if n % 10 == 1 and n ~= 11 then return 'st' end
+  if n % 10 == 2 and n ~= 12 then return 'nd' end
+  if n % 10 == 3 and n ~= 13 then return 'rd' end
+  return 'th'
+end
+local function formatSnap(n)
+  local div = getDivision(edit.quantIndex)
+  return tostring(div) .. suffixSnap(div)
+end
+
 function InfobarWidget:draw()
   local footerFields = {
     { 'Difficulty', chart.loaded and (xdrv.formatDifficulty(chart.metadata.chartDifficulty) .. ' ' .. chart.metadata.chartLevel) or '' },
-    { 'Snap', getDivision(edit.quantIndex) .. 'th' },
+    { 'Snap', formatSnap(edit.quantIndex) },
     { 'Beat', string.format('%.3f', conductor.beat) },
     { 'Time', formatTime(conductor.time) },
     { 'BPM', string.format('%.3f', conductor.getBPM()) },
