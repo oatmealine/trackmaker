@@ -63,6 +63,7 @@ function self.openPath(filepath)
 
   logs.log('Loaded chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
   config.appendRecent(filepath)
+  config.save()
 end
 
 local FILE_FILTER = 'xdrv'
@@ -293,6 +294,7 @@ local function save(filepath)
 
   logs.log('Saved chart to ' .. filepath)
   config.appendRecent(filepath)
+  config.save()
 end
 
 ---@param m XDRVMetadata

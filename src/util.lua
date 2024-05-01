@@ -74,9 +74,6 @@ end
 
 function quantize(beat, quantI)
   local quant = QUANTS[quantI]
-  print(beat)
-  print(beat / quant)
-  print(round(beat / quant) * quant)
   return round(beat / quant) * quant
 end
 

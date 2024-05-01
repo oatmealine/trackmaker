@@ -5,6 +5,7 @@ local json = require 'lib.json'
 self.config = {
   ---@type string[]
   recent = {},
+  volume = 1.0,
 }
 self.defaults = deepcopy(self.config)
 

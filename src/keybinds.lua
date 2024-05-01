@@ -1,6 +1,7 @@
-local chart = require 'src.chart'
-local edit  = require 'src.edit'
-local logs  = require 'src.logs'
+local chart  = require 'src.chart'
+local edit   = require 'src.edit'
+local logs   = require 'src.logs'
+local config = require 'src.config'
 local self = {}
 
 ---@class Keybind
@@ -30,7 +31,6 @@ self.binds = {
     name = 'Save as...',
     ctrl = true,
     shift = true,
-    viewOnly = true,
     keys = { 's' },
     trigger = function()
       chart.saveChart()
@@ -39,7 +39,6 @@ self.binds = {
   quicksave = {
     name = 'Save',
     ctrl = true,
-    viewOnly = true,
     keys = { 's' },
     trigger = function()
       chart.quickSave()
@@ -107,7 +106,25 @@ self.binds = {
     trigger = function()
       edit.write = false
     end
-  }
+  },
+  decreaseVolume = {
+    name = 'Decrease volume',
+    keys = { 'down' },
+    shift = true,
+    trigger = function()
+      config.config.volume = math.max(config.config.volume - 0.05, 0)
+      logs.log('Volume set to ' .. round(config.config.volume * 100) .. '%')
+    end,
+  },
+  increaseVolume = {
+    name = 'Increase volume',
+    keys = { 'up' },
+    shift = true,
+    trigger = function()
+      config.config.volume = math.min(config.config.volume + 0.05, 1)
+      logs.log('Volume set to ' .. round(config.config.volume * 100) .. '%')
+    end,
+  },
 }
 
 local function formatKey(key)

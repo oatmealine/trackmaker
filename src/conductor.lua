@@ -1,6 +1,7 @@
 local M = {}
 
 local logs = require 'src.logs'
+local config = require 'src.config'
 
 ---@type love.Source?
 local song
@@ -191,8 +192,15 @@ function M.update(dt)
   if M.isPlaying() then
     M.time = M.time + dt
   end
-  if song and M.playing ~= song:isPlaying() then
-    updateSongPos()
+  if song then
+    if M.playing ~= song:isPlaying() then
+      updateSongPos()
+    end
+
+    -- tuning the volume towards humans' logarithmically scaled hearing
+    -- technically not precise but it's fast and easy to remember
+    local tunedVolume = config.config.volume * config.config.volume
+    song:setVolume(tunedVolume)
   end
 end
 
