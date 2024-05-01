@@ -41,8 +41,9 @@ function countKeys(t)
   return n
 end
 
--- https://love2d.org/forums/viewtopic.php?p=208676&sid=3b643938f0769ccacdc44af3ea34f09c#p208676
-function round(n) return n >= 0 and n - n % -1 or n - n % 1 end
+function round(n)
+  return n >= 0 and math.floor(n + 0.5) or math.ceil(n - 0.5)
+end
 
 QUANTS = {
   1,
@@ -73,6 +74,9 @@ end
 
 function quantize(beat, quantI)
   local quant = QUANTS[quantI]
+  print(beat)
+  print(beat / quant)
+  print(round(beat / quant) * quant)
   return round(beat / quant) * quant
 end
 

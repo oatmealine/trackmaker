@@ -66,8 +66,9 @@ local function parseFloat(s)
   return tonumber(s) or -1
 end
 
--- https://love2d.org/forums/viewtopic.php?p=208676&sid=3b643938f0769ccacdc44af3ea34f09c#p208676
-local function round(n) return n >= 0 and n - n % -1 or n - n % 1 end
+function round(n)
+  return n >= 0 and math.floor(n + 0.5) or math.ceil(n - 0.5)
+end
 local function parseInt(s)
   return round(parseFloat(s))
 end

@@ -275,7 +275,7 @@ function self.importMenu(filetype)
 end
 
 local function save(filepath)
-  if string.sub(filepath, -4) ~= '.xdrv' then
+  if string.sub(filepath, -5) ~= '.xdrv' then
     filepath = filepath .. '.xdrv'
   end
 
