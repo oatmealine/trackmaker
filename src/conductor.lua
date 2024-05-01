@@ -32,7 +32,9 @@ function M.loadFromChart(chart, dir)
   if file then
     local data = file:read('*a')
     if song then song:release() end
-    song = love.audio.newSource(love.filesystem.newFileData(data, chart.metadata.musicAudio), 'static')
+    if data then
+      song = love.audio.newSource(love.filesystem.newFileData(data, chart.metadata.musicAudio), 'static')
+    end
     file:close()
   else
     logs.log(err)
@@ -138,7 +140,11 @@ local eventStates = {}
 
 function M.initStates()
   for i, event in ipairs(chart.chart) do
-    eventStates[i] = { hit = event.beat < M.beat }
+    local state = { hit = event.beat < M.beat }
+    if event.gearShift then
+      state.hitEnd = (event.beat + event.gearShift.length) < M.beat
+    end
+    eventStates[i] = state
   end
 end
 
@@ -205,7 +211,7 @@ local lastT = 0
 
 function M.update(dt)
   if M.isPlaying() then
-    M.time = M.time + dt
+    M.time = M.time + dt * config.config.musicRate
     if config.config.beatTick and math.floor(M.beatAtTime(M.time)) > math.floor(M.beatAtTime(lastT)) then
       beatTickSFX:play(0.5)
     end
@@ -215,7 +221,13 @@ function M.update(dt)
       if event.beat < M.beat and not eventStates[i].hit then
         eventStates[i].hit = true
         if config.config.noteTick then
-          noteTickSFX:play(0.5)
+          noteTickSFX:play(0.75)
+        end
+      end
+      if event.gearShift and (event.beat + event.gearShift.length) < M.beat and not eventStates[i].hitEnd then
+        eventStates[i].hitEnd = true
+        if config.config.noteTick then
+          noteTickSFX:play(0.75)
         end
       end
     end
@@ -230,6 +242,7 @@ function M.update(dt)
     -- technically not precise but it's fast and easy to remember
     local tunedVolume = config.config.volume * config.config.volume
     song:setVolume(tunedVolume)
+    song:setPitch(config.config.musicRate)
   end
 end
 

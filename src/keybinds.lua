@@ -91,6 +91,28 @@ self.binds = {
       logs.log('Wrote chart to clipboard')
     end
   },
+  loadChartClipboard = {
+    name = 'Load chart from clipboard',
+    ctrl = true,
+    shift = true,
+    keys = { 'o' },
+    trigger = function()
+      local t = love.system.getClipboardText()
+      chart.chart = loadstring('return ' .. t)()
+      logs.log('Loaded ' .. #chart.chart .. ' events from clipboard')
+      chart.sort()
+    end
+  },
+  sortChart = {
+    name = 'Sort chart (should fix jank)',
+    ctrl = true,
+    shift = true,
+    keys = { 'q' },
+    trigger = function()
+      chart.sort()
+      logs.log('Sorted :thumbsup:')
+    end
+  },
   cycleMode = {
     name = 'Cycle mode',
     keys = { 'tab' },
@@ -109,6 +131,7 @@ self.binds = {
   decreaseVolume = {
     name = 'Decrease volume',
     keys = { 'down' },
+    viewOnly = true,
     shift = true,
     trigger = function()
       config.config.volume = math.max(config.config.volume - 0.05, 0)
@@ -118,10 +141,31 @@ self.binds = {
   increaseVolume = {
     name = 'Increase volume',
     keys = { 'up' },
+    viewOnly = true,
     shift = true,
     trigger = function()
       config.config.volume = math.min(config.config.volume + 0.05, 1)
       logs.log('Volume set to ' .. round(config.config.volume * 100) .. '%')
+    end,
+  },
+  decreaseLeft = {
+    name = 'Decrease speed',
+    keys = { 'left' },
+    viewOnly = true,
+    shift = true,
+    trigger = function()
+      config.config.musicRate = math.max(config.config.musicRate - 0.05, 0.1)
+      logs.log('Music speed set to ' .. round(config.config.musicRate * 100) .. '%')
+    end,
+  },
+  increaseRight = {
+    name = 'Increase speed',
+    keys = { 'right' },
+    viewOnly = true,
+    shift = true,
+    trigger = function()
+      config.config.musicRate = math.min(config.config.musicRate + 0.05, 2)
+      logs.log('Music speed set to ' .. round(config.config.musicRate * 100) .. '%')
     end,
   },
   beatTick = {

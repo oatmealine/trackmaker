@@ -38,6 +38,10 @@ local function updateTitle()
   end
 end
 
+function self.sort()
+  table.sort(self.chart, function (a, b) return a.beat < b.beat end)
+end
+
 function self.openPath(filepath)
   local file, err = io.open(filepath, 'r')
   if not file then
@@ -50,8 +54,7 @@ function self.openPath(filepath)
 
   local loaded = xdrv.deserialize(data)
   self.chart = loaded.chart or {}
-  -- sanity check
-  table.sort(self.chart, function (a, b) return a.beat < b.beat end)
+  self.sort()
   self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
@@ -253,7 +256,7 @@ function self.importSM(chart, filepath, notes, style)
 
   self.chart = xdrv.collapseHoldEnds(self.chart)
 
-  table.sort(self.chart, function(a, b) return a.beat < b.beat end)
+  self.sort()
 
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
   conductor.reset()
@@ -280,12 +283,19 @@ local function save(filepath)
     filepath = filepath .. '.xdrv'
   end
 
+  chart.sort()
+
+  logs.logFile('Printing data just in case')
+  logs.logFile(pretty(chart.chart))
+
+  local contents = '// Made with trackmaker v' .. release.version .. '\n' .. xdrv.serialize({ metadata = self.metadata, chart = self.chart })
+
   local file, err = io.open(filepath, 'w')
   if not file then
     print(err)
     return
   end
-  file:write('// Made with trackmaker v' .. release.version .. '\n' .. xdrv.serialize({ metadata = self.metadata, chart = self.chart }))
+  file:write(contents)
   file:close()
   self.dirty = false
   updateTitle()

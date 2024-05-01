@@ -6,6 +6,7 @@ self.config = {
   ---@type string[]
   recent = {},
   volume = 1.0,
+  musicRate = 1.0,
   beatTick = false,
   noteTick = false,
 }

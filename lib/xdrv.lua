@@ -3,7 +3,13 @@ local M = {}
 local SEGMENT_INCR = 1 -- beats
 
 local function gcd(m, n)
+  local iters = 0
   while n ~= 0 do
+    iters = iters + 1
+    if iters > 9999 then
+      print('gcd infloop ', m, n)
+      return m
+    end
     local q = m
     m = n
     n = q % n
@@ -395,7 +401,13 @@ local function serializeChart(events)
 
   local b = 0
   local eventIdx = 1
+  local iter = 0
   while true do
+    iter = iter + 1
+    if iter > 99999 then
+      print('Preventing infinite loop!!! backup and run before everything explodes')
+      break
+    end
     if eventIdx > #events then break end
 
     ---@type XDRVEvent[]
