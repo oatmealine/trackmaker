@@ -14,6 +14,7 @@ function ImportSMWidget:new(chart, filepath, callback)
   for _, c in ipairs(chart.NOTES) do
     table.insert(chartNames, (c.credit ~= '' and c.credit or 'Chart') .. ' [' .. c.type .. ', ' .. c.difficulty .. ']')
   end
+  table.insert(chartNames, 'Only import timings and metadata')
   self.chartNames = chartNames
 
   self.chart = chart
@@ -32,6 +33,8 @@ function ImportSMWidget:new(chart, filepath, callback)
 end
 
 function ImportSMWidget:getContainer()
+  local noNotes = (self.chartIdx > #self.chart.NOTES)
+
   return Container(Container.placeRows({
     {
       Label(0, 0, 'Chart')
@@ -43,17 +46,17 @@ function ImportSMWidget:getContainer()
       Label(0, 0, 'Style')
     },
     {
-      Checkmark(0, 0, function() self:setStyle(1) end, self.styleIdx == 1), Label(0, 0, 'Lasdl;"R<>')
+      Checkmark(0, 0, function() self:setStyle(1) end, self.styleIdx == 1, noNotes), Label(0, 0, 'Lasdl;"R<>')
     },
     {
-      Checkmark(0, 0, function() self:setStyle(2) end, self.styleIdx == 2), Label(0, 0, '<Lasdl;"R>')
+      Checkmark(0, 0, function() self:setStyle(2) end, self.styleIdx == 2, noNotes), Label(0, 0, '<Lasdl;"R>')
     },
     {
-      Checkmark(0, 0, function() self:setStyle(3) end, self.styleIdx == 3), Label(0, 0, 'asdl;"LR<>')
+      Checkmark(0, 0, function() self:setStyle(3) end, self.styleIdx == 3, noNotes), Label(0, 0, 'asdl;"LR<>')
     },
     {},
     {
-      Label(0, 0, #self.chart.NOTES[self.chartIdx].notes .. ' notes'), Button(0, 0, 'Import', function() self:finish() end)
+      Label(0, 0, noNotes and 'No notes' or (#self.chart.NOTES[self.chartIdx].notes) .. ' notes'), Button(0, 0, 'Import', function() self:finish() end)
     },
   }, self.width))
 end

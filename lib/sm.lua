@@ -196,6 +196,9 @@ function sm.parse(text, isSSC)
     if type(res.NOTES) == 'string' then
       res.NOTES = { res.NOTES }
     end
+    if res.NOTES == nil then
+      res.NOTES = { }
+    end
     for i, c in ipairs(res.NOTES) do
       table.insert(compatNotes, {
         type = idxm(res.STEPSTYPE, i),

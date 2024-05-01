@@ -171,50 +171,52 @@ function self.importSM(chart, filepath, notes, style)
 
   local map = styleMappings[style]
 
-  for _, note in ipairs(notes.notes) do
-    local beat = note[1]
-    local mapping = map[note[2]]
-    local mapType, mapValue = mapping[1], mapping[2]
-    if mapType == 'gearShift' then
-      if note[3] == '2' then
-        table.insert(self.chart, {
-          beat = beat,
-          gearShiftStart = { lane = mapValue },
-        })
-      elseif note[3] == '3' then
-        table.insert(self.chart, {
-          beat = beat,
-          gearShiftEnd = { lane = mapValue },
-        })
-      end
-    elseif mapType == 'drift' then
-      if note[3] == '2' then
-        table.insert(self.chart, {
-          beat = beat,
-          drift = { direction = mapValue },
-        })
-      elseif note[3] == '3' then
-        table.insert(self.chart, {
-          beat = beat,
-          drift = { direction = xdrv.XDRVDriftDirection.Neutral },
-        })
-      end
-    elseif mapType == 'note' then
-      if note[3] == '1' then
-        table.insert(self.chart, {
-          beat = beat,
-          note = { column = mapValue }
-        })
-      elseif note[3] == '2' then
-        table.insert(self.chart, {
-          beat = beat,
-          holdStart = { column = mapValue }
-        })
-      elseif note[3] == '3' then
-        table.insert(self.chart, {
-          beat = beat,
-          holdEnd = { column = mapValue }
-        })
+  if notes then
+    for _, note in ipairs(notes.notes) do
+      local beat = note[1]
+      local mapping = map[note[2]]
+      local mapType, mapValue = mapping[1], mapping[2]
+      if mapType == 'gearShift' then
+        if note[3] == '2' then
+          table.insert(self.chart, {
+            beat = beat,
+            gearShiftStart = { lane = mapValue },
+          })
+        elseif note[3] == '3' then
+          table.insert(self.chart, {
+            beat = beat,
+            gearShiftEnd = { lane = mapValue },
+          })
+        end
+      elseif mapType == 'drift' then
+        if note[3] == '2' then
+          table.insert(self.chart, {
+            beat = beat,
+            drift = { direction = mapValue },
+          })
+        elseif note[3] == '3' then
+          table.insert(self.chart, {
+            beat = beat,
+            drift = { direction = xdrv.XDRVDriftDirection.Neutral },
+          })
+        end
+      elseif mapType == 'note' then
+        if note[3] == '1' then
+          table.insert(self.chart, {
+            beat = beat,
+            note = { column = mapValue }
+          })
+        elseif note[3] == '2' then
+          table.insert(self.chart, {
+            beat = beat,
+            holdStart = { column = mapValue }
+          })
+        elseif note[3] == '3' then
+          table.insert(self.chart, {
+            beat = beat,
+            holdEnd = { column = mapValue }
+          })
+        end
       end
     end
   end
