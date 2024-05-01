@@ -275,6 +275,10 @@ function self.importMenu(filetype)
 end
 
 local function save(filepath)
+  if string.sub(filepath, -4) ~= '.xdrv' then
+    filepath = filepath .. '.xdrv'
+  end
+
   local file, err = io.open(filepath, 'w')
   if not file then
     print(err)
@@ -285,7 +289,10 @@ local function save(filepath)
   self.dirty = false
   updateTitle()
 
+  self.chartLocation = filepath
+
   logs.log('Saved chart to ' .. filepath)
+  config.appendRecent(filepath)
 end
 
 ---@param m XDRVMetadata
