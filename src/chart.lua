@@ -337,6 +337,8 @@ function self.placeEvent(event)
   for i, ev in ipairs(self.chart) do
     if ev.beat > event.beat then
       table.insert(self.chart, i - 1, event)
+      -- awful and should be removed
+      self.sort()
       return
     end
   end
