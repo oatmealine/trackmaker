@@ -318,6 +318,7 @@ end
 function self.removeEvent(i)
   self.markDirty()
   table.remove(self.chart, i)
+  conductor.initStates()
 end
 
 ---@param event XDRVEvent
@@ -330,6 +331,7 @@ function self.placeEvent(event)
     end
   end
   table.insert(self.chart, event)
+  conductor.initStates()
 end
 
 function self.saveChart()

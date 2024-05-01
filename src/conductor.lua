@@ -3,6 +3,11 @@ local M = {}
 local logs = require 'src.logs'
 local config = require 'src.config'
 
+local audio = require 'src.audio'
+
+local beatTickSFX = audio.makeSoundPool('assets/sfx/tick.wav')
+local noteTickSFX = audio.makeSoundPool('assets/sfx/clap.wav')
+
 ---@type love.Source?
 local song
 
@@ -129,8 +134,17 @@ function M.timeAtBeat(b)
   return M.beatsToSeconds(b, M.getBPM())
 end
 
+local eventStates = {}
+
+function M.initStates()
+  for i, event in ipairs(chart.chart) do
+    eventStates[i] = { hit = event.beat < M.beat }
+  end
+end
+
 function M.play()
   if not song then return end
+  M.initStates()
   M.playing = true
 end
 function M.pause()
@@ -187,11 +201,26 @@ function M.updateBeat()
   M.beat = M.beatAtTime(M.time)
 end
 
+local lastT = 0
+
 function M.update(dt)
-  M.updateBeat()
   if M.isPlaying() then
     M.time = M.time + dt
+    if config.config.beatTick and math.floor(M.beatAtTime(M.time)) > math.floor(M.beatAtTime(lastT)) then
+      beatTickSFX:play(0.5)
+    end
+    lastT = M.time
+
+    for i, event in ipairs(chart.chart) do
+      if event.beat < M.beat and not eventStates[i].hit then
+        eventStates[i].hit = true
+        if config.config.noteTick then
+          noteTickSFX:play(0.5)
+        end
+      end
+    end
   end
+  M.updateBeat()
   if song then
     if M.playing ~= song:isPlaying() then
       updateSongPos()

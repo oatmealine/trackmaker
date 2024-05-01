@@ -1,5 +1,4 @@
 local conductor = require 'src.conductor'
-local chart     = require 'src.chart'
 local xdrv      = require 'lib.xdrv'
 local logs      = require 'src.logs'
 local self = {}

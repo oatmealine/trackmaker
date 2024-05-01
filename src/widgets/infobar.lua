@@ -1,5 +1,4 @@
 local xdrv = require 'lib.xdrv'
-local chart = require 'src.chart'
 local edit = require 'src.edit'
 local conductor = require 'src.conductor'
 

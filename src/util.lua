@@ -45,6 +45,14 @@ function round(n)
   return n >= 0 and math.floor(n + 0.5) or math.ceil(n - 0.5)
 end
 
+---@param x number
+---@param a number
+---@param b number
+---@return number
+function clamp(x, a, b)
+  return math.max(math.min(x, math.max(a, b)), math.min(a, b))
+end
+
 QUANTS = {
   1,
   1 / 2,

@@ -19,11 +19,11 @@ fonts = {
 }
 
 local widgets   = require 'src.widgets'
+chart           = require 'src.chart'
 local conductor = require 'src.conductor'
 keybinds        = require 'src.keybinds'
 local edit      = require 'src.edit'
 local renderer  = require 'src.renderer'
-local chart     = require 'src.chart'
 local logs      = require 'src.logs'
 local config    = require 'src.config'
 local threads   = require 'src.threads'

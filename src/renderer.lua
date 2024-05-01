@@ -2,7 +2,6 @@ local self = {}
 
 local conductor = require 'src.conductor'
 local xdrv      = require 'lib.xdrv'
-local chart     = require 'src.chart'
 local edit      = require 'src.edit'
 
 local PAD_BOTTOM = 256

@@ -1,4 +1,3 @@
-local chart  = require 'src.chart'
 local edit   = require 'src.edit'
 local logs   = require 'src.logs'
 local config = require 'src.config'
@@ -55,6 +54,14 @@ local items = {
   { 'Options', function()
     local width, height, flags = love.window.getMode()
     return {
+      { 'Beat tick', function()
+        config.config.beatTick = not config.config.beatTick
+        logs.log('Beat tick: ' .. (config.config.beatTick and 'ON' or 'OFF'))
+      end, toggle = true, value = config.config.beatTick, bind = keybinds.binds.beatTick },
+      { 'Note tick', function()
+        config.config.noteTick = not config.config.noteTick
+        logs.log('Note tick: ' .. (config.config.noteTick and 'ON' or 'OFF'))
+      end, toggle = true, value = config.config.noteTick, bind = keybinds.binds.noteTick },
       { 'VSync', function()
         flags.vsync = 1 - flags.vsync
         logs.log('VSync: ' .. ((flags.vsync == 1) and 'ON' or 'OFF'))

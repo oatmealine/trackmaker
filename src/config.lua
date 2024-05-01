@@ -6,6 +6,8 @@ self.config = {
   ---@type string[]
   recent = {},
   volume = 1.0,
+  beatTick = false,
+  noteTick = false,
 }
 self.defaults = deepcopy(self.config)
 
