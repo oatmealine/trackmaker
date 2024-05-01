@@ -68,6 +68,13 @@ local items = {
         ---@diagnostic disable-next-line: param-type-mismatch
         love.window.setMode(width, height, flags)
       end, toggle = true, value = flags.vsync == 1 },
+      { 'Disable multithreading', function()
+        config.config.noMultithreading = not config.config.noMultithreading
+        logs.log('Multithreading: ' .. (config.config.noMultithreading and 'OFF' or 'ON'))
+        if config.config.noMultithreading then
+          logs.log('Only touch this if you know what you\'re doing!')
+        end
+      end, toggle = true, value = config.config.noMultithreading },
       { 'Cat', function()
         if not catjam or catjam.delete then
           catjam = CatjamWidget(32, 32)

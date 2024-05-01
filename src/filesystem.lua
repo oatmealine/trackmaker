@@ -2,11 +2,13 @@ local self = {}
 
 local nfd = require 'nfd'
 local threads = require 'src.threads'
+local config  = require 'src.config'
 
 -- most of this stolen from loenn - thank you for figuring this out!
 -- https://github.com/CelestialCartographers/Loenn/blob/340e1af719ade1ba0c8682141c9f50c3f95ee783/src/utils/filesystem.lua
 
 function self.supportWindowsInThreads()
+  if config.config.noMultithreading then return false end
   return love.system.getOS() ~= 'OS X'
 end
 

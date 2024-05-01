@@ -9,6 +9,7 @@ self.config = {
   musicRate = 1.0,
   beatTick = false,
   noteTick = false,
+  noMultithreading = false,
 }
 self.defaults = deepcopy(self.config)
 
