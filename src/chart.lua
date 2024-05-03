@@ -39,7 +39,7 @@ local function updateTitle()
 end
 
 function self.sort()
-  table.sort(self.chart, function (a, b) return a.beat < b.beat end)
+  table.sort(self.chart, function (a, b) return a and b and a.beat < b.beat end)
 end
 
 function self.openPath(filepath)
