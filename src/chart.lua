@@ -335,9 +335,29 @@ end
 function self.placeEvent(event)
   self.markDirty()
   for i, ev in ipairs(self.chart) do
-    if ev.beat > event.beat then
+    if ev.beat == event.beat and getEventType(ev) == getEventType(event) then
+      -- prevent collisions/overlap
+      -- different types have different definitions of a collision, so
+      -- we handle them all seperately
+      if ev.note then
+        if ev.note.column == event.note.column then
+          self.chart[i] = event
+          return
+        end
+      elseif ev.gearShift then
+        if ev.gearShift.lane == event.gearShift.lane then
+          self.chart[i] = event
+          return
+        end
+      elseif ev.event then
+        -- there's nothing that says you can't use multiple events at the same time
+      else
+        -- else just remove them anyways
+        self.chart[i] = event
+        return
+      end
+    elseif ev.beat > event.beat then
       table.insert(self.chart, i, event)
-      conductor.initStates()
       return
     end
   end

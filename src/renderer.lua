@@ -277,6 +277,18 @@ function self.draw()
       love.graphics.setColor(1, 1, 1, 1)
       love.graphics.rectangle('line', x - size/2, y - size/2, size, size)
     end
+    if event.gearShift then
+      local gear = event.gearShift
+
+      local x = ((gear.lane == xdrv.XDRVLane.Left) and getLeft() or getMRight())
+      local y = beatToY(event.beat)
+      local yEnd = beatToY(event.beat + gear.length)
+
+      love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
+      love.graphics.rectangle('fill', x, y, NOTE_WIDTH * 3 * scale(), yEnd - y)
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.rectangle('line', x, y, NOTE_WIDTH * 3 * scale(), yEnd - y)
+    end
   end
 
   love.graphics.pop()
@@ -303,8 +315,10 @@ function self.mousereleased(x, y, button)
     selectionX, selectionY = nil, nil
 
     if math.abs(x2 - x1) < 4 and math.abs(y2 - y1) < 4 then
-      edit.clearSelection()
-      logs.log('Cleared selection')
+      if #edit.selection > 0 then
+        edit.clearSelection()
+        logs.log('Cleared selection')
+      end
       return
     end
 
@@ -313,7 +327,7 @@ function self.mousereleased(x, y, button)
     for _, event in ipairs(chart.chart) do
       if event.note then
         local note = event.note
-        local x = getColumnX(note.column) * scale() + love.graphics.getWidth()/2
+        local x = getColumnX(note.column) * scale() + scx
         local y = beatToY(event.beat)
         local yEnd = beatToY(event.beat + (note.length or 0))
 
@@ -324,7 +338,7 @@ function self.mousereleased(x, y, button)
       if event.gearShift then
         local gear = event.gearShift
 
-        local x = (gear.lane == xdrv.XDRVLane.Left) and (getLeft() + getMLeft())/2 or (getRight() + getMRight())/2
+        local x = ((gear.lane == xdrv.XDRVLane.Left) and (getLeft() + getMLeft())/2 or (getRight() + getMRight())/2) + scx
         local y = beatToY(event.beat)
         local yEnd = beatToY(event.beat + gear.length)
 
@@ -344,8 +358,10 @@ function self.mousereleased(x, y, button)
       end
       logs.log('Selected +' .. n .. ' events')
     elseif #selected == 0 then
-      edit.clearSelection()
-      logs.log('Cleared selection')
+      if #edit.selection > 0 then
+        edit.clearSelection()
+        logs.log('Cleared selection')
+      end
     else
       edit.clearSelection()
       edit.selection = selected

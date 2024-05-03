@@ -218,3 +218,11 @@ function includes(t, e)
   end
   return false
 end
+
+-- hacky slow and awful. use in moderation
+---@param event XDRVEvent
+function getEventType(event)
+  for k in pairs(event) do
+    if k ~= 'beat' then return k end
+  end
+end

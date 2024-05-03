@@ -1,6 +1,7 @@
 local conductor = require 'src.conductor'
 local xdrv      = require 'lib.xdrv'
 local logs      = require 'src.logs'
+local clipboard = require 'src.clipboard'
 local self = {}
 
 ---@enum Mode
@@ -214,45 +215,34 @@ function self.updateGhosts()
   end
 end
 
-function self.cut()
-  if #self.selection == 0 then
-    logs.log('Nothing to copy')
-    love.system.setClipboardText('')
-    return
+function self.deleteSelection()
+  if not chart.loaded then return end
+  for i = #chart.chart, 1, -1 do
+    local event = chart.chart[i]
+    if includes(self.selection, event) then
+      table.remove(chart.chart, i)
+    end
   end
+end
+function self.deleteKey()
+  self.deleteSelection()
+  self.clearSelection()
+end
 
-  logs.log('Cut - Not implemented')
+function self.cut()
+  self.deleteSelection()
+  self.copy()
 end
 function self.copy()
+  if not chart.loaded then return end
   if #self.selection == 0 then
     logs.log('Nothing to copy')
     love.system.setClipboardText('')
     return
   end
 
-  -- this format is completely ancient interface core but that's ok
+  local text = clipboard.encode(self.selection)
 
-  local clip = { '$wabung$B$' }
-
-  local b = self.selection[1].beat
-  for _, event in ipairs(self.selection) do
-    if event.beat > b then
-      table.insert(clip, '+' .. (event.beat - b))
-      b = event.beat
-    end
-    if event.note then
-      local isHold = event.note.length ~= nil
-      table.insert(clip, '♪' .. event.note.column .. (isHold and ('~' .. event.note.length) or ''))
-    end
-    if event.gearShift then
-      local char = event.gearShift.lane == xdrv.XDRVLane.Left and '/' or '\\'
-      table.insert(clip, char .. '~' .. event.gearShift.length)
-    end
-  end
-
-  table.insert(clip, '$')
-
-  local text = table.concat(clip, '')
   love.system.setClipboardText(text)
   local chk = love.system.getClipboardText()
   if text ~= chk then
@@ -263,7 +253,24 @@ function self.copy()
   self.clearSelection()
 end
 function self.paste()
-  logs.log('Paste - Not implemented')
+  if not chart.loaded then return end
+
+  local clip = love.system.getClipboardText()
+
+  local events = clipboard.decode(clip)
+
+  if not events then
+    logs.log('Nothing in clipboard')
+    return
+  end
+
+  local b = getBeat()
+  for _, event in ipairs(events) do
+    event.beat = event.beat + b
+    chart.placeEvent(event)
+  end
+
+  logs.log('Pasted ' .. #events .. ' events')
 end
 
 ---@param key love.KeyConstant

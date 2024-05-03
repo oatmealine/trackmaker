@@ -46,23 +46,25 @@ self.binds = {
   cut = {
     name = 'Cut',
     ctrl = true,
-    writeOnly = true,
     keyCodes = { 'x' },
     trigger = edit.cut,
   },
   copy = {
     name = 'Copy',
     ctrl = true,
-    writeOnly = true,
     keyCodes = { 'c' },
     trigger = edit.copy,
   },
   paste = {
     name = 'Paste',
     ctrl = true,
-    writeOnly = true,
     keyCodes = { 'v' },
     trigger = edit.paste,
+  },
+  delete = {
+    name = 'Delete',
+    keyCodes = { 'delete' },
+    trigger = edit.deleteKey,
   },
   viewBinds = {
     name = 'View keybinds',
