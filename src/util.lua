@@ -204,3 +204,17 @@ function looseComp(tab1, tab2)
   end
   return true
 end
+
+
+---@generic T
+---@param t table<T>
+---@param e T
+---@return boolean
+function includes(t, e)
+  for i = 1, #t do
+    if t[i] == e then
+      return true
+    end
+  end
+  return false
+end

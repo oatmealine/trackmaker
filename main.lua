@@ -77,13 +77,15 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button)
-  widgets.mousepressed(x, y, button)
+  if widgets.mousepressed(x, y, button) then return end
+  renderer.mousepressed(x, y, button)
 end
 function love.mousemoved(x, y)
   widgets.mousemoved(x, y)
 end
 function love.mousereleased(x, y, button)
-  widgets.mousereleased(x, y, button)
+  if widgets.mousereleased(x, y, button) then return end
+  renderer.mousereleased(x, y, button)
 end
 function love.keypressed(key, scancode, isrepeat)
   if widgets.keypressed(key, scancode, isrepeat) then

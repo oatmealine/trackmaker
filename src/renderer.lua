@@ -3,6 +3,7 @@ local self = {}
 local conductor = require 'src.conductor'
 local xdrv      = require 'lib.xdrv'
 local edit      = require 'src.edit'
+local logs      = require 'src.logs'
 
 local PAD_BOTTOM = 256
 
@@ -15,6 +16,8 @@ local SEP_COL = hex('86898c')
 local LANE_1_COL = hex('4fccff')
 local LANE_2_COL = hex('ff9cf5')
 local MEASURE_COL = hex('373138')
+
+local selectionX, selectionY
 
 local zoom = 1
 
@@ -194,6 +197,8 @@ function self.draw()
   love.graphics.setColor(LANE_2_COL:unpack())
   love.graphics.line(getRight(), sh - PAD_BOTTOM, getMRight(), sh - PAD_BOTTOM)
 
+  love.graphics.setLineWidth(1)
+
   local events = chart.chart
 
   for _, event in ipairs(events) do
@@ -261,7 +266,92 @@ function self.draw()
     love.graphics.printf(tostring(getDivision(edit.quantIndex)), getRight() + 15, sh - PAD_BOTTOM - fonts.inter_12:getHeight()/2, 30, 'center')
   end
 
+  for _, event in ipairs(edit.selection) do
+    if event.note then
+      local note = event.note
+      local x = getColumnX(note.column) * scale()
+      local y = beatToY(event.beat)
+      local size = NOTE_WIDTH * scale()
+      love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
+      love.graphics.rectangle('fill', x - size/2, y - size/2, size, size)
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.rectangle('line', x - size/2, y - size/2, size, size)
+    end
+  end
+
   love.graphics.pop()
+
+  if selectionX and selectionY then
+    local mx, my = love.mouse.getPosition()
+    local x1, y1, x2, y2 = math.min(selectionX, mx), math.min(selectionY, my), math.max(selectionX, mx), math.max(selectionY, my)
+
+    love.graphics.setColor(1, 1, 1, 0.2)
+    love.graphics.rectangle('fill', x1, y1, x2 - x1, y2 - y1)
+    love.graphics.setColor(1, 1, 1, 0.5)
+    love.graphics.rectangle('line', x1, y1, x2 - x1, y2 - y1)
+  end
+end
+
+function self.mousepressed(x, y, button)
+  if not edit.write and button == 1 and chart.loaded then
+    selectionX, selectionY = x, y
+  end
+end
+function self.mousereleased(x, y, button)
+  if button == 1 and selectionX and selectionY then
+    local x1, y1, x2, y2 = math.min(selectionX, x), math.min(selectionY, y), math.max(selectionX, x), math.max(selectionY, y)
+    selectionX, selectionY = nil, nil
+
+    if math.abs(x2 - x1) < 4 and math.abs(y2 - y1) < 4 then
+      edit.clearSelection()
+      logs.log('Cleared selection')
+      return
+    end
+
+    local selected = {}
+
+    for _, event in ipairs(chart.chart) do
+      if event.note then
+        local note = event.note
+        local x = getColumnX(note.column) * scale() + love.graphics.getWidth()/2
+        local y = beatToY(event.beat)
+        local yEnd = beatToY(event.beat + (note.length or 0))
+
+        if x >= x1 and x <= x2 and math.min(y, yEnd) >= y1 and math.max(y, yEnd) <= y2 then
+          table.insert(selected, event)
+        end
+      end
+      if event.gearShift then
+        local gear = event.gearShift
+
+        local x = (gear.lane == xdrv.XDRVLane.Left) and (getLeft() + getMLeft())/2 or (getRight() + getMRight())/2
+        local y = beatToY(event.beat)
+        local yEnd = beatToY(event.beat + gear.length)
+
+        if x >= x1 and x <= x2 and math.min(y, yEnd) >= y1 and math.max(y, yEnd) <= y2 then
+          table.insert(selected, event)
+        end
+      end
+    end
+
+    if love.keyboard.isDown('lshift') or love.keyboard.isDown('rshift') then
+      local n = 0
+      for _, e in ipairs(selected) do
+        if not includes(edit.selection, e) then
+          table.insert(edit.selection, e)
+          n = n + 1
+        end
+      end
+      logs.log('Selected +' .. n .. ' events')
+    elseif #selected == 0 then
+      edit.clearSelection()
+      logs.log('Cleared selection')
+    else
+      edit.clearSelection()
+      edit.selection = selected
+      logs.log('Selected ' .. #selected .. ' events')
+    end
+  end
 end
 
 function self.wheelmoved(delta)

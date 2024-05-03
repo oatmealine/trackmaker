@@ -184,6 +184,14 @@ self.binds = {
       logs.log('Note tick: ' .. (config.config.noteTick and 'ON' or 'OFF'))
     end,
   },
+  clearSelection = {
+    name = 'Clear selection',
+    keys = { 'escape' },
+    viewOnly = true,
+    trigger = function()
+      edit.clearSelection()
+    end,
+  },
 }
 
 local function formatKey(key)

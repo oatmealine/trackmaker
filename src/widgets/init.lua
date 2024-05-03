@@ -271,7 +271,7 @@ function self.mousepressed(x, y, button)
 
       self.update()
 
-      return
+      return true
     end
   end
 end
@@ -288,6 +288,7 @@ function self.mousereleased(x, y, button)
   if button == 1 and draggingWidget then
     draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
     draggingWidget = nil
+    return true
   end
 end
 function self.textinput(t)

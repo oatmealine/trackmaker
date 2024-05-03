@@ -23,6 +23,13 @@ function self.modeName(mode)
   if mode == self.Mode.Rewrite then return 'Rewrite' end
 end
 
+---@type XDRVEvent[]
+self.selection = {}
+
+function self.clearSelection()
+  self.selection = {}
+end
+
 ---@type Mode
 local mode = self.Mode.Insert
 self.write = false
@@ -208,10 +215,52 @@ function self.updateGhosts()
 end
 
 function self.cut()
+  if #self.selection == 0 then
+    logs.log('Nothing to copy')
+    love.system.setClipboardText('')
+    return
+  end
+
   logs.log('Cut - Not implemented')
 end
 function self.copy()
-  logs.log('Copy - Not implemented')
+  if #self.selection == 0 then
+    logs.log('Nothing to copy')
+    love.system.setClipboardText('')
+    return
+  end
+
+  -- this format is completely ancient interface core but that's ok
+
+  local clip = { '$wabung$B$' }
+
+  local b = self.selection[1].beat
+  for _, event in ipairs(self.selection) do
+    if event.beat > b then
+      table.insert(clip, '+' .. (event.beat - b))
+      b = event.beat
+    end
+    if event.note then
+      local isHold = event.note.length ~= nil
+      table.insert(clip, '♪' .. event.note.column .. (isHold and ('~' .. event.note.length) or ''))
+    end
+    if event.gearShift then
+      local char = event.gearShift.lane == xdrv.XDRVLane.Left and '/' or '\\'
+      table.insert(clip, char .. '~' .. event.gearShift.length)
+    end
+  end
+
+  table.insert(clip, '$')
+
+  local text = table.concat(clip, '')
+  love.system.setClipboardText(text)
+  local chk = love.system.getClipboardText()
+  if text ~= chk then
+    logs.log('System clipboard unavailable?')
+  end
+
+  logs.log('Copied ' .. #self.selection .. ' events')
+  self.clearSelection()
 end
 function self.paste()
   logs.log('Paste - Not implemented')
