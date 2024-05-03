@@ -336,9 +336,8 @@ function self.placeEvent(event)
   self.markDirty()
   for i, ev in ipairs(self.chart) do
     if ev.beat > event.beat then
-      table.insert(self.chart, i - 1, event)
-      -- awful and should be removed
-      self.sort()
+      table.insert(self.chart, i, event)
+      conductor.initStates()
       return
     end
   end
