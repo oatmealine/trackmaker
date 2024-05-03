@@ -283,7 +283,7 @@ local function save(filepath)
     filepath = filepath .. '.xdrv'
   end
 
-  chart.sort()
+  self.sort()
 
   logs.logFile('Printing data just in case')
   logs.logFile(pretty(chart.chart))

@@ -270,6 +270,7 @@ function self.wheelmoved(delta)
   else
     conductor.seekDelta(delta * 0.7 / zoom)
     edit.updateGhosts()
+    conductor.initStates()
   end
 end
 
