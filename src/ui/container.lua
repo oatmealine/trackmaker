@@ -3,7 +3,8 @@ local Node = require 'src.ui.node'
 ---@class Container : Node
 local Container = Node:extend()
 
-function Container:new(children)
+function Container:new(children, x, y)
+  Container.super.new(self, x, y)
   ---@type Node[]
   self.children = children
 end
@@ -16,6 +17,9 @@ end
 
 function Container:click(x, y, button)
   for _, child in ipairs(self.children) do
+    if child.active then
+      child:loseFocus()
+    end
     child.active = false
   end
   for _, child in ipairs(self.children) do
@@ -69,6 +73,45 @@ function Container:draw()
 
     love.graphics.pop()
   end
+end
+
+---@param rows ({ [1]: Widget, [2]: Widget[] } | nil)[]
+---@param width number?
+function Container.placeFormLike(rows, width)
+  local PAD = 10
+  local GAP = 10
+  local Y_GAP = 28
+
+  local labelWidth = 0
+  for _, row in ipairs(rows) do
+    labelWidth = math.max(labelWidth, row[1].width)
+  end
+
+  local nodes = {}
+
+  for i, row in ipairs(rows) do
+    local y = PAD + (i - 1) * Y_GAP
+    row[1].x = PAD + labelWidth/2 - row[1].width/2
+    row[1].y = y + Y_GAP/2 - row[1].height/2
+    table.insert(nodes, row[1])
+
+    local remainderX = PAD + labelWidth
+    local remainder = (width - PAD) - remainderX
+
+    -- todo
+    -- currently handled rather.. shobbily
+    local x = GAP
+    for i, child in ipairs(row[2]) do
+      local width = remainder / #row[2] - GAP
+      child.x = remainderX + x
+      child.y = y + Y_GAP/2 - child.height/2
+      child.width = width
+      x = x + width
+      table.insert(nodes, child)
+    end
+  end
+
+  return nodes
 end
 
 ---@param rows Widget[][]

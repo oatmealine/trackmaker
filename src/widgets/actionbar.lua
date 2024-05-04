@@ -43,7 +43,7 @@ local items = {
         }))
       end, expandable = true },
       {},
-      { 'Metadata...', function() openWidget(MetadataWidget(100, 100)) end },
+      { 'Metadata...', function() openWidget(MetadataWidget(), true) end },
       {},
       { 'Exit',        function() love.event.quit(0) end}
     }

@@ -5,8 +5,8 @@ local Object = require 'lib.classic'
 local Node = Object:extend()
 
 function Node:new(x, y)
-  self.x = x
-  self.y = y
+  self.x = x or 0
+  self.y = y or 0
   self.width = 32
   self.height = 32
 
@@ -18,6 +18,8 @@ function Node:inBounds(x, y)
   return x >= self.x and x <= (self.x + self.width) and y > self.y and y <= (self.y + self.height)
 end
 
+function Node:loseFocus()
+end
 function Node:click(x, y, button)
 end
 function Node:move(x, y)

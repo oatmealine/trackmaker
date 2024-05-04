@@ -45,6 +45,10 @@ function Textfield:eatsInputs()
   return self.active
 end
 
+function Textfield:loseFocus()
+  self.trigger(self.value)
+end
+
 ---@param key love.KeyConstant
 function Textfield:key(key, scancode, isRepeat)
   if key == 'backspace' and self.cursor > 0 then
@@ -56,7 +60,10 @@ function Textfield:key(key, scancode, isRepeat)
 
     return true
   elseif key == 'return' then
-    if self.trigger then self.trigger(self.value) end
+    if self.trigger then
+      self.trigger(self.value)
+      self.active = false
+    end
     return true
   elseif key == 'left' then
     self.cursor = math.max(self.cursor - 1, 0)
@@ -86,7 +93,7 @@ function Textfield:draw()
   if self.active then
     local cursorPos = self.cursor > 0 and fonts.inter_12:getWidth(utf8sub(self.value, 1, self.cursor)) or 0
 
-    love.graphics.setColor(1, 1, 1, 0.8)
+    love.graphics.setColor(1, 1, 1, 0.7 + math.sin(love.timer.getTime() * 3) * 0.2)
     love.graphics.print('|', round(PAD_H + cursorPos), round(self.height/2 - fonts.inter_12:getHeight()/2))
   end
 end

@@ -24,7 +24,7 @@ function Select:new(x, y, options, trigger, default)
   end
 
   self.width = PAD_H * 2 + width + PAD_RIGHT
-  self.height = PAD_V * 2 + fonts.inter_12:getHeight()/2
+  self.height = PAD_V * 2 + fonts.inter_12:getHeight()
 end
 
 function Select:click(x, y, button)
