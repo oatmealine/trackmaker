@@ -226,7 +226,24 @@ function self.deleteSelection()
 end
 function self.deleteKey()
   self.deleteSelection()
+  logs.log('Deleted ' .. #self.selection .. ' events')
   self.clearSelection()
+  chart.markDirty()
+end
+
+function self.selectAll()
+  if not chart.loaded then return end
+  for _, event in ipairs(chart.chart) do
+    table.insert(self.selection, event)
+  end
+  logs.log('Selected ' .. #self.selection .. ' events')
+end
+
+function self.undo()
+  logs.log('Undo - not implemented')
+end
+function self.redo()
+  logs.log('Redo - not implemented')
 end
 
 function self.cut()
@@ -251,6 +268,8 @@ function self.copy()
 
   logs.log('Copied ' .. #self.selection .. ' events')
   self.clearSelection()
+
+  chart.markDirty()
 end
 function self.paste()
   if not chart.loaded then return end
@@ -271,6 +290,8 @@ function self.paste()
   end
 
   logs.log('Pasted ' .. #events .. ' events')
+
+  chart.markDirty()
 end
 
 ---@param key love.KeyConstant

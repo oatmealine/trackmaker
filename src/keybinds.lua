@@ -43,6 +43,24 @@ self.binds = {
       chart.quickSave()
     end
   },
+  undo = {
+    name = 'Undo',
+    ctrl = true,
+    keyCodes = { 'z' },
+    trigger = edit.undo,
+  },
+  redo = {
+    name = 'Redo',
+    ctrl = true,
+    keyCodes = { 'y' },
+    trigger = edit.redo,
+  },
+  selectAll = {
+    name = 'Select All',
+    ctrl = true,
+    keyCodes = { 'a' },
+    trigger = edit.selectAll,
+  },
   cut = {
     name = 'Cut',
     ctrl = true,

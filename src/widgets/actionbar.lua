@@ -46,9 +46,15 @@ local items = {
   end},
   { 'Edit', function()
     return {
+      { 'Undo',  function() edit.undo()  end, bind = keybinds.binds.undo },
+      { 'Redo',  function() edit.redo()  end, bind = keybinds.binds.redo },
+
       { 'Cut',   function() edit.cut()   end, bind = keybinds.binds.cut },
       { 'Copy',  function() edit.copy()  end, bind = keybinds.binds.copy },
       { 'Paste', function() edit.paste() end, bind = keybinds.binds.paste },
+
+      { 'Select All', function() edit.selectAll() end, bind = keybinds.binds.selectAll },
+      { 'Delete',     function() edit.deleteKey() end, bind = keybinds.binds.delete },
     }
   end},
   { 'Options', function()
