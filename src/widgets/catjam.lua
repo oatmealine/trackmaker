@@ -51,6 +51,7 @@ function CatjamWidget:click(x, y, button)
     table.insert(entries, { jam.name, function() self.jammer = jam end, toggle = true, value = self.jammer.name == jam.name })
   end
 
+  table.insert(entries, {})
   table.insert(entries, { 'Close', function() self.delete = true end })
 
   openWidget(ContextWidget(self.x + x, self.y + y, entries))

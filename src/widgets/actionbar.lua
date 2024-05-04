@@ -33,6 +33,8 @@ local items = {
         end
         self:openChild(i, ContextWidget(0, 0, entries))
       end, expandable = true },
+      { 'Close',       function() chart.loaded = false; chart.chart = nil; chart.metadata = nil end },
+      {},
       { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave },
       { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save },
       { 'Import',   hover = function(self, i)
@@ -40,7 +42,9 @@ local items = {
           { '.SM/.SSC file', function() chart.importMenu('sm,ssc') end },
         }))
       end, expandable = true },
+      {},
       { 'Metadata...', function() openWidget(MetadataWidget(100, 100)) end },
+      {},
       { 'Exit',        function() love.event.quit(0) end}
     }
   end},
@@ -48,11 +52,11 @@ local items = {
     return {
       { 'Undo',  function() edit.undo()  end, bind = keybinds.binds.undo },
       { 'Redo',  function() edit.redo()  end, bind = keybinds.binds.redo },
-
+      {},
       { 'Cut',   function() edit.cut()   end, bind = keybinds.binds.cut },
       { 'Copy',  function() edit.copy()  end, bind = keybinds.binds.copy },
       { 'Paste', function() edit.paste() end, bind = keybinds.binds.paste },
-
+      {},
       { 'Mirror',   hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
           { 'Horizontally', function() edit.mirrorSelection(edit.MirrorType.Horizontal) end },
@@ -60,7 +64,7 @@ local items = {
           { 'Both',         function() edit.mirrorSelection(edit.MirrorType.Both)       end },
         }))
       end, expandable = true },
-
+      {},
       { 'Select All', function() edit.selectAll() end, bind = keybinds.binds.selectAll },
       { 'Delete',     function() edit.deleteKey() end, bind = keybinds.binds.delete },
     }
@@ -76,6 +80,7 @@ local items = {
         config.config.noteTick = not config.config.noteTick
         logs.log('Note tick: ' .. (config.config.noteTick and 'ON' or 'OFF'))
       end, toggle = true, value = config.config.noteTick, bind = keybinds.binds.noteTick },
+      {},
       { 'VSync', function()
         flags.vsync = 1 - flags.vsync
         logs.log('VSync: ' .. ((flags.vsync == 1) and 'ON' or 'OFF'))
@@ -89,6 +94,7 @@ local items = {
           logs.log('Only touch this if you know what you\'re doing!')
         end
       end, toggle = true, value = config.config.noMultithreading },
+      {},
       { 'Cat', function()
         if not catjam or catjam.delete then
           catjam = CatjamWidget(32, 32)
@@ -103,6 +109,7 @@ local items = {
   { 'Help', function()
     return {
       { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
+      {},
       { 'UI Test',         function() openWidget(UITestWidget(150, 150)) end },
       { 'About',         function() openWidget(AboutWidget(150, 150)) end },
     }

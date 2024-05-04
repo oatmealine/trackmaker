@@ -29,24 +29,44 @@ function ContextWidget:new(x, y, entries)
   self.bindTexts = {}
   local width = MIN_WIDTH
   for i, entry in ipairs(entries) do
-    local text = love.graphics.newText(fonts.inter_12, entry[1])
-    local w = text:getWidth()
-    table.insert(self.texts, text)
-    if entry.bind then
-      local bindText = love.graphics.newText(fonts.inter_12, keybinds.formatBind(entry.bind))
-      self.bindTexts[i] = bindText
-      w = w + bindText:getWidth() + GAP
+    if entry[1] then
+      local text = love.graphics.newText(fonts.inter_12, entry[1])
+      local w = text:getWidth()
+      self.texts[i] =  text
+      if entry.bind then
+        local bindText = love.graphics.newText(fonts.inter_12, keybinds.formatBind(entry.bind))
+        self.bindTexts[i] = bindText
+        w = w + bindText:getWidth() + GAP
+      end
+      width = math.max(width, w)
     end
-    width = math.max(width, w)
   end
-
-  self.width = MARGIN * 2 + LEFT_PAD + RIGHT_PAD + width
-  self.height = HEIGHT * #entries
 
   self.entries = entries
 
+  self.width = MARGIN * 2 + LEFT_PAD + RIGHT_PAD + width
+  self.height = self:getElemY(#self.entries + 1)
+
   self.supressClose = false
   self.hoveredIdx = 0
+  self.activeIdx = nil
+end
+
+function ContextWidget:getElemHeight(i)
+  local entry = self.entries[i]
+  if entry[1] then
+    return HEIGHT
+  else
+    -- gap
+    return 8
+  end
+end
+function ContextWidget:getElemY(elem)
+  local y = 0
+  for i = 1, elem - 1 do
+    y = y + self:getElemHeight(i)
+  end
+  return y
 end
 
 function ContextWidget:close()
@@ -65,22 +85,38 @@ end
 
 ---@param child ContextWidget
 function ContextWidget:openChild(i, child)
+  self.activeIdx = i
   self.child = child
   child.parent = self
   child.x = self.x + self.width
-  child.y = self.y + (i - 1) * HEIGHT
+  child.y = self.y + self:getElemY(i)
   openWidget(child)
   return true
 end
 
+function ContextWidget:getElemFromY(y)
+  local elemY = 0
+  for i, entry in ipairs(self.entries) do
+    elemY = elemY + self:getElemHeight(i)
+    if y < elemY then
+      return i, entry
+    end
+  end
+end
+
 function ContextWidget:move(x, y)
-  local i = math.floor(y / HEIGHT) + 1
-  local entry = self.entries[i]
+  local i, entry = self:getElemFromY(y)
+
+  if not entry then return end
+
   if i ~= self.hoveredIdx then
     self.hoveredIdx = i
     if self.child then
       self.child.delete = true
       self.child = nil
+      if i ~= self.activeIdx then
+        self.activeIdx = nil
+      end
     end
 
     if entry and entry.hover then
@@ -92,9 +128,11 @@ end
 function ContextWidget:click(x, y, button)
   if button ~= 1 then return end
 
-  local i = math.floor(y / HEIGHT) + 1
-  local entry = self.entries[i]
-  if entry and entry[2] then
+  local _, entry = self:getElemFromY(y)
+
+  if not entry then return end
+
+  if entry[2] then
     local res = entry[2](self)
     if not res then
       self:close()
@@ -106,20 +144,27 @@ function ContextWidget:draw()
   love.graphics.setColor(0.1, 0.1, 0.1, 1)
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
   love.graphics.setColor(1, 1, 1, 1)
-  for i, text in ipairs(self.texts) do
-    local entry = self.entries[i]
 
-    local y = (i - 1) * HEIGHT
-    local botY = i * HEIGHT
+  local y = 0
+  for i, entry in ipairs(self.entries) do
+    local botY = y + self:getElemHeight(i)
 
-    local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-    if my > y and my <= botY and mx > 0 and mx < self.width then
-      love.graphics.setColor(0.2, 0.2, 0.2, 1)
-      love.graphics.rectangle('fill', 0, y, self.width, botY - y)
+    if entry[1] then
+      local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
+      if self.activeIdx == i or my > y and my <= botY and mx > 0 and mx < self.width then
+        love.graphics.setColor(0.2, 0.2, 0.2, 1)
+        love.graphics.rectangle('fill', 0, y, self.width, botY - y)
+      end
     end
 
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
+    local text = self.texts[i]
+    if text then
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
+    else
+      love.graphics.setColor(0.2, 0.2, 0.2, 1)
+      love.graphics.line(0, (y + botY)/2, self.width, (y + botY)/2)
+    end
 
     local bindText = self.bindTexts[i]
     if bindText then
@@ -134,6 +179,8 @@ function ContextWidget:draw()
     if entry.expandable then
       love.graphics.printf('►', MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
     end
+
+    y = botY
   end
 end
 
