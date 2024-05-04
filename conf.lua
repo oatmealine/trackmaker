@@ -41,7 +41,7 @@ function love.conf(t)
     description = nil,
     homepage = nil,
     identifier = 'zone.oat.trackmaker',
-    excludeFileList = { '^releases/', '^release', '^%.vscode/', '^%.git/', '%.gitignore', '^flake.nix$', '^flake.lock$', '%.dll$', '%.so$', '%.dylib$' },
+    excludeFileList = { '^releases/', '^release', '^%.vscode/', '^%.git/', '%.gitignore', '^flake.nix$', '^flake.lock$', '%.dll$', '%.so$', '%.dylib$', '^%.' },
     compile = true
   }
 end
