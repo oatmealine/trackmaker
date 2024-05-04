@@ -21,11 +21,31 @@ local function lcm(m, n)
   return ( m ~= 0 and n ~= 0 ) and m * n / gcd( m, n ) or 0
 end
 
-local function quantize(b)
-  if b > 0.5 then
-    return math.floor((1 / (1 - b)) + 0.5)
+local QUANTS = {
+  1,
+  1 / 2,
+  1 / 3,
+  1 / 4,
+  1 / 5,
+  1 / 6,
+  1 / 8,
+  1 / 12,
+  1 / 16,
+  1 / 24,
+  1 / 48,
+}
+
+local function getQuantIndex(beat)
+  for i, quant in ipairs(QUANTS) do
+    if math.abs(beat - round(beat / quant) * quant) < 0.01 then
+      return i
+    end
   end
-  return math.floor((1 / b) + 0.5)
+  return #QUANTS
+end
+
+local function getDivision(beat)
+  return 1 / QUANTS[getQuantIndex(beat)]
 end
 
 ---@enum XDRVDifficulty
@@ -428,7 +448,7 @@ local function serializeChart(events)
     local rowsN = 1
     for _, event in ipairs(segment) do
       if event.beat > b then
-        rowsN = lcm(rowsN, quantize(event.beat - b))
+        rowsN = lcm(rowsN, getDivision(event.beat))
       end
     end
     --print('-> ', #segment, rowsN)
