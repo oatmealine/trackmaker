@@ -53,6 +53,14 @@ local items = {
       { 'Copy',  function() edit.copy()  end, bind = keybinds.binds.copy },
       { 'Paste', function() edit.paste() end, bind = keybinds.binds.paste },
 
+      { 'Mirror',   hover = function(self, i)
+        self:openChild(i, ContextWidget(0, 0, {
+          { 'Horizontally', function() edit.mirrorSelection(edit.MirrorType.Horizontal) end },
+          { 'Vertically',   function() edit.mirrorSelection(edit.MirrorType.Vertical)   end },
+          { 'Both',         function() edit.mirrorSelection(edit.MirrorType.Both)       end },
+        }))
+      end, expandable = true },
+
       { 'Select All', function() edit.selectAll() end, bind = keybinds.binds.selectAll },
       { 'Delete',     function() edit.deleteKey() end, bind = keybinds.binds.delete },
     }

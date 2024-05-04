@@ -215,6 +215,76 @@ function self.updateGhosts()
   end
 end
 
+---@enum MirrorType
+self.MirrorType = {
+  Horizontal = 0,
+  Vertical = 1,
+  Both = 2,
+}
+
+---@param c XDRVNoteColumn
+local function mirrorColumnHoriz(c)
+  return 7 - c
+end
+---@param c XDRVNoteColumn
+local function mirrorColumnVert(c)
+  if c < 3 then
+    -- 1 -> 2, 2 -> 1
+    return 3 - c
+  end
+  if c > 4 then
+    -- 5 -> 6, 6 -> 5
+    return 11 - c
+  end
+  return c
+end
+---@param l XDRVLane
+local function mirrorLane(l)
+  if l == xdrv.XDRVLane.Left then return xdrv.XDRVLane.Right end
+  return xdrv.XDRVLane.Left
+end
+---@param d XDRVDriftDirection
+local function mirrorDriftDir(d)
+  if d == xdrv.XDRVDriftDirection.Left  then return xdrv.XDRVDriftDirection.Right end
+  if d == xdrv.XDRVDriftDirection.Right then return xdrv.XDRVDriftDirection.Left  end
+  return xdrv.XDRVDriftDirection.Neutral
+end
+
+---@param m MirrorType
+local function mirrorStr(m)
+  if m == self.MirrorType.Horizontal then
+    return 'horizontally'
+  end
+  if m == self.MirrorType.Vertical then
+    return 'vertically'
+  end
+  return 'horizontally and vertically'
+end
+
+---@param type MirrorType
+function self.mirrorSelection(type)
+  local isHorizontal = type == self.MirrorType.Horizontal or type == self.MirrorType.Both
+  local isVertical = type == self.MirrorType.Vertical or type == self.MirrorType.Both
+  for _, event in ipairs(self.selection) do
+    if event.note then
+      if isHorizontal then
+        event.note.column = mirrorColumnHoriz(event.note.column)
+      end
+      if isVertical then
+        event.note.column = mirrorColumnVert(event.note.column)
+      end
+    end
+    if event.gearShift and isHorizontal then
+      event.gearShift.lane = mirrorLane(event.gearShift.lane)
+    end
+    if event.drift then
+      event.drift.direction = mirrorDriftDir(event.drift.direction)
+    end
+  end
+  logs.log('Mirrored ' .. #self.selection .. ' events ' .. mirrorStr(type))
+  chart.markDirty()
+end
+
 function self.deleteSelection()
   if not chart.loaded then return end
   for i = #chart.chart, 1, -1 do
