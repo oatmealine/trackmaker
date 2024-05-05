@@ -236,7 +236,7 @@ function self.importSM(chart, filepath, notes, style)
   end
 
   for _, v in ipairs(chart.TIMESIGNATURES or {}) do
-    table.insert(self.chart, { beat = v[1], timesig = { v[2], v[3] } })
+    table.insert(self.chart, { beat = v[1], timeSignature = { tonumber(v[2]), tonumber(v[3]) } })
   end
 
   for _, v in ipairs(chart.WARPS or {}) do
