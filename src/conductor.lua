@@ -24,10 +24,7 @@ function M.reset()
   M.playing = false
 end
 
----@param chart XDRVChart
-function M.loadFromChart(chart, dir)
-  M.offset = chart.metadata.musicOffset
-  local songPath = dir .. chart.metadata.musicAudio
+function M.loadSong(songPath)
   local file, err = io.open(songPath, 'rb')
   if file then
     local data = file:read('*a')
@@ -39,6 +36,12 @@ function M.loadFromChart(chart, dir)
   else
     logs.log(err)
   end
+end
+
+---@param chart XDRVChart
+function M.loadFromChart(chart, dir)
+  M.offset = chart.metadata.musicOffset
+  M.loadSong(dir .. chart.metadata.musicAudio)
 
   M.initialBPM = chart.metadata.chartBPM
   M.bpms = { { 0, M.initialBPM } }

@@ -7,6 +7,15 @@ function Container:new(children, x, y)
   Container.super.new(self, x, y)
   ---@type Node[]
   self.children = children
+  local width, height = 0, 0
+  for _, child in ipairs(self.children) do
+    width = math.max(width, child.x + child.width)
+    height = math.max(height, child.y + child.height)
+  end
+  self.width = width
+  self.height = height
+  self.rawX = 0
+  self.rawY = 0
 end
 
 function Container:update()
@@ -23,7 +32,7 @@ function Container:click(x, y, button)
     child.active = false
   end
   for _, child in ipairs(self.children) do
-    if child:inBounds(x, y) then
+    if child:inBounds(x, y) and not child.disabled then
       child.active = true
       child:click(x - child.x, y - child.y, button)
       return
@@ -60,12 +69,17 @@ end
 
 function Container:loseFocus()
   for _, child in ipairs(self.children) do
+    if child.active then
+      child:loseFocus()
+    end
     child.active = false
   end
 end
 
 function Container:draw()
   for _, child in ipairs(self.children) do
+    child.rawX, child.rawY = self.rawX + child.x, self.rawY + child.y
+
     love.graphics.push()
     love.graphics.translate(round(child.x), round(child.y))
 

@@ -7,11 +7,14 @@ local Node = Object:extend()
 function Node:new(x, y)
   self.x = x or 0
   self.y = y or 0
+  self.rawX = 0
+  self.rawY = 0
   self.width = 32
   self.height = 32
 
   self.hovered = false
   self.active = false
+  self.disabled = false
 end
 
 function Node:inBounds(x, y)

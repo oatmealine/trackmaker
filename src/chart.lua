@@ -7,6 +7,7 @@ local config         = require 'src.config'
 local filesystem     = require 'src.filesystem'
 local sm             = require 'lib.sm'
 local ImportSMWidget = require 'src.widgets.importsm'
+local widgets        = require 'src.widgets'
 
 self.loaded = false
 ---@type XDRVEvent[]
@@ -63,6 +64,7 @@ function self.openPath(filepath)
 
   self.loaded = true
   updateTitle()
+  widgets.callEvent('chartUpdate')
 
   logs.log('Loaded chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
   config.appendRecent(filepath)
@@ -264,6 +266,8 @@ function self.importSM(chart, filepath, notes, style)
 
   self.loaded = true
   updateTitle()
+
+  widgets.callEvent('chartUpdate')
 
   logs.log('Imported chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
 end

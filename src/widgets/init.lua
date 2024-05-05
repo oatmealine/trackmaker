@@ -39,6 +39,10 @@ end
 function Widget:update()
 end
 
+---@param name string
+function Widget:event(name)
+end
+
 function Widget:getBoundingBox()
   if self.hasWindowDecorations then
     return self.x, self.y, self.x + self.width + BORDER_WIDTH * 2, self.y + BAR_HEIGHT + self.height + BORDER_WIDTH * 2
@@ -231,6 +235,9 @@ function self.update()
       end
     end
   end
+end
+function self.callEvent(event)
+  for _, widget in ipairs(widgets) do widget:event(event) end
 end
 
 function self.draw()

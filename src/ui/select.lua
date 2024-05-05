@@ -28,6 +28,8 @@ function Select:new(x, y, options, trigger, default)
 end
 
 function Select:click(x, y, button)
+  if self.disabled then return end
+
   if button == 1 then
     local options = {}
     for i, option in ipairs(self.options) do
@@ -39,11 +41,8 @@ function Select:click(x, y, button)
       end })
     end
 
-    -- dumb hack but oh well
-    local widgets = getWidgets()
-    local w = widgets[#widgets]
-
-    local ctx = ContextWidget(w.x + self.x, w.y + self.y + 24 + 2 + self.height, options)
+    local ctx = ContextWidget(self.rawX, self.rawY + self.height, options)
+    ctx.width = self.width
     openWidget(ctx)
   end
 end

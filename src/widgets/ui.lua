@@ -26,7 +26,18 @@ function UIWidget:move(x, y)
   self.container:move(x, y)
 end
 
+-- kind of sucks to copy these, oh well
+local BORDER_WIDTH = 1
+local BAR_HEIGHT = 24
+
 function UIWidget:update()
+  if self.hasWindowDecorations then
+    self.container.rawX = self.x + BORDER_WIDTH
+    self.container.rawY = self.y + BORDER_WIDTH + BAR_HEIGHT
+  else
+    self.container.rawX = self.x
+    self.container.rawY = self.y
+  end
   self.container:update()
 end
 

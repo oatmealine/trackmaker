@@ -38,6 +38,7 @@ function Textfield:textInput(t)
 end
 
 function Textfield:click()
+  if self.disabled then return end
   self.cursor = utf8.len(self.value)
 end
 

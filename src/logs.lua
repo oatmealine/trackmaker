@@ -31,7 +31,7 @@ function self.logStdout(text)
   print(text)
 end
 function self.logFile(text)
-  local timestamped = '[' .. os.date('%c') .. '] ' .. text
+  local timestamped = '[' .. os.date('%c') .. '] ' .. tostring(text)
 
   love.filesystem.append('trackmaker.log', timestamped .. '\n')
   self.logStdout(timestamped)
