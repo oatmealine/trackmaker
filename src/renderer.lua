@@ -266,6 +266,8 @@ function self.draw()
     love.graphics.printf(tostring(getDivision(edit.quantIndex)), getRight() + 15, sh - PAD_BOTTOM - fonts.inter_12:getHeight()/2, 30, 'center')
   end
 
+  love.graphics.setLineWidth(1)
+
   for _, event in ipairs(edit.selection) do
     if event.note then
       local note = event.note
