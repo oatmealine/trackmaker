@@ -1,5 +1,14 @@
 local utf8 = require 'utf8'
 
+---@generic T
+---@param a T
+---@param b T
+---@param x number
+---@return T
+function mix(a, b, x)
+  return a + (b - a) * x
+end
+
 function utf8sub(s, a, b)
   a = a or 0
   b = b or utf8.len(s)

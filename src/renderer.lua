@@ -1,14 +1,18 @@
 local self = {}
 
+local deep = require 'lib.deep'
+
 local conductor = require 'src.conductor'
 local xdrv      = require 'lib.xdrv'
 local edit      = require 'src.edit'
 local logs      = require 'src.logs'
 
+local layer = deep:new()
+
 local PAD_BOTTOM = 256
 
 local NOTE_WIDTH = 48
-local NOTE_HEIGHT = 10
+local NOTE_HEIGHT = 12
 local GAP_WIDTH = 48
 
 local BACK_COL = hex('141214')
@@ -80,19 +84,41 @@ local function drawNote(event)
   local note = event.note
   local x = getColumnX(note.column) * scale()
   local y = beatToY(event.beat)
+
+  local width = NOTE_WIDTH * scale() * 0.95
+
+  if y < -NOTE_HEIGHT then return -1 end
+  if y > (sh + NOTE_HEIGHT) then return end
+
+  love.graphics.setColor(getColumnColor(note.column):unpack())
+  love.graphics.rectangle('fill', x - width/2, y - (NOTE_HEIGHT/2) * scale(), width, NOTE_HEIGHT * scale(), 1, 1)
+end
+local function drawHoldTail(event)
+  local note = event.note
+  if not note.length then return end
+
+  local x = getColumnX(note.column) * scale()
+  local y = beatToY(event.beat)
   local yEnd = beatToY(event.beat + (note.length or 0))
 
   if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
   if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
 
-  if note.length then
-    love.graphics.setColor(getColumnColor(note.column):alpha(0.5):unpack())
-    love.graphics.rectangle('fill', x - (NOTE_WIDTH/2) * scale(), yEnd, NOTE_WIDTH * scale(), y - yEnd)
-  end
-
-  love.graphics.setColor(getColumnColor(note.column):unpack())
-  love.graphics.rectangle('fill', x - (NOTE_WIDTH/2) * scale(), y - (NOTE_HEIGHT/2) * scale(), NOTE_WIDTH * scale(), NOTE_HEIGHT * scale())
+  love.graphics.setColor((getColumnColor(note.column) * 0.5):unpack())
+  local width = NOTE_WIDTH * scale() * 0.95 * 0.9
+  love.graphics.rectangle('fill', x - width/2, yEnd, width, y - yEnd)
 end
+
+local gradMesh = love.graphics.newMesh({
+  { 0,    0, 0, 0, 1, 1, 1, 1 },
+  { 0,    1, 0, 0, 1, 1, 1, 1 },
+  { 0.2,  0, 0, 0, 1, 1, 1, 0 },
+  { 0.2,  1, 0, 0, 1, 1, 1, 0 },
+  { 0.8,  0, 0, 0, 1, 1, 1, 0 },
+  { 0.8,  1, 0, 0, 1, 1, 1, 0 },
+  { 1,    0, 0, 0, 1, 1, 1, 1 },
+  { 1,    1, 0, 0, 1, 1, 1, 1 },
+}, 'strip', 'static')
 
 local function drawGearShift(event)
   local gear = event.gearShift
@@ -112,13 +138,137 @@ local function drawGearShift(event)
   if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
   if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
 
-  love.graphics.setLineWidth(3 * scale())
+  local x = (GAP_WIDTH/2) * offset * scale()
+  local width = NOTE_WIDTH * 3 * offset * scale()
 
   love.graphics.setColor(color:alpha(0.3):unpack())
-  love.graphics.rectangle('fill', (GAP_WIDTH/2) * offset * scale(), yEnd, NOTE_WIDTH * 3 * offset * scale(), y - yEnd)
-  love.graphics.setColor(color:unpack())
+  love.graphics.draw(gradMesh, x, yEnd, 0, width, y - yEnd)
+  love.graphics.setColor(color:alpha(0.05):unpack())
+  love.graphics.rectangle('fill', x, yEnd, width, y - yEnd)
+end
+
+local function drawGearShiftEnds(event)
+  local gear = event.gearShift
+
+  local color
+  local offset = 1
+  if gear.lane == xdrv.XDRVLane.Left then
+    color = LANE_1_COL
+    offset = -1
+  else
+    color = LANE_2_COL
+  end
+
+  local y = beatToY(event.beat)
+  local yEnd = beatToY(event.beat + gear.length)
+
+  if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
+  if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
+
+  love.graphics.setLineWidth(6 * scale())
+
+  love.graphics.setColor(color:alpha(0.8):unpack())
   love.graphics.line(getRight() * offset, y, getMRight() * offset, y)
   love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
+end
+
+local driftTex = love.graphics.newImage('assets/sprites/driftMarker.png')
+local DRIFT_SPACING = 1
+
+---@param dir XDRVDriftDirection
+local function driftX(dir)
+  if dir == xdrv.XDRVDriftDirection.Left    then return -1 end
+  if dir == xdrv.XDRVDriftDirection.Right   then return 1  end
+  return 0
+end
+
+-- all of this is Quite Janky, but oh well
+-- with the way drifts are handled in the events table it's hard to do better
+local function drawDrift(event, prevEvent)
+  local dir = event.drift.direction
+  local lastDir = prevEvent and prevEvent.drift.direction or xdrv.XDRVDriftDirection.Neutral
+
+  local side
+  if dir == xdrv.XDRVDriftDirection.Neutral then
+    side = lastDir == xdrv.XDRVDriftDirection.Left and -1 or 1
+  else
+    side = dir == xdrv.XDRVDriftDirection.Left and -1 or 1
+  end
+
+  local baseX = (getMRight() + NOTE_WIDTH * 1.5) * scale()
+
+  local startBeat
+  local endBeat
+  if dir == xdrv.XDRVDriftDirection.Neutral then
+    startBeat = event.beat
+    endBeat = conductor.beatAtTime(conductor.timeAtBeat(event.beat) + 1.5)
+  else
+    endBeat = conductor.beatAtTime(conductor.timeAtBeat(event.beat) - 1.5)
+    startBeat = event.beat
+  end
+
+  local size = 32 * scale()
+
+  local spacing = DRIFT_SPACING
+  if startBeat > endBeat then
+    spacing = -spacing
+  end
+
+  for b = startBeat, endBeat, spacing do
+    local a = (b - startBeat) / (endBeat - startBeat)
+    local dirDelta = a
+    if startBeat > endBeat then
+      dirDelta = 1 - a
+    end
+    local d = mix(driftX(lastDir), driftX(dir), dirDelta)
+    local y = beatToY(b)
+    love.graphics.setColor(1, 1, 1, (1 - a) * 0.4)
+    for x = -baseX, baseX, baseX*2 do
+      love.graphics.draw(driftTex, x + d * NOTE_WIDTH * scale(), y, 0, size / driftTex:getWidth(), size / driftTex:getHeight(), driftTex:getWidth()/2, driftTex:getHeight()/2)
+    end
+  end
+
+  if lastDir ~= xdrv.XDRVDriftDirection.Neutral and prevEvent then
+    for b = prevEvent.beat + DRIFT_SPACING, startBeat - DRIFT_SPACING, DRIFT_SPACING do
+      local y = beatToY(b)
+      love.graphics.setColor(1, 1, 1, 0.4)
+      for x = -baseX, baseX, baseX*2 do
+        love.graphics.draw(driftTex, x + driftX(lastDir) * NOTE_WIDTH * scale(), y, 0, size / driftTex:getWidth(), size / driftTex:getHeight(), driftTex:getWidth()/2, driftTex:getHeight()/2)
+      end
+    end
+  end
+
+  local col = rgb(1, 1, 1)
+  if dir == xdrv.XDRVDriftDirection.Left then
+    col = LANE_1_COL
+  elseif dir == xdrv.XDRVDriftDirection.Right then
+    col = LANE_2_COL
+  end
+
+  love.graphics.setColor(col:unpack())
+  love.graphics.setLineWidth(1 * scale())
+  local y = beatToY(event.beat)
+  local leftX = baseX * side - NOTE_WIDTH * 1.5 * scale()
+  local rightX = baseX * side + NOTE_WIDTH * 1.5 * scale()
+  for x = leftX, rightX, 15 do
+    love.graphics.line(x, y, math.min(x + 7, rightX), y)
+  end
+
+  --[[
+  local t = 'x'
+  if dir == xdrv.XDRVDriftDirection.Left then
+    t = '<'
+  elseif dir == xdrv.XDRVDriftDirection.Right then
+    t = '>'
+  end
+  love.graphics.setColor(1, 1, 0, 1)
+  love.graphics.setFont(fonts.inter_16)
+  love.graphics.print('DRIFT: ' .. t, getRight() + 32, round(y - fonts.inter_16:getHeight()/2))
+
+  love.graphics.setColor(0.4, 0.4, 0.4, 1)
+  love.graphics.setFont(fonts.inter_12)
+  love.graphics.print('placeholder placeholder boooooo', getRight() + 32, round(y + 12))
+  ]]
 end
 
 local QUANT_DEFAULT_COLOR = hex('a5a5a5')
@@ -157,7 +307,7 @@ function self.draw()
   local botB = math.floor(yToBeat(sh)) - 1
 
   local measureSize = 4
-  love.graphics.setLineWidth(1 * scale())
+  love.graphics.setLineWidth(4 * scale())
   for b = botB, topB do
     local y = beatToY(b)
 
@@ -176,6 +326,8 @@ function self.draw()
     love.graphics.line(getRight(), y, getMRight(), y)
   end
 
+  love.graphics.setLineWidth(1 * scale())
+
   love.graphics.setColor(SEP_COL:unpack())
   for o = -1, 1, 2 do
     for i = 1, 2 do
@@ -184,12 +336,46 @@ function self.draw()
     end
   end
 
-  love.graphics.setColor(LANE_1_COL:alpha(0.8):unpack())
-  love.graphics.line(getLeft(), sh, getLeft(), 0)
-  love.graphics.line(getMLeft(), sh, getMLeft(), 0)
-  love.graphics.setColor(LANE_2_COL:alpha(0.8):unpack())
-  love.graphics.line(getRight(), sh, getRight(), 0)
-  love.graphics.line(getMRight(), sh, getMRight(), 0)
+  local sideW = 4 * scale()
+  love.graphics.setLineWidth(sideW)
+
+  love.graphics.setColor(LANE_1_COL:alpha(0.5):unpack())
+  love.graphics.line(getLeft() - sideW/2, sh, getLeft() - sideW/2, 0)
+  love.graphics.line(getMLeft() + sideW/2, sh, getMLeft() + sideW/2, 0)
+  love.graphics.setColor(LANE_2_COL:alpha(0.5):unpack())
+  love.graphics.line(getRight() + sideW/2, sh, getRight() + sideW/2, 0)
+  love.graphics.line(getMRight() - sideW/2, sh, getMRight() - sideW/2, 0)
+
+  local events = chart.chart
+
+  local lastDrift
+  for _, event in ipairs(events) do
+    if event.gearShift then
+      layer:queue(1, drawGearShift, event)
+      layer:queue(7, drawGearShiftEnds, event)
+    end
+    if event.note then
+      layer:queue(3, drawHoldTail, event)
+      layer:queue(4, drawNote, event)
+    end
+    if event.drift then
+      layer:queue(0, drawDrift, event, lastDrift)
+      lastDrift = event
+    end
+  end
+
+  for _, ghost in ipairs(edit.getGhosts()) do
+    if ghost.note then
+      layer:queue(5, drawHoldTail, ghost)
+      layer:queue(6, drawNote, ghost)
+    end
+    if ghost.gearShift then
+      layer:queue(2, drawGearShift, ghost)
+      layer:queue(8, drawGearShiftEnds, ghost)
+    end
+  end
+
+  layer:draw()
 
   love.graphics.setLineWidth(5 * scale())
   love.graphics.setColor(LANE_1_COL:unpack())
@@ -198,51 +384,6 @@ function self.draw()
   love.graphics.line(getRight(), sh - PAD_BOTTOM, getMRight(), sh - PAD_BOTTOM)
 
   love.graphics.setLineWidth(1)
-
-  local events = chart.chart
-
-  for _, event in ipairs(events) do
-    if event.gearShift then
-      local res = drawGearShift(event)
-      if res == -1 then break end
-    end
-  end
-
-  for _, event in ipairs(events) do
-    if event.note then
-      local res = drawNote(event)
-      if res == -1 then break end
-    end
-  end
-
-  for _, event in ipairs(events) do
-    if event.drift then
-      local dir = event.drift.direction
-      local y = beatToY(event.beat)
-      local t = 'x'
-      if dir == xdrv.XDRVDriftDirection.Left then
-        t = '<'
-      elseif dir == xdrv.XDRVDriftDirection.Right then
-        t = '>'
-      end
-      love.graphics.setColor(1, 1, 0, 1)
-      love.graphics.setFont(fonts.inter_16)
-      love.graphics.print('DRIFT: ' .. t, getRight() + 32, round(y - fonts.inter_16:getHeight()/2))
-
-      love.graphics.setColor(0.4, 0.4, 0.4, 1)
-      love.graphics.setFont(fonts.inter_12)
-      love.graphics.print('placeholder placeholder boooooo', getRight() + 32, round(y + 12))
-    end
-  end
-
-  for _, ghost in ipairs(edit.getGhosts()) do
-    if ghost.note then
-      drawNote(ghost)
-    end
-    if ghost.gearShift then
-      drawGearShift(ghost)
-    end
-  end
 
   local quantCol = QUANT_COLORS[edit.quantIndex]
 
