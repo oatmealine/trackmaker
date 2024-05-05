@@ -58,8 +58,6 @@ function M.loadFromChart(chart, dir)
       table.insert(M.stops, { event.beat, duration, seconds })
     end
   end
-
-  print(pretty(M.timeSignatures))
 end
 
 function M.secondsToBeats(s, bpm)
