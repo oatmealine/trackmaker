@@ -108,8 +108,8 @@ function MetadataWidget:getContainer()
     } },
   }, WIDTH)
 
-  for _, elem in ipairs(elems) do
-    if not chart.loaded then
+  if not chart.loaded then
+    for _, elem in ipairs(elems) do
       elem.disabled = true
     end
   end

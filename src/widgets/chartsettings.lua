@@ -14,35 +14,55 @@ local WIDTH = 170
 local HEIGHT = 190
 
 function ChartSettingsWidget:new(x, y)
-  ChartSettingsWidget.super.new(self, x, y, Container(Container.placeFormLike({
-    { Label(0, 0, 'Keyboard Only'),        { Checkmark(0, 0, function(_, value)
-      chart.metadata.isKeyboardOnly = value
-      chart.markDirty()
-    end, chart.metadata.isKeyboardOnly ) } },
-    { Label(0, 0, 'Original'),             { Checkmark(0, 0, function(_, value)
-      chart.metadata.isOriginal = value
-      chart.markDirty()
-    end, chart.metadata.isOriginal ) } },
-    { Label(0, 0, 'Disable Leaderboards'), { Checkmark(0, 0, function(_, value)
-      chart.metadata.disableLeaderboardUploading = value
-      chart.markDirty()
-    end, chart.metadata.disableLeaderboardUploading ) } },
-    { Label(0, 0, 'RPC Hidden'),           { Checkmark(0, 0, function(_, value)
-      chart.metadata.rpcHidden = value
-      chart.markDirty()
-    end, chart.metadata.rpcHidden ) } },
-    { Label(0, 0, 'Boss'),                 { Checkmark(0, 0, function(_, value)
-      chart.metadata.chartBoss = value
-      chart.markDirty()
-    end, chart.metadata.chartBoss ) } },
-    { Label(0, 0, 'Flash Track'),          { Checkmark(0, 0, function(_, value)
-      chart.metadata.isFlashTrack = value
-      chart.markDirty()
-    end, chart.metadata.isFlashTrack ) } },
-  }, WIDTH)))
+  ChartSettingsWidget.super.new(self, x, y, self:getContainer())
   self.width = WIDTH
   self.height = HEIGHT
   self.title = 'Chart Settings'
+end
+
+function ChartSettingsWidget:event(name)
+  if name == 'chartUpdate' then
+    self.container = self:getContainer()
+  end
+end
+
+function ChartSettingsWidget:getContainer()
+  local metadata = chart.metadata or {}
+
+  local elems = Container.placeFormLike({
+    { Label(0, 0, 'Keyboard Only'),        { Checkmark(0, 0, function(_, value)
+      chart.metadata.isKeyboardOnly = value
+      chart.markDirty()
+    end, metadata.isKeyboardOnly ) } },
+    { Label(0, 0, 'Original'),             { Checkmark(0, 0, function(_, value)
+      chart.metadata.isOriginal = value
+      chart.markDirty()
+    end, metadata.isOriginal ) } },
+    { Label(0, 0, 'Disable Leaderboards'), { Checkmark(0, 0, function(_, value)
+      chart.metadata.disableLeaderboardUploading = value
+      chart.markDirty()
+    end, metadata.disableLeaderboardUploading ) } },
+    { Label(0, 0, 'RPC Hidden'),           { Checkmark(0, 0, function(_, value)
+      chart.metadata.rpcHidden = value
+      chart.markDirty()
+    end, metadata.rpcHidden ) } },
+    { Label(0, 0, 'Boss'),                 { Checkmark(0, 0, function(_, value)
+      chart.metadata.chartBoss = value
+      chart.markDirty()
+    end, metadata.chartBoss ) } },
+    { Label(0, 0, 'Flash Track'),          { Checkmark(0, 0, function(_, value)
+      chart.metadata.isFlashTrack = value
+      chart.markDirty()
+    end, metadata.isFlashTrack ) } },
+  }, WIDTH)
+
+  if not chart.loaded then
+    for _, elem in ipairs(elems) do
+      elem.disabled = true
+    end
+  end
+
+  return Container(elems)
 end
 
 return ChartSettingsWidget
