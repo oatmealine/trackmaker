@@ -306,17 +306,17 @@ function self.draw()
   local topB = math.ceil(yToBeat(0)) + 1
   local botB = math.floor(yToBeat(sh)) - 1
 
-  local measureSize = 4
   love.graphics.setLineWidth(4 * scale())
   for b = botB, topB do
     local y = beatToY(b)
+    local measure = conductor.getMeasure(b)
 
-    if b % measureSize == 0 then
+    if measure % 1 == 0 then
       love.graphics.setColor(1, 1, 1, 1)
-      love.graphics.print(tostring(b / measureSize), getRight() + 4, y - fonts.inter_12:getHeight()/2)
+      love.graphics.print(tostring(measure), getRight() + 4, y - fonts.inter_12:getHeight()/2)
 
       love.graphics.setColor(MEASURE_COL:unpack())
-    elseif b % measureSize == 2 then
+    elseif measure % 1 == 0.5 then
       love.graphics.setColor(MEASURE_COL:alpha(0.5):unpack())
     else
       love.graphics.setColor(0, 0, 0, 0)

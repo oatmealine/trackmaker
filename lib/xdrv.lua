@@ -167,7 +167,7 @@ M.XDRVDriftDirection = {
 ---@alias XDRVStop { beat: number, stop: number }
 ---@alias XDRVStopSeconds { beat: number, stopSeconds: number }
 ---@alias XDRVScroll { beat: number, scroll: number }
----@alias XDRVTimeSignature { beat: number, timeSignature: number }
+---@alias XDRVTimeSignature { beat: number, timeSignature: { [1]: number, [2]: number } }
 ---@alias XDRVComboTicks { beat: number, comboTicks: number }
 ---@alias XDRVLabel { beat: number, label: string }
 ---@alias XDRVFake { beat: number, fake: number }

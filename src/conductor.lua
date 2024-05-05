@@ -15,6 +15,7 @@ M.offset = -0.007
 M.initialBPM = 120
 M.bpms = { { 0, 120 } }
 M.stops = {}
+M.timeSignatures = {}
 
 M.time = 0
 M.playing = false
@@ -48,6 +49,8 @@ function M.loadFromChart(chart, dir)
   for _, event in ipairs(chart.chart) do
     if event.bpm then
       table.insert(M.bpms, { event.beat, event.bpm })
+    elseif event.timeSignature then
+      table.insert(M.timeSignatures, { event.beat, event.timeSignature })
     elseif event.stop or event.stopSeconds or event.warp then
       local duration = event.stop or event.stopSeconds or event.warp
       if event.warp then duration = -duration end
@@ -55,6 +58,8 @@ function M.loadFromChart(chart, dir)
       table.insert(M.stops, { event.beat, duration, seconds })
     end
   end
+
+  print(pretty(M.timeSignatures))
 end
 
 function M.secondsToBeats(s, bpm)
@@ -137,6 +142,40 @@ end
 function M.timeAtBeat(b)
   -- TODO
   return M.beatsToSeconds(b, M.getBPM())
+end
+
+function M.getTimeSignatureAtBeat(beat)
+  local sig = { 4, 4 }
+  for _, change in ipairs(M.timeSignatures) do
+    if change.beat > beat then
+      return sig
+    end
+    sig = change.timeSignature
+  end
+  return sig
+end
+function M.getTimeSignature()
+  return M.getTimeSignatureAtBeat(M.beat)
+end
+
+function M.getMeasure(beat)
+  local m = 0
+  local b = beat
+  local sig = { 4, 4 }
+  local lastBeat = 0
+  for _, change in ipairs(M.timeSignatures) do
+    if beat < change[1] then
+      m = m + b / sig[1]
+      return m
+    else
+      sig = change[2]
+      b = b - (change[1] - lastBeat)
+      m = m + (change[1] - lastBeat) / sig[1]
+      lastBeat = change[1]
+    end
+  end
+  m = m + b / sig[1]
+  return m
 end
 
 local eventStates = {}
