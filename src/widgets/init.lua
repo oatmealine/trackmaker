@@ -259,6 +259,15 @@ function self.eatsInputs()
   end
 end
 
+---@param w Widget
+local function clampWidget(w)
+  local bx1, by1, bx2, by2 = w:getBoundingBox()
+  w.x, w.y =
+    clamp(w.x, w.x - bx1, sw + (w.x - bx2)),
+    -- +24 to account for action bar
+    clamp(w.y, w.y - by1 + 24, sh + (w.y - by2))
+end
+
 function self.mousepressed(x, y, button)
   for i = #widgets, 1, -1 do
     local widget = widgets[i]
@@ -291,7 +300,8 @@ function self.mousepressed(x, y, button)
 end
 function self.mousemoved(x, y)
   if draggingWidget then
-    draggingWidget.x, draggingWidget.y = clamp(x - dragX, 0, sw - draggingWidget.width), clamp(y - dragY, 0, sh - draggingWidget.height)
+    draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
+    clampWidget(draggingWidget)
   end
   for _, widget in ipairs(widgets) do
     widget:moveFrame(x, y)
@@ -300,7 +310,8 @@ function self.mousemoved(x, y)
 end
 function self.mousereleased(x, y, button)
   if button == 1 and draggingWidget then
-    draggingWidget.x, draggingWidget.y = clamp(x - dragX, 0, sw - draggingWidget.width), clamp(y - dragY, 0, sh - draggingWidget.height)
+    draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
+    clampWidget(draggingWidget)
     draggingWidget = nil
     return true
   end
