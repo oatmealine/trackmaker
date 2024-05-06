@@ -168,11 +168,21 @@ function Widget:drawFrame()
       love.graphics.setColor(colors.window:unpack())
     end
 
-    love.graphics.rectangle('fill', BORDER_WIDTH, BORDER_WIDTH, self.width, BAR_HEIGHT)
+    love.graphics.rectangle('fill', BORDER_WIDTH, BORDER_WIDTH, self.width, BAR_HEIGHT, colors.borderRadius, colors.borderRadius)
 
-    local crossScale = BAR_HEIGHT / crossIcon:getHeight()
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(crossIcon, BORDER_WIDTH + self.width - BAR_HEIGHT/2, BORDER_WIDTH + BAR_HEIGHT/2, 0, crossScale, crossScale, crossIcon:getWidth()/2, crossIcon:getWidth()/2)
+    love.graphics.setFont(fonts.inter_16)
+    local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
+    local hovered = my > 0 and my <= BAR_HEIGHT and mx > self.width - BAR_HEIGHT and mx < self.width
+    if hovered then
+      love.graphics.setColor(colors.text:unpack())
+    else
+      love.graphics.setColor(colors.textTertiary:unpack())
+    end
+    love.graphics.printf('x', self.width - BAR_HEIGHT, BAR_HEIGHT/2 - fonts.inter_16:getHeight()/2, BAR_HEIGHT, 'center')
+    --local crossScale = BAR_HEIGHT / crossIcon:getHeight()
+    --love.graphics.draw(crossIcon, BORDER_WIDTH + self.width - BAR_HEIGHT/2, BORDER_WIDTH + BAR_HEIGHT/2, 0, crossScale, crossScale, crossIcon:getWidth()/2, crossIcon:getWidth()/2)
+
+    love.graphics.setFont(fonts.inter_12)
 
     if self.title then
       if self.focused then
