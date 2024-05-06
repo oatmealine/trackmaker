@@ -3,6 +3,8 @@ local self = {}
 ---@type Object
 local Object = require 'lib.classic'
 
+local colors = require 'src.colors'
+
 ---@class Widget : Object
 Widget = Object:extend()
 
@@ -146,7 +148,7 @@ function Widget:moveFrame(x, y)
 end
 
 function Widget:draw()
-  love.graphics.setColor(0.1, 0.1, 0.1, 1)
+  love.graphics.setColor(colors.background:unpack())
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
 end
 
@@ -156,14 +158,14 @@ function Widget:drawFrame()
   love.graphics.translate(self.x, self.y)
 
   if self.hasWindowDecorations then
-    love.graphics.setColor(0.2, 0.2, 0.2, 1)
+    love.graphics.setColor(colors.border:unpack())
     love.graphics.setLineWidth(BORDER_WIDTH)
     love.graphics.rectangle('line', 0, 0, self.width + BORDER_WIDTH * 2, self.height + BAR_HEIGHT + BORDER_WIDTH * 2, 1, 1)
 
     if self.focused then
-      love.graphics.setColor(0.2, 0.2, 0.2, 1)
+      love.graphics.setColor(colors.hover:unpack())
     else
-      love.graphics.setColor(0.15, 0.15, 0.15, 1)
+      love.graphics.setColor(colors.element:unpack())
     end
 
     love.graphics.rectangle('fill', BORDER_WIDTH, BORDER_WIDTH, self.width, BAR_HEIGHT)
@@ -173,6 +175,11 @@ function Widget:drawFrame()
     love.graphics.draw(crossIcon, BORDER_WIDTH + self.width - BAR_HEIGHT/2, BORDER_WIDTH + BAR_HEIGHT/2, 0, crossScale, crossScale, crossIcon:getWidth()/2, crossIcon:getWidth()/2)
 
     if self.title then
+      if self.focused then
+        love.graphics.setColor(colors.text:unpack())
+      else
+        love.graphics.setColor(colors.textSecondary:unpack())
+      end
       love.graphics.printf(self.title, BORDER_WIDTH, round(BAR_HEIGHT/2 - fonts.inter_12:getHeight()/2), self.width, 'center')
     end
   end

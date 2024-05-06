@@ -1,6 +1,7 @@
 local xdrv = require 'lib.xdrv'
 local edit = require 'src.edit'
 local conductor = require 'src.conductor'
+local colors = require 'src.colors'
 
 ---@class InfobarWidget : Widget
 local InfobarWidget = Widget:extend()
@@ -76,11 +77,11 @@ function InfobarWidget:drawFrame()
   if mode == edit.Mode.None then
     love.graphics.setColor(0.1, 0.1, 0.1, 0.8)
   elseif mode == edit.Mode.Insert then
-    love.graphics.setColor(0.15, 0.05, 0.7, 1)
+    love.graphics.setColor(colors.modes.insert:unpack())
   elseif mode == edit.Mode.Append then
-    love.graphics.setColor(1, 0.9, 0.2, 1)
+    love.graphics.setColor(colors.modes.append:unpack())
   elseif mode == edit.Mode.Rewrite then
-    love.graphics.setColor(0.9, 0.1, 1, 1)
+    love.graphics.setColor(colors.modes.rewrite:unpack())
   end
   love.graphics.rectangle('fill', width + MARGIN, 0, MODE_WIDTH, self.height, ROUND, ROUND)
   if mode == edit.Mode.None or mode == edit.Mode.Insert then

@@ -1,3 +1,5 @@
+local colors = require 'src.colors'
+
 ---@class AboutWidget : Widget
 local AboutWidget = Widget:extend()
 
@@ -29,10 +31,8 @@ function AboutWidget:click(x, y, button)
 end
 
 function AboutWidget:draw()
-  love.graphics.setColor(0.1, 0.1, 0.1, 1)
+  love.graphics.setColor(colors.background:unpack())
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
-
-  love.graphics.setColor(1, 1, 1, 1)
 
   local t = love.timer.getTime()
   local wobble = outSine(math.max(math.min((WOBBLE_DURATION - (t - self.lastClick)) / WOBBLE_DURATION, 1), 0)) * 0.25
@@ -41,9 +41,10 @@ function AboutWidget:draw()
 
   local offset = 8
 
+  love.graphics.setColor(1, 1, 1, 1)
   love.graphics.setFont(fonts.inter_16)
-  love.graphics.printf({{1, 1, 1}, 'trackmaker', {0.4, 0.4, 0.4}, ' v' .. release.version}, 0, offset, self.width, 'center')
-  love.graphics.setColor(0.6, 0.6, 0.6, 1)
+  love.graphics.printf({{colors.text:unpack()}, 'trackmaker', {colors.textTertiary:unpack()}, ' v' .. release.version}, 0, offset, self.width, 'center')
+  love.graphics.setColor(colors.textSecondary:unpack())
   love.graphics.setFont(fonts.inter_12)
   love.graphics.printf('A GUI chart editor for EX-XDRiVER', 0, offset + 22, self.width, 'center')
   love.graphics.printf('by oatmealine', 0, offset + 40, self.width, 'center')

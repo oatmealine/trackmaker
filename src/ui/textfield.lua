@@ -1,4 +1,5 @@
 local Node = require 'src.ui.node'
+local colors = require 'src.colors'
 
 local utf8 = require 'utf8'
 
@@ -82,13 +83,17 @@ function Textfield:key(key, scancode, isRepeat)
 end
 
 function Textfield:draw()
-  love.graphics.setColor(0.15, 0.15, 0.15, 1)
+  love.graphics.setColor(colors.element:unpack())
   love.graphics.rectangle('fill', 0, 0, self.width, self.height, 1, 1)
   love.graphics.setLineWidth(1)
-  love.graphics.setColor(0.3, 0.3, 0.3, 1)
+  love.graphics.setColor(colors.border:unpack())
   love.graphics.rectangle('line', 0, 0, self.width, self.height, 1, 1)
 
-  love.graphics.setColor(1, 1, 1, 1)
+  if self.disabled then
+    love.graphics.setColor(colors.textSecondary:unpack())
+  else
+    love.graphics.setColor(colors.text:unpack())
+  end
   love.graphics.draw(self.textObj, PAD_H, self.height/2 - self.textObj:getHeight()/2)
 
   if self.active then

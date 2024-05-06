@@ -1,6 +1,8 @@
 ---@class UIWidget : Widget
 local UIWidget = Widget:extend()
 
+local colors = require 'src.colors'
+
 function UIWidget:new(x, y, container)
   UIWidget.super.new(self, x, y)
   ---@type Container
@@ -42,7 +44,7 @@ function UIWidget:update()
 end
 
 function UIWidget:draw()
-  love.graphics.setColor(0.1, 0.1, 0.1, 1)
+  love.graphics.setColor(colors.background:unpack())
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
 
   self.container:draw()

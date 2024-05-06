@@ -1,4 +1,5 @@
 local Node = require 'src.ui.node'
+local colors = require 'src.colors'
 
 ---@class Label : Node
 local Label = Node:extend()
@@ -19,7 +20,7 @@ function Label:updateText()
 end
 
 function Label:draw()
-  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.setColor(colors.text:unpack())
   love.graphics.draw(self.textObj, self.width/2 - self.textObj:getWidth()/2, self.height/2 - self.textObj:getHeight()/2)
 end
 

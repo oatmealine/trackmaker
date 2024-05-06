@@ -27,6 +27,7 @@ local renderer  = require 'src.renderer'
 local logs      = require 'src.logs'
 local config    = require 'src.config'
 local threads   = require 'src.threads'
+local colors    = require 'src.colors'
 
 function love.load()
   love.keyboard.setKeyRepeat(true)
@@ -42,6 +43,7 @@ end
 
 function love.draw()
   love.graphics.setFont(fonts.inter_12)
+  love.graphics.clear(colors.appBackground:unpack())
 
   renderer.draw()
 

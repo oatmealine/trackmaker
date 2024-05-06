@@ -1,5 +1,6 @@
 local Node = require 'src.ui.node'
 local ContextWidget = require 'src.widgets.context'
+local colors = require 'src.colors'
 
 ---@class Select : Node
 local Select = Node:extend()
@@ -48,21 +49,25 @@ function Select:click(x, y, button)
 end
 
 function Select:draw()
-  if self.hovered then
+  if self.hovered and not self.disabled then
     if love.mouse.isDown(1) then
-      love.graphics.setColor(0.1, 0.1, 0.1, 1)
+      love.graphics.setColor(colors.down:unpack())
     else
-      love.graphics.setColor(0.3, 0.3, 0.3, 1)
+      love.graphics.setColor(colors.hover:unpack())
     end
   else
-    love.graphics.setColor(0.2, 0.2, 0.2, 1)
+    love.graphics.setColor(colors.element:unpack())
   end
   love.graphics.rectangle('fill', 0, 0, self.width, self.height, 1, 1)
   love.graphics.setLineWidth(1)
-  love.graphics.setColor(0.3, 0.3, 0.3, 1)
+  love.graphics.setColor(colors.border:unpack())
   love.graphics.rectangle('line', 0, 0, self.width, self.height, 1, 1)
 
-  love.graphics.setColor(1, 1, 1, 1)
+  if self.disabled then
+    love.graphics.setColor(colors.textSecondary:unpack())
+  else
+    love.graphics.setColor(colors.text:unpack())
+  end
   love.graphics.draw(self.textObjs[self.selectedIdx], PAD_H, self.height/2 - fonts.inter_12:getHeight()/2)
   love.graphics.printf('▼', PAD_H, self.height/2 - fonts.inter_12:getHeight()/2, self.width - PAD_H * 2, 'right')
 end

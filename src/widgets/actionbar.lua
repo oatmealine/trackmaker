@@ -1,6 +1,7 @@
 local edit   = require 'src.edit'
 local logs   = require 'src.logs'
 local config = require 'src.config'
+local colors = require 'src.colors'
 
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
@@ -180,19 +181,18 @@ function ActionBarWidget:draw()
   self.width = sw
   self.height = HEIGHT
 
-  love.graphics.setColor(0.1, 0.1, 0.1, 1)
+  love.graphics.setColor(colors.element:unpack())
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
 
   local x = MARGIN
-  love.graphics.setColor(1, 1, 1, 1)
   for i, item in ipairs(self.texts) do
     local open = self.openIdx == i
 
     if open then
-      love.graphics.setColor(0.2, 0.2, 0.2, 1)
+      love.graphics.setColor(colors.hover:unpack())
       love.graphics.rectangle('fill', x - GAP/2, 0, item:getWidth() + GAP, HEIGHT)
     end
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(colors.text:unpack())
 
     love.graphics.draw(item, round(x), round(HEIGHT/2 - item:getHeight()/2))
     x = x + item:getWidth() + GAP

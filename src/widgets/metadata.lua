@@ -9,6 +9,7 @@ local conductor = require 'src.conductor'
 local ChartSettingsWidget = require 'src.widgets.chartsettings'
 
 local logs      = require 'src.logs'
+local colors    = require 'src.colors'
 
 ---@class MetadataWidget : UIWidget
 local MetadataWidget = UIWidget:extend()
@@ -29,7 +30,7 @@ function JacketPreview:new(size, image)
   self.image = image
 end
 function JacketPreview:draw()
-  love.graphics.setColor(0.4, 0.4, 0.4, 1)
+  love.graphics.setColor(colors.element:unpack())
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
   love.graphics.setColor(1, 1, 1, 1)
   if self.image then

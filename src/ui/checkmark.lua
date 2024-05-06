@@ -1,4 +1,5 @@
 local Node = require 'src.ui.node'
+local colors = require 'src.colors'
 
 ---@class Checkmark : Node
 local Checkmark = Node:extend()
@@ -27,22 +28,22 @@ end
 function Checkmark:draw()
   if self.hovered and not self.disabled then
     if love.mouse.isDown(1) then
-      love.graphics.setColor(0.1, 0.1, 0.1, 1)
+      love.graphics.setColor(colors.down:unpack())
     else
-      love.graphics.setColor(0.3, 0.3, 0.3, 1)
+      love.graphics.setColor(colors.hover:unpack())
     end
   else
-    love.graphics.setColor(0.2, 0.2, 0.2, 1)
+    love.graphics.setColor(colors.element:unpack())
   end
   love.graphics.rectangle('fill', 0, 0, self.width, self.height, 1, 1)
   love.graphics.setLineWidth(1)
-  love.graphics.setColor(0.3, 0.3, 0.3, 1)
+  love.graphics.setColor(colors.border:unpack())
   love.graphics.rectangle('line', 0, 0, self.width, self.height, 1, 1)
 
   if self.disabled then
-    love.graphics.setColor(0.7, 0.7, 0.7, 1)
+    love.graphics.setColor(colors.textSecondary:unpack())
   else
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(colors.text:unpack())
   end
   if self.enabled then
     love.graphics.printf('✓', 0, self.height/2 - fonts.inter_12:getHeight()/2, self.width, 'center')

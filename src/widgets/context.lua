@@ -1,3 +1,5 @@
+local colors = require 'src.colors'
+
 ---@class ContextWidget : Widget
 local ContextWidget = Widget:extend()
 
@@ -141,9 +143,8 @@ function ContextWidget:click(x, y, button)
 end
 
 function ContextWidget:draw()
-  love.graphics.setColor(0.1, 0.1, 0.1, 1)
+  love.graphics.setColor(colors.element:unpack())
   love.graphics.rectangle('fill', 0, 0, self.width, self.height)
-  love.graphics.setColor(1, 1, 1, 1)
 
   local y = 0
   for i, entry in ipairs(self.entries) do
@@ -152,31 +153,32 @@ function ContextWidget:draw()
     if entry[1] then
       local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
       if self.activeIdx == i or my > y and my <= botY and mx > 0 and mx < self.width then
-        love.graphics.setColor(0.2, 0.2, 0.2, 1)
+        love.graphics.setColor(colors.hover:unpack())
         love.graphics.rectangle('fill', 0, y, self.width, botY - y)
       end
     end
 
     local text = self.texts[i]
     if text then
-      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.setColor(colors.text:unpack())
       love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
     else
-      love.graphics.setColor(0.2, 0.2, 0.2, 1)
+      love.graphics.setColor(colors.hover:unpack())
       love.graphics.line(0, (y + botY)/2, self.width, (y + botY)/2)
     end
 
     local bindText = self.bindTexts[i]
     if bindText then
-      love.graphics.setColor(0.8, 0.8, 0.8, 1)
+      love.graphics.setColor(colors.textSecondary:unpack())
       love.graphics.draw(bindText, self.width - MARGIN - RIGHT_PAD - bindText:getWidth(), round(y + HEIGHT/2 - bindText:getHeight()/2))
     end
 
     if entry.toggle and entry.value then
-      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.setColor(colors.text:unpack())
       love.graphics.print('✓', MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2)
     end
     if entry.expandable then
+      love.graphics.setColor(colors.text:unpack())
       love.graphics.printf('►', MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
     end
 
