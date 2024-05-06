@@ -163,9 +163,9 @@ function Widget:drawFrame()
     love.graphics.rectangle('line', 0, 0, self.width + BORDER_WIDTH * 2, self.height + BAR_HEIGHT + BORDER_WIDTH * 2, 1, 1)
 
     if self.focused then
-      love.graphics.setColor(colors.hover:unpack())
+      love.graphics.setColor(colors.windowFocused:unpack())
     else
-      love.graphics.setColor(colors.element:unpack())
+      love.graphics.setColor(colors.window:unpack())
     end
 
     love.graphics.rectangle('fill', BORDER_WIDTH, BORDER_WIDTH, self.width, BAR_HEIGHT)
@@ -176,9 +176,9 @@ function Widget:drawFrame()
 
     if self.title then
       if self.focused then
-        love.graphics.setColor(colors.text:unpack())
+        love.graphics.setColor((colors.windowFocusedText or colors.text):unpack())
       else
-        love.graphics.setColor(colors.textSecondary:unpack())
+        love.graphics.setColor((colors.windowText or colors.textSecondary):unpack())
       end
       love.graphics.printf(self.title, BORDER_WIDTH, round(BAR_HEIGHT/2 - fonts.inter_12:getHeight()/2), self.width, 'center')
     end

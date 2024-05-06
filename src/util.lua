@@ -50,6 +50,18 @@ function countKeys(t)
   return n
 end
 
+
+---@generic T
+---@param t table<T, any>
+---@return T[]
+function getKeys(t)
+  local keys = {}
+  for key in pairs(t) do
+    table.insert(keys, key)
+  end
+  return keys
+end
+
 function round(n)
   return n >= 0 and math.floor(n + 0.5) or math.ceil(n - 0.5)
 end

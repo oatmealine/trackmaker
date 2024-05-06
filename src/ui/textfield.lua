@@ -99,7 +99,7 @@ function Textfield:draw()
   if self.active then
     local cursorPos = self.cursor > 0 and fonts.inter_12:getWidth(utf8sub(self.value, 1, self.cursor)) or 0
 
-    love.graphics.setColor(1, 1, 1, 0.7 + math.sin(love.timer.getTime() * 3) * 0.2)
+    love.graphics.setColor(colors.text:alpha(0.7 + math.sin(love.timer.getTime() * 3) * 0.2):unpack())
     love.graphics.print('|', round(PAD_H + cursorPos), round(self.height/2 - fonts.inter_12:getHeight()/2))
   end
 end

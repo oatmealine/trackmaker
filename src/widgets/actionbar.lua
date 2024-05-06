@@ -96,6 +96,18 @@ local items = {
         end
       end, toggle = true, value = config.config.noMultithreading },
       {},
+      { 'Theme', hover = function(self, i)
+        local entries = {}
+        for _, theme in ipairs(colors.getSchemes()) do
+          table.insert(entries, { theme.name, function()
+            colors.setScheme(theme.key)
+            config.config.theme = theme.key
+            config.save()
+          end, toggle = true, value = colors.getScheme() == theme.key })
+        end
+        self:openChild(i, ContextWidget(0, 0, entries))
+      end, expandable = true },
+      {},
       { 'Cat', function()
         if not catjam or catjam.delete then
           catjam = CatjamWidget(32, 32)
@@ -193,6 +205,9 @@ function ActionBarWidget:draw()
       love.graphics.rectangle('fill', x - GAP/2, 0, item:getWidth() + GAP, HEIGHT)
     end
     love.graphics.setColor(colors.text:unpack())
+    if open then
+      love.graphics.setColor((colors.hoverText or colors.text):unpack())
+    end
 
     love.graphics.draw(item, round(x), round(HEIGHT/2 - item:getHeight()/2))
     x = x + item:getWidth() + GAP

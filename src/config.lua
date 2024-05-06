@@ -10,6 +10,7 @@ self.config = {
   beatTick = false,
   noteTick = false,
   noMultithreading = false,
+  theme = 'catppuccinMacchiato',
 }
 self.defaults = deepcopy(self.config)
 

@@ -150,9 +150,12 @@ function ContextWidget:draw()
   for i, entry in ipairs(self.entries) do
     local botY = y + self:getElemHeight(i)
 
+    local hovered = false
+
     if entry[1] then
       local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-      if self.activeIdx == i or my > y and my <= botY and mx > 0 and mx < self.width then
+      hovered = self.activeIdx == i or my > y and my <= botY and mx > 0 and mx < self.width
+      if hovered then
         love.graphics.setColor(colors.hover:unpack())
         love.graphics.rectangle('fill', 0, y, self.width, botY - y)
       end
@@ -161,9 +164,12 @@ function ContextWidget:draw()
     local text = self.texts[i]
     if text then
       love.graphics.setColor(colors.text:unpack())
+      if hovered then
+        love.graphics.setColor((colors.hoverText or colors.text):unpack())
+      end
       love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
     else
-      love.graphics.setColor(colors.hover:unpack())
+      love.graphics.setColor((colors.dull or colors.hover):unpack())
       love.graphics.line(0, (y + botY)/2, self.width, (y + botY)/2)
     end
 
@@ -175,10 +181,16 @@ function ContextWidget:draw()
 
     if entry.toggle and entry.value then
       love.graphics.setColor(colors.text:unpack())
+      if hovered then
+        love.graphics.setColor((colors.hoverText or colors.text):unpack())
+      end
       love.graphics.print('✓', MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2)
     end
     if entry.expandable then
       love.graphics.setColor(colors.text:unpack())
+      if hovered then
+        love.graphics.setColor((colors.hoverText or colors.text):unpack())
+      end
       love.graphics.printf('►', MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
     end
 

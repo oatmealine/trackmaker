@@ -32,6 +32,7 @@ local colors    = require 'src.colors'
 function love.load()
   love.keyboard.setKeyRepeat(true)
   config.load()
+  colors.setScheme(config.config.theme)
   --chart.openChart()
 end
 

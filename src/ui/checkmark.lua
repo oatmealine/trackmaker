@@ -42,6 +42,10 @@ function Checkmark:draw()
 
   if self.disabled then
     love.graphics.setColor(colors.textSecondary:unpack())
+  elseif self.hovered and love.mouse.isDown(1) then
+    love.graphics.setColor((colors.activeText or colors.text):unpack())
+  elseif self.hovered then
+    love.graphics.setColor((colors.hoverText or colors.text):unpack())
   else
     love.graphics.setColor(colors.text:unpack())
   end
