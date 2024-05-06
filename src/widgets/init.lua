@@ -160,7 +160,7 @@ function Widget:drawFrame()
   if self.hasWindowDecorations then
     love.graphics.setColor(colors.border:unpack())
     love.graphics.setLineWidth(BORDER_WIDTH)
-    love.graphics.rectangle('line', 0, 0, self.width + BORDER_WIDTH * 2, self.height + BAR_HEIGHT + BORDER_WIDTH * 2, 1, 1)
+    love.graphics.rectangle('fill', 0, 0, self.width + BORDER_WIDTH * 2, self.height + BAR_HEIGHT + BORDER_WIDTH * 2, colors.borderRadius, colors.borderRadius)
 
     if self.focused then
       love.graphics.setColor(colors.windowFocused:unpack())

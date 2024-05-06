@@ -27,6 +27,8 @@ local schemes = {
         append = rgb(1, 0.9, 0.2),
         rewrite = rgb(0.9, 0.1, 1),
       },
+
+      borderRadius = 2,
     }
   },
   {
@@ -46,8 +48,8 @@ local schemes = {
       hover = hex('ccd0da'),
       -- surface1
       active = hex('bcc0cc'),
-      -- surface0
-      down = hex('ccd0da'),
+      -- base
+      down = hex('eff1f5'),
 
       -- base
       window = hex('eff1f5'),
@@ -79,8 +81,8 @@ local schemes = {
       hover = hex('414559'),
       -- surface1
       active = hex('51576d'),
-      -- surface0
-      down = hex('414559'),
+      -- base
+      down = hex('303446'),
 
       -- base
       window = hex('303446'),
@@ -112,8 +114,8 @@ local schemes = {
       hover = hex('363a4f'),
       -- surface1
       active = hex('494d64'),
-      -- surface0
-      down = hex('363a4f'),
+      -- base
+      down = hex('24273a'),
 
       -- base
       window = hex('24273a'),
@@ -145,8 +147,8 @@ local schemes = {
       hover = hex('313244'),
       -- surface1
       active = hex('45475a'),
-      -- surface0
-      down = hex('313244'),
+      -- base
+      down = hex('1e1e2e'),
 
       -- base
       window = hex('1e1e2e'),
@@ -181,6 +183,8 @@ local schemes = {
       text = hex('F2EFFF'),
       textSecondary = hex('E6DEFF'),
       textTertiary = hex('ABABAB'),
+
+      borderRadius = 0,
     }
   },
   {
@@ -203,6 +207,8 @@ local schemes = {
       text = hex('1F1731'),
       textSecondary = hex('2A2041'),
       textTertiary = hex('474747'),
+
+      borderRadius = 0,
     }
   },
   {
@@ -231,6 +237,8 @@ local schemes = {
       text = hex('000000'),
       textSecondary = hex('808080'),
       textTertiary = hex('808080'),
+
+      borderRadius = 0,
     }
   },
   {
@@ -259,6 +267,8 @@ local schemes = {
       text = hex('000000'),
       textSecondary = hex('808080'),
       textTertiary = hex('808080'),
+
+      borderRadius = 0,
     }
   },
 }

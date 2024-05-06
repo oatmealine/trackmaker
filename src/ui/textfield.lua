@@ -83,11 +83,10 @@ function Textfield:key(key, scancode, isRepeat)
 end
 
 function Textfield:draw()
-  love.graphics.setColor(colors.element:unpack())
-  love.graphics.rectangle('fill', 0, 0, self.width, self.height, 1, 1)
-  love.graphics.setLineWidth(1)
   love.graphics.setColor(colors.border:unpack())
-  love.graphics.rectangle('line', 0, 0, self.width, self.height, 1, 1)
+  love.graphics.rectangle('fill', 0, 0, self.width, self.height, colors.borderRadius, colors.borderRadius)
+  love.graphics.setColor(colors.element:unpack())
+  love.graphics.rectangle('fill', 1, 1, self.width - 2, self.height - 2, colors.borderRadius, colors.borderRadius)
 
   if self.disabled then
     love.graphics.setColor(colors.textSecondary:unpack())

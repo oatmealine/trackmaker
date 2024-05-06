@@ -49,6 +49,8 @@ function Select:click(x, y, button)
 end
 
 function Select:draw()
+  love.graphics.setColor(colors.border:unpack())
+  love.graphics.rectangle('fill', 0, 0, self.width, self.height, colors.borderRadius, colors.borderRadius)
   if self.hovered and not self.disabled then
     if love.mouse.isDown(1) then
       love.graphics.setColor(colors.down:unpack())
@@ -58,10 +60,7 @@ function Select:draw()
   else
     love.graphics.setColor(colors.element:unpack())
   end
-  love.graphics.rectangle('fill', 0, 0, self.width, self.height, 1, 1)
-  love.graphics.setLineWidth(1)
-  love.graphics.setColor(colors.border:unpack())
-  love.graphics.rectangle('line', 0, 0, self.width, self.height, 1, 1)
+  love.graphics.rectangle('fill', 1, 1, self.width - 2, self.height - 2, colors.borderRadius, colors.borderRadius)
 
   if self.disabled then
     love.graphics.setColor(colors.textSecondary:unpack())
