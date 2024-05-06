@@ -291,7 +291,7 @@ function self.mousepressed(x, y, button)
 end
 function self.mousemoved(x, y)
   if draggingWidget then
-    draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
+    draggingWidget.x, draggingWidget.y = clamp(x - dragX, 0, sw - draggingWidget.width), clamp(y - dragY, 0, sh - draggingWidget.height)
   end
   for _, widget in ipairs(widgets) do
     widget:moveFrame(x, y)
@@ -300,7 +300,7 @@ function self.mousemoved(x, y)
 end
 function self.mousereleased(x, y, button)
   if button == 1 and draggingWidget then
-    draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
+    draggingWidget.x, draggingWidget.y = clamp(x - dragX, 0, sw - draggingWidget.width), clamp(y - dragY, 0, sh - draggingWidget.height)
     draggingWidget = nil
     return true
   end
