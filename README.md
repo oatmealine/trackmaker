@@ -63,6 +63,7 @@ This project would not be possible without these projects:
 - [classic](https://github.com/rxi/classic)
 - [Vexatos](https://github.com/Vexatos)'s fork of
 [nativefiledialog](https://github.com/Vexatos/nativefiledialog)
+- [deep](https://github.com/Nikaoto/deep), slightly tweaked
 - [Lönn](https://github.com/CelestialCartographers/Loenn/): A lot of the
 nativefiledialog handling code is stolen from them. Thank you very much!
 
