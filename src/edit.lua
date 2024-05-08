@@ -353,10 +353,13 @@ function self.paste()
     return
   end
 
+  self.clearSelection()
+
   local b = getBeat()
   for _, event in ipairs(events) do
     event.beat = event.beat + b
     chart.placeEvent(event)
+    table.insert(self.selection, event)
   end
 
   logs.log('Pasted ' .. #events .. ' events')
