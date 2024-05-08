@@ -303,6 +303,8 @@ end
 
 function self.selectAll()
   if not chart.loaded then return end
+  self.clearSelection() -- bugfix by regen=Q
+
   for _, event in ipairs(chart.chart) do
     table.insert(self.selection, event)
   end
