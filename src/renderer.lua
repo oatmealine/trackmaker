@@ -1,6 +1,7 @@
 local self = {}
 
 local deep = require 'lib.deep'
+local waveform = require 'src.waveform'
 
 local conductor = require 'src.conductor'
 local xdrv      = require 'lib.xdrv'
@@ -302,6 +303,38 @@ function self.draw()
   love.graphics.setColor(BACK_COL:unpack())
   love.graphics.rectangle('fill', getLeft(), 0, getMLeft() - getLeft(), sh)
   love.graphics.rectangle('fill', getMRight(), 0, getRight() - getMRight(), sh)
+
+  love.graphics.push()
+  love.graphics.origin()
+  if waveform.waveforms then
+    local segmentY = 0
+    local totalHeight = waveform.totalHeight
+
+    local width = NOTE_WIDTH * 3
+    local offset = conductor.secondsToBeats(conductor.offset, conductor.bpms[1][2])
+    local y0 = beatToY(0 + offset)
+    local yEnd = beatToY(conductor.beatAtTime(conductor.getDuration()) + offset)
+
+    for _, wav in ipairs(waveform.waveforms) do
+      local segmentHeight = wav:getHeight()
+      local waveHeight = segmentHeight / totalHeight * (y0 - yEnd)
+
+      for channel = 1, 2 do
+        local quad = waveform.quads[channel] or waveform.quads[1]
+        local mult = (channel - 1) * 2 - 1
+
+        local _, _, w, _ = quad:getViewport()
+
+        love.graphics.setColor(1, 1, 1, 0.3)
+        local y = mix(y0, yEnd, segmentY / totalHeight)
+        love.graphics.draw(wav, quad, sw/2 + getMRight() * mult, y, 0, ((width * scale()) / w) * mult, -(waveHeight / wav:getHeight()))
+        --love.graphics.line(sw/2 - width/2, y, sw/2 + width/2, y - waveHeight)
+      end
+
+      segmentY = segmentY + segmentHeight
+    end
+  end
+  love.graphics.pop()
 
   local topB = math.ceil(yToBeat(0)) + 1
   local botB = math.floor(yToBeat(sh)) - 1

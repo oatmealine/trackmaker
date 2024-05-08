@@ -2,6 +2,7 @@ local M = {}
 
 local logs = require 'src.logs'
 local config = require 'src.config'
+local waveform = require 'src.waveform'
 
 local audio = require 'src.audio'
 
@@ -31,7 +32,9 @@ function M.loadSong(songPath)
     local data = file:read('*a')
     if song then song:release() end
     if data then
-      song = love.audio.newSource(love.filesystem.newFileData(data, chart.metadata.musicAudio), 'static')
+      local fileData = love.filesystem.newFileData(data, chart.metadata.musicAudio)
+      waveform.init(fileData)
+      song = love.audio.newSource(fileData, 'static')
     end
     file:close()
   else
