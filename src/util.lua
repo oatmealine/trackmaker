@@ -247,3 +247,11 @@ function getEventType(event)
     if k ~= 'beat' then return k end
   end
 end
+
+---@param x number
+---@return number
+function sign(x)
+  if x > 0 then return 1 end
+  if x < 0 then return -1 end
+  return 0
+end
