@@ -212,6 +212,7 @@ local widgets = { }
 
 ---@param w Widget
 function openWidget(w, centered)
+  self.update()
   if widgets[#widgets] then
     widgets[#widgets]:loseFocus(w)
     widgets[#widgets].focused = false
