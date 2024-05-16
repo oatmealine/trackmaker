@@ -18,22 +18,24 @@ fonts = {
   inter_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),
 }
 
-local widgets   = require 'src.widgets'
-chart           = require 'src.chart'
-local conductor = require 'src.conductor'
-keybinds        = require 'src.keybinds'
-local edit      = require 'src.edit'
-local renderer  = require 'src.renderer'
-local logs      = require 'src.logs'
-local config    = require 'src.config'
-local threads   = require 'src.threads'
-local colors    = require 'src.colors'
-local waveform  = require 'src.waveform'
+local widgets    = require 'src.widgets'
+chart            = require 'src.chart'
+local conductor  = require 'src.conductor'
+keybinds         = require 'src.keybinds'
+local edit       = require 'src.edit'
+local renderer   = require 'src.renderer'
+local logs       = require 'src.logs'
+local config     = require 'src.config'
+local threads    = require 'src.threads'
+local colors     = require 'src.colors'
+local waveform   = require 'src.waveform'
+local xdrvColors = require 'src.xdrvcolors'
 
 function love.load()
   love.keyboard.setKeyRepeat(true)
   config.load()
   colors.setScheme(config.config.theme)
+  xdrvColors.setScheme(config.config.xdrvColors)
   --chart.openChart()
 end
 

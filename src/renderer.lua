@@ -1,12 +1,13 @@
 local self = {}
 
 local deep = require 'lib.deep'
-local waveform = require 'src.waveform'
 
-local conductor = require 'src.conductor'
-local xdrv      = require 'lib.xdrv'
-local edit      = require 'src.edit'
-local logs      = require 'src.logs'
+local waveform   = require 'src.waveform'
+local conductor  = require 'src.conductor'
+local xdrv       = require 'lib.xdrv'
+local edit       = require 'src.edit'
+local logs       = require 'src.logs'
+local xdrvColors = require 'src.xdrvcolors'
 
 local layer = deep:new()
 
@@ -18,8 +19,6 @@ local GAP_WIDTH = 48
 
 local BACK_COL = hex('141214')
 local SEP_COL = hex('86898c')
-local LANE_1_COL = hex('4fccff')
-local LANE_2_COL = hex('ff9cf5')
 local MEASURE_COL = hex('373138')
 
 local selectionX, selectionY
@@ -46,19 +45,19 @@ end
 
 local function getColumnColor(i)
   if i == 1 then
-    return hex('ab80ff')
+    return xdrvColors.scheme.colors.Column1
   elseif i == 2 then
-    return hex('ffd454')
+    return xdrvColors.scheme.colors.Column2
   elseif i == 3 then
-    return hex('ffffff')
+    return xdrvColors.scheme.colors.Column3
   elseif i == 4 then
-    return hex('ffffff')
+    return xdrvColors.scheme.colors.Column4
   elseif i == 5 then
-    return hex('ffd454')
+    return xdrvColors.scheme.colors.Column5
   elseif i == 6 then
-    return hex('ab80ff')
+    return xdrvColors.scheme.colors.Column6
   end
-  return hex('ffffff')
+  return xdrvColors.scheme.colors.Column1
 end
 
 local function beatToY(b)
@@ -127,10 +126,10 @@ local function drawGearShift(event)
   local color
   local offset = 1
   if gear.lane == xdrv.XDRVLane.Left then
-    color = LANE_1_COL
+    color = xdrvColors.scheme.colors.LeftGear
     offset = -1
   else
-    color = LANE_2_COL
+    color = xdrvColors.scheme.colors.RightGear
   end
 
   local y = beatToY(event.beat)
@@ -154,10 +153,10 @@ local function drawGearShiftEnds(event)
   local color
   local offset = 1
   if gear.lane == xdrv.XDRVLane.Left then
-    color = LANE_1_COL
+    color = xdrvColors.scheme.colors.LeftGear
     offset = -1
   else
-    color = LANE_2_COL
+    color = xdrvColors.scheme.colors.RightGear
   end
 
   local y = beatToY(event.beat)
@@ -241,9 +240,9 @@ local function drawDrift(event, prevEvent)
 
   local col = rgb(1, 1, 1)
   if dir == xdrv.XDRVDriftDirection.Left then
-    col = LANE_1_COL
+    col = xdrvColors.scheme.colors.LeftGear
   elseif dir == xdrv.XDRVDriftDirection.Right then
-    col = LANE_2_COL
+    col = xdrvColors.scheme.colors.RightGear
   end
 
   love.graphics.setColor(col:unpack())
@@ -340,10 +339,10 @@ function self.draw()
   local sideW = 4 * scale()
   love.graphics.setLineWidth(sideW)
 
-  love.graphics.setColor(LANE_1_COL:alpha(0.5):unpack())
+  love.graphics.setColor(xdrvColors.scheme.colors.LeftGear:alpha(0.5):unpack())
   love.graphics.line(getLeft() - sideW/2, sh, getLeft() - sideW/2, 0)
   love.graphics.line(getMLeft() + sideW/2, sh, getMLeft() + sideW/2, 0)
-  love.graphics.setColor(LANE_2_COL:alpha(0.5):unpack())
+  love.graphics.setColor(xdrvColors.scheme.colors.RightGear:alpha(0.5):unpack())
   love.graphics.line(getRight() + sideW/2, sh, getRight() + sideW/2, 0)
   love.graphics.line(getMRight() - sideW/2, sh, getMRight() - sideW/2, 0)
 
@@ -408,9 +407,9 @@ function self.draw()
   layer:draw()
 
   love.graphics.setLineWidth(5 * scale())
-  love.graphics.setColor(LANE_1_COL:unpack())
+  love.graphics.setColor(xdrvColors.scheme.colors.LeftGear:unpack())
   love.graphics.line(getLeft(), sh - PAD_BOTTOM, getMLeft(), sh - PAD_BOTTOM)
-  love.graphics.setColor(LANE_2_COL:unpack())
+  love.graphics.setColor(xdrvColors.scheme.colors.RightGear:unpack())
   love.graphics.line(getRight(), sh - PAD_BOTTOM, getMRight(), sh - PAD_BOTTOM)
 
   love.graphics.setLineWidth(1)

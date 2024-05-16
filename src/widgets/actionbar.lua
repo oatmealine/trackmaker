@@ -1,9 +1,13 @@
-local edit      = require 'src.edit'
-local logs      = require 'src.logs'
-local config    = require 'src.config'
-local colors    = require 'src.colors'
-local waveform  = require 'src.waveform'
-local conductor = require 'src.conductor'
+local edit       = require 'src.edit'
+local logs       = require 'src.logs'
+local config     = require 'src.config'
+local colors     = require 'src.colors'
+local waveform   = require 'src.waveform'
+local conductor  = require 'src.conductor'
+local xdrvColors = require 'src.xdrvcolors'
+local filesystem = require 'src.filesystem'
+local exxdriver  = require 'src.exxdriver'
+local json       = require 'lib.json'
 
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
@@ -107,6 +111,45 @@ local items = {
             config.save()
           end, toggle = true, value = colors.getScheme() == theme.key })
         end
+        self:openChild(i, ContextWidget(0, 0, entries))
+      end, expandable = true },
+      { 'Colors', hover = function(self, i)
+        local entries = {}
+        for _, theme in ipairs(xdrvColors.schemes) do
+          table.insert(entries, { theme.name, function()
+            xdrvColors.setScheme(theme.name)
+            config.config.xdrvColors = theme.name
+            config.save()
+          end, toggle = true, value = xdrvColors.scheme.name == theme.name })
+        end
+        -- a little ugly; adds the little break after the first theme
+        table.insert(entries, 2, {})
+
+        table.insert(entries, {})
+        table.insert(entries, { 'Custom', function()
+          xdrvColors.setScheme('custom')
+          config.config.xdrvColors = 'custom'
+          config.save()
+        end, toggle = true, value = xdrvColors.scheme.name == 'Custom' })
+        table.insert(entries, { 'Import from JSON...', function()
+          filesystem.openDialog(exxdriver.getColorSchemePath() .. '/', 'json', function(path)
+            local file, err = io.open(path, 'r')
+            if not file then
+              logs.log(err)
+              return
+            end
+            local raw = file:read('*a')
+            file:close()
+
+            local data = json.decode(raw)
+            xdrvColors.setCustom(data.Colors)
+            xdrvColors.setScheme('custom')
+
+            config.config.xdrvColors = 'custom'
+            config.save()
+          end)
+        end })
+
         self:openChild(i, ContextWidget(0, 0, entries))
       end, expandable = true },
       { 'Waveform (EXPERIMENTAL)', function()

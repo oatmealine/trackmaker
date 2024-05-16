@@ -11,6 +11,17 @@ self.config = {
   noteTick = false,
   noMultithreading = false,
   theme = 'catppuccin_macchiato',
+  xdrvColors = 'Default',
+  xdrvCustomColors = {
+    LeftGear = '4fccff',
+    Column1 = 'aa7fff',
+    Column2 = 'ffd354',
+    Column3 = 'ffffff',
+    Column4 = 'ffffff',
+    Column5 = 'ffd354',
+    Column6 = 'aa7fff',
+    RightGear = 'ff9bf4',
+  },
   waveform = true,
   doubleResWaveform = false,
 }
