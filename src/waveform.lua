@@ -45,7 +45,7 @@ function self.init(data)
   self.progress = 0
 end
 
-local UPDATE_TIMER = 1/100
+local UPDATE_TIMER = 1/80
 
 function self.update()
   if not self.bake then return end

@@ -360,13 +360,17 @@ function self.draw()
     local segmentSize = totalHeight / #waveform.meshes
     local waveHeight = segmentSize / totalHeight * (y0 - yEnd)
 
-    for i, wav in ipairs(waveform.meshes) do
-      local y = (i - 1) * waveHeight
-      love.graphics.setColor(0.3, 0.3, 0.3, 1)
+    love.graphics.setColor(0.3, 0.3, 0.3, 1)
 
-      for channel = 1, 2 do
-        local mult = (channel - 1) * 2 - 1
-        love.graphics.draw(wav[channel] or wav[1], sw/2 + getMRight() * mult, y0 - y, 0, (width * scale()) * mult, -waveHeight)
+    for i, wav in ipairs(waveform.meshes) do
+      local y = y0 - ((i - 1) * waveHeight)
+
+      if y < 0 then break end
+      if y < (sh + waveHeight) then
+        for channel = 1, 2 do
+          local mult = (channel - 1) * 2 - 1
+          love.graphics.draw(wav[channel] or wav[1], sw/2 + getMRight() * mult, y, 0, (width * scale()) * mult, -waveHeight)
+        end
       end
     end
   end
