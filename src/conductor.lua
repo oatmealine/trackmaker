@@ -17,6 +17,7 @@ M.initialBPM = 120
 M.bpms = { { 0, 120 } }
 M.stops = {}
 M.timeSignatures = {}
+M.fileData = nil
 
 M.time = 0
 M.playing = false
@@ -27,13 +28,18 @@ function M.reset()
 end
 
 function M.loadSong(songPath)
+  M.fileData = nil
   local file, err = io.open(songPath, 'rb')
   if file then
     local data = file:read('*a')
     if song then song:release() end
     if data then
       local fileData = love.filesystem.newFileData(data, chart.metadata.musicAudio)
-      waveform.init(fileData)
+      waveform.clear()
+      if config.config.waveform then
+        waveform.init(fileData)
+      end
+      M.fileData = fileData
       song = love.audio.newSource(fileData, 'static')
     end
     file:close()
@@ -281,10 +287,7 @@ function M.update(dt)
       updateSongPos()
     end
 
-    -- tuning the volume towards humans' logarithmically scaled hearing
-    -- technically not precise but it's fast and easy to remember
-    local tunedVolume = config.config.volume * config.config.volume
-    song:setVolume(tunedVolume)
+    song:setVolume(audio.normalizeVolume(config.config.volume))
     song:setPitch(config.config.musicRate)
   end
 end

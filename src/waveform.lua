@@ -1,4 +1,6 @@
-local logs = require "src.logs"
+local logs   = require 'src.logs'
+local audio  = require 'src.audio'
+local config = require 'src.config'
 local self = {}
 
 ---@type love.Decoder
@@ -8,8 +10,20 @@ self.samples = {}
 
 local BUFFER_SIZE = 4096
 
-local CANVAS_WIDTH = 2048
-local SAMPLE_RATE = 1024
+local MESH_SEGMENT_SIZE = 1 -- seconds; different on different LODs
+local BASE_SAMPLE_RATE = 128 -- vertices per second on base zoom
+
+local function getSampleRate()
+  return config.config.doubleResWaveform and (BASE_SAMPLE_RATE * 2) or BASE_SAMPLE_RATE
+end
+
+function self.clear()
+  self.decoder = nil
+  self.samples = {}
+  self.bake = nil
+  self.status = nil
+  self.progress = nil
+end
 
 ---@param data love.FileData
 function self.init(data)
@@ -25,19 +39,29 @@ function self.init(data)
 
   self.samples = {}
 
-  self.canvas = love.graphics.newCanvas(CANVAS_WIDTH * self.decoder:getChannelCount(), love.graphics.getSystemLimits().texturesize, {
-    format = 'r8',
-    msaa = 4,
-    dpiscale = 1,
-  })
-  ---@type love.Image[]
-  self.waveforms = self.drawWaveforms()
-  ---@type love.Quad[]
-  self.quads = {}
-  for i = 1, self.decoder:getChannelCount() do
-    self.quads[i] = love.graphics.newQuad((i - 1) * CANVAS_WIDTH, 0, CANVAS_WIDTH, self.canvas:getHeight(), self.canvas:getWidth(), self.canvas:getHeight())
+  self.bake = coroutine.create(self.bakeMeshes)
+
+  self.status = 'Baking waveform...'
+  self.progress = 0
+end
+
+local UPDATE_TIMER = 1/100
+
+function self.update()
+  if not self.bake then return end
+
+  self.resumedAt = os.clock()
+  local _, segments, segmentsTotal, samples, samplesTotal, finished = coroutine.resume(self.bake)
+  self.totalHeight = #self.meshes * MESH_SEGMENT_SIZE
+  self.status = string.format('Baking waveform... %d/%d segments', segments, segmentsTotal)
+  self.progress = ((segments + (samples / samplesTotal)) / segmentsTotal)
+  if finished then
+    self.status = nil
+    self.bake = nil
+    self.samples = nil
+    self.progress = nil
+    collectgarbage('collect')
   end
-  self.canvas = nil
 end
 
 local function sampleToSeconds(idx)
@@ -52,6 +76,9 @@ local function tryFillSample(idx)
   if idx < 0 then return end
   local s = sampleToSeconds(idx)
   if s >= self.decoder:getDuration() then return end
+
+  -- to prevent memory leaking
+  self.samples = {}
 
   self.decoder:seek(s)
   local soundData = self.decoder:decode()
@@ -70,62 +97,51 @@ local function getSample(idx)
   return self.samples[idx] or tryFillSample(idx)
 end
 
-function self.drawWaveforms()
-  local totalHeight = CANVAS_PIXEL_RATE * self.decoder:getDuration()
-  self.totalHeight = totalHeight
-  local size = self.canvas:getHeight()
-  local channels = self.decoder:getChannelCount()
-
-  local textures = {}
-
-  love.graphics.push('all')
-  love.graphics.origin()
-  love.graphics.setColor(1, 1, 1)
-
-  local meshes = {}
-  for i = 1, channels do
-    meshes[i] = love.graphics.newMesh(size * 2, 'strip', 'stream')
+local function getSampleSum(from, to)
+  local sum = {}
+  for i = 1, self.decoder:getChannelCount() do
+    sum[i] = 0
   end
+  for smp = from, to do
+    local sample = getSample(smp)
+    if not sample then break end
+    for i, v in ipairs(sample) do
+      sum[i] = sum[i] + audio.inverseNormalizeVolume(math.abs(v)) / ((to + 1) - from)
+    end
+  end
+  return sum
+end
 
-  for yBase = 0, totalHeight, size do
-    print('rendering: ', yBase)
-    love.graphics.setCanvas(self.canvas)
+function self.bakeMeshes()
+  self.meshes = {}
+  local samplesPerSegment = math.floor(getSampleRate() * MESH_SEGMENT_SIZE)
+  local totalSegments = math.ceil(self.decoder:getDuration() / MESH_SEGMENT_SIZE)
+  for segment = 1, totalSegments do
+    local second = (segment - 1) * MESH_SEGMENT_SIZE
+    local meshes = {}
+    for i = 1, self.decoder:getChannelCount() do
+      meshes[i] = love.graphics.newMesh(samplesPerSegment * 2, 'strip', 'static')
+    end
+    for sample = 1, samplesPerSegment do
+      local from = secondsToSample(second + ((sample - 1) / samplesPerSegment) * MESH_SEGMENT_SIZE)
+      local to = secondsToSample(second + ((sample) / samplesPerSegment) * MESH_SEGMENT_SIZE) - 1
+      local sum = getSampleSum(from, to)
+      -- temporarily just read first channel
 
-    love.graphics.clear()
+      for channel, a in ipairs(sum) do
+        local y = (sample - 1) / (samplesPerSegment - 1)
+        local width = a
 
-    for y = 0, size - 1 do
-      local yTotal = y + yBase
-      local startSample = math.floor(yTotal / totalHeight * self.decoder:getDuration() * SAMPLE_RATE)
-      local endSample = math.floor((yTotal + 1) / totalHeight * self.decoder:getDuration() * SAMPLE_RATE) - 1
-      local sums = {}
-      for i = 1, channels do
-        sums[i] = 0
+        meshes[channel]:setVertices({ { 0, y }, { width, y } }, (sample - 1) * 2 + 1)
       end
-      for idx = startSample, endSample do
-        local smps = getSample(math.floor(idx / SAMPLE_RATE * self.decoder:getSampleRate()))
-        if not smps then break end
-        for i, smp in ipairs(smps) do
-          sums[i] = sums[i] + math.abs(smp) / (endSample - startSample)
-        end
-      end
-      for i = 1, channels do
-        local width = sums[i] * CANVAS_WIDTH
-        meshes[i]:setVertices({ { 0, y }, { width, y } }, 1 + y * 2)
+
+      if (os.clock() - self.resumedAt) > UPDATE_TIMER then
+        coroutine.yield(segment, totalSegments, sample, samplesPerSegment)
       end
     end
-
-    for i, mesh in ipairs(meshes) do
-      love.graphics.draw(mesh, (i - 1) * CANVAS_WIDTH)
-    end
-
-    love.graphics.setCanvas()
-
-    table.insert(textures, love.graphics.newImage(self.canvas:newImageData(), { mipmaps = true }))
+    table.insert(self.meshes, meshes)
   end
-
-  love.graphics.pop()
-
-  return textures
+  coroutine.yield(0, 0, 0, 0, true)
 end
 
 return self

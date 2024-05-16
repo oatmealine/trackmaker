@@ -52,4 +52,13 @@ function _M.makeSoundPool(filename)
   return setmetatable(soundPool, pool)
 end
 
+function _M.normalizeVolume(v)
+  -- tuning the volume towards humans' logarithmically scaled hearing
+  -- technically not precise but it's fast and easy to remember
+  return v * v
+end
+function _M.inverseNormalizeVolume(v)
+  return math.pow(v, 0.5)
+end
+
 return _M

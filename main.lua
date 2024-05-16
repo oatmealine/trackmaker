@@ -28,6 +28,7 @@ local logs      = require 'src.logs'
 local config    = require 'src.config'
 local threads   = require 'src.threads'
 local colors    = require 'src.colors'
+local waveform  = require 'src.waveform'
 
 function love.load()
   love.keyboard.setKeyRepeat(true)
@@ -40,6 +41,7 @@ function love.update(dt)
   conductor.update(dt)
   logs.update(dt)
   threads.update()
+  waveform.update()
 end
 
 function love.draw()

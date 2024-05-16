@@ -1,7 +1,9 @@
-local edit   = require 'src.edit'
-local logs   = require 'src.logs'
-local config = require 'src.config'
-local colors = require 'src.colors'
+local edit      = require 'src.edit'
+local logs      = require 'src.logs'
+local config    = require 'src.config'
+local colors    = require 'src.colors'
+local waveform  = require 'src.waveform'
+local conductor = require 'src.conductor'
 
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
@@ -107,6 +109,20 @@ local items = {
         end
         self:openChild(i, ContextWidget(0, 0, entries))
       end, expandable = true },
+      { 'Waveform (EXPERIMENTAL)', function()
+        config.config.waveform = not config.config.waveform
+        if config.config.waveform and conductor.fileData then
+          waveform.init(conductor.fileData)
+        else
+          waveform.clear()
+        end
+      end, toggle = true, value = config.config.waveform },
+      { 'Double-res waveform', function()
+        config.config.doubleResWaveform = not config.config.doubleResWaveform
+        if config.config.waveform and conductor.fileData then
+          waveform.init(conductor.fileData)
+        end
+      end, toggle = true, value = config.config.doubleResWaveform },
       {},
       { 'Cat', function()
         if not catjam or catjam.delete then

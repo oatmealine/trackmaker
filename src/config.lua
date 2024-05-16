@@ -11,6 +11,8 @@ self.config = {
   noteTick = false,
   noMultithreading = false,
   theme = 'catppuccin_macchiato',
+  waveform = true,
+  doubleResWaveform = false,
 }
 self.defaults = deepcopy(self.config)
 

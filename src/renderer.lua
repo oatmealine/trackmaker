@@ -304,38 +304,6 @@ function self.draw()
   love.graphics.rectangle('fill', getLeft(), 0, getMLeft() - getLeft(), sh)
   love.graphics.rectangle('fill', getMRight(), 0, getRight() - getMRight(), sh)
 
-  love.graphics.push()
-  love.graphics.origin()
-  if waveform.waveforms then
-    local segmentY = 0
-    local totalHeight = waveform.totalHeight
-
-    local width = NOTE_WIDTH * 3
-    local offset = conductor.secondsToBeats(conductor.offset, conductor.bpms[1][2])
-    local y0 = beatToY(0 + offset)
-    local yEnd = beatToY(conductor.beatAtTime(conductor.getDuration()) + offset)
-
-    for _, wav in ipairs(waveform.waveforms) do
-      local segmentHeight = wav:getHeight()
-      local waveHeight = segmentHeight / totalHeight * (y0 - yEnd)
-
-      for channel = 1, 2 do
-        local quad = waveform.quads[channel] or waveform.quads[1]
-        local mult = (channel - 1) * 2 - 1
-
-        local _, _, w, _ = quad:getViewport()
-
-        love.graphics.setColor(1, 1, 1, 0.3)
-        local y = mix(y0, yEnd, segmentY / totalHeight)
-        love.graphics.draw(wav, quad, sw/2 + getMRight() * mult, y, 0, ((width * scale()) / w) * mult, -(waveHeight / wav:getHeight()))
-        --love.graphics.line(sw/2 - width/2, y, sw/2 + width/2, y - waveHeight)
-      end
-
-      segmentY = segmentY + segmentHeight
-    end
-  end
-  love.graphics.pop()
-
   local topB = math.ceil(yToBeat(0)) + 1
   local botB = math.floor(yToBeat(sh)) - 1
 
@@ -378,6 +346,31 @@ function self.draw()
   love.graphics.setColor(LANE_2_COL:alpha(0.5):unpack())
   love.graphics.line(getRight() + sideW/2, sh, getRight() + sideW/2, 0)
   love.graphics.line(getMRight() - sideW/2, sh, getMRight() - sideW/2, 0)
+
+  love.graphics.push()
+  love.graphics.origin()
+  if waveform.meshes then
+    local totalHeight = waveform.totalHeight
+
+    local width = NOTE_WIDTH * 3
+    local offset = conductor.secondsToBeats(conductor.offset, conductor.bpms[1][2])
+    local y0 = beatToY(0 + offset)
+    local yEnd = beatToY(conductor.beatAtTime(totalHeight) + offset)
+
+    local segmentSize = totalHeight / #waveform.meshes
+    local waveHeight = segmentSize / totalHeight * (y0 - yEnd)
+
+    for i, wav in ipairs(waveform.meshes) do
+      local y = (i - 1) * waveHeight
+      love.graphics.setColor(0.3, 0.3, 0.3, 1)
+
+      for channel = 1, 2 do
+        local mult = (channel - 1) * 2 - 1
+        love.graphics.draw(wav[channel] or wav[1], sw/2 + getMRight() * mult, y0 - y, 0, (width * scale()) * mult, -waveHeight)
+      end
+    end
+  end
+  love.graphics.pop()
 
   local events = chart.chart
 
@@ -468,6 +461,14 @@ function self.draw()
   end
 
   love.graphics.pop()
+
+  if waveform.status then
+    love.graphics.setColor(1, 1, 1, 0.8)
+    -- slightly wacky, but it's ok
+    local w = fonts.inter_12:getWidth(waveform.status)
+    love.graphics.printf(waveform.status, 0, sh - 100, sw, 'center')
+    love.graphics.rectangle('fill', sw/2 - w/2, sh - 100 + fonts.inter_12:getHeight() + 1, w * waveform.progress, 2)
+  end
 
   if selectionX and selectionY then
     local mx, my = love.mouse.getPosition()
