@@ -1,3 +1,5 @@
+local json = require 'lib.json'
+
 -- utilities for dealing with the game itself
 
 local self = {}
@@ -28,6 +30,18 @@ function self.getSavePath()
 end
 function self.getColorSchemePath()
   return self.getSavePath() .. '/Data/ColorSchemes'
+end
+function self.getAdditionalFolders()
+  local filePath = self.getSavePath() .. '/Data/additionalSongFolders.json'
+  local file = io.open(filePath, 'r')
+  if not file then
+    -- ignorable error completely
+    return {}
+  end
+  local raw = file:read('*a')
+  file:close()
+  local data = json.decode(raw)
+  return data and data.AdditionalSongFolders or {}
 end
 
 return self

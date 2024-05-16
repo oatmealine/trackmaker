@@ -8,6 +8,7 @@ local filesystem     = require 'src.filesystem'
 local sm             = require 'lib.sm'
 local ImportSMWidget = require 'src.widgets.importsm'
 local widgets        = require 'src.widgets'
+local exxdriver      = require 'src.exxdriver'
 
 self.loaded = false
 ---@type XDRVEvent[]
@@ -74,7 +75,9 @@ end
 local FILE_FILTER = 'xdrv'
 
 function self.openChart()
-  filesystem.openDialog(nil, FILE_FILTER, function(path)
+  local songsFolder = exxdriver.getAdditionalFolders()[1]
+  -- i could not tell you why appending /? to a path makes it open the folder
+  filesystem.openDialog(songsFolder and (songsFolder .. '/?'), FILE_FILTER, function(path)
     if path then
       self.openPath(path)
     else
