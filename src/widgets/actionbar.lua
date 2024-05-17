@@ -159,12 +159,14 @@ local items = {
         else
           waveform.clear()
         end
+        config.save()
       end, toggle = true, value = config.config.waveform },
       { 'Double-res waveform', function()
         config.config.doubleResWaveform = not config.config.doubleResWaveform
         if config.config.waveform and conductor.fileData then
           waveform.init(conductor.fileData)
         end
+        config.save()
       end, toggle = true, value = config.config.doubleResWaveform },
       {},
       { 'Cat', function()
