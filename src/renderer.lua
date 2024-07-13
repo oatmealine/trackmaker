@@ -121,6 +121,29 @@ local function drawHoldTail(event)
   love.graphics.rectangle('fill', x - width/2, yEnd, width, y - yEnd)
 end
 
+local checkTex = love.graphics.newImage('assets/sprites/check.png')
+
+---@param event XDRVEvent
+local function drawCheckpoint(event)
+  local check = event.checkpoint
+
+  local y = beatToY(event.beat)
+
+  if y < -64 then return -1 end
+  if y > (sh + 64) then return end
+
+  local size = 12 / checkTex:getHeight() * scale()
+  local x = (-GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52) * scale()
+  local width = size * checkTex:getWidth()
+  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.draw(checkTex, x, y, 0, size, size, checkTex:getWidth(), checkTex:getHeight()/2)
+  love.graphics.setFont(fonts.inter_16)
+  love.graphics.printf(check, math.floor(x - 8 - width - 256), math.floor(y - fonts.inter_16:getHeight()/2 + 8), 256, 'right')
+  love.graphics.setColor(1, 1, 1, 0.5)
+  love.graphics.setFont(fonts.inter_12)
+  love.graphics.printf('Checkpoint', math.floor(x - 8 - width - 256), math.floor(y - fonts.inter_12:getHeight()/2 - 8), 256, 'right')
+end
+
 local gradMesh = love.graphics.newMesh({
   { 0,    0, 0, 0, 1, 1, 1, 1 },
   { 0,    1, 0, 0, 1, 1, 1, 1 },
@@ -401,6 +424,9 @@ function self.draw()
       layer:queue(0, drawDrift, event, lastDrift)
       lastDrift = event
     end
+    if event.checkpoint then
+      layer:queue(9, drawCheckpoint, event)
+    end
   end
 
   for _, ghost in ipairs(edit.getGhosts()) do
@@ -420,7 +446,7 @@ function self.draw()
     local lastBeat
     local concBeats = 0
     for _, event in ipairs(events) do
-      if not (event.note or event.gearShift or event.drift) then
+      if not (event.note or event.gearShift or event.drift or event.checkpoint) then
         local x = (GAP_WIDTH/2 + NOTE_WIDTH * 3) * scale()
         local y = beatToY(event.beat)
 
@@ -440,7 +466,7 @@ function self.draw()
           love.graphics.line(x + 14, y, x + 18, y)
         end
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.print(string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', '')), x + 22, y - 8)
+        love.graphics.print(string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', '')), x + 22, math.floor(y - 8))
 
         lastBeat = event.beat
       end
