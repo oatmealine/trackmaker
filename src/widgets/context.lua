@@ -11,7 +11,7 @@ local GAP = 10
 local LEFT_PAD = 14
 local RIGHT_PAD = 14
 
----@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean? }
+---@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean?, slider: boolean? }
 
 ---@param entries ContextWidgetEntry[]
 function ContextWidget:new(x, y, entries)
@@ -129,6 +129,10 @@ function ContextWidget:move(x, y)
       entry.hover(self, i)
     end
   end
+  if entry.slider and love.mouse.isDown(1) then
+    entry.value = x / self.width
+    entry[2](entry.value)
+  end
 end
 
 function ContextWidget:click(x, y, button)
@@ -138,7 +142,7 @@ function ContextWidget:click(x, y, button)
 
   if not entry then return end
 
-  if entry[2] then
+  if entry[2] and not entry.slider then
     local res = entry[2](self)
     if not res then
       self:close()
@@ -165,13 +169,52 @@ function ContextWidget:draw()
       end
     end
 
-    local text = self.texts[i]
-    if text then
+    if entry.slider and entry.value then
+      if hovered then
+        love.graphics.setColor(colors.active:unpack())
+      else
+        love.graphics.setColor(colors.hover:unpack())
+      end
+      love.graphics.rectangle('fill', 0, y, self.width * entry.value, botY - y)
+
+      love.graphics.setColor(colors.textSecondary:unpack())
+      love.graphics.printf(string.format('%.2f', entry.value), MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
       love.graphics.setColor(colors.text:unpack())
       if hovered then
         love.graphics.setColor((colors.hoverText or colors.text):unpack())
       end
-      love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
+      love.graphics.arc('fill', MARGIN + LEFT_PAD/2, y + HEIGHT/2, LEFT_PAD * 0.35, -math.pi * 0.5, (-math.pi * 0.5) + entry.value * math.pi * 2)
+
+      if (not hovered) and colors.hoverText then
+        local x1, y1 = love.graphics.transformPoint(0, y)
+        local x2, y2 = love.graphics.transformPoint(self.width * entry.value, botY)
+        love.graphics.setScissor(x1, y1, x2 - x1, y2 - y1)
+        love.graphics.setColor(colors.hoverText:unpack())
+        love.graphics.arc('fill', MARGIN + LEFT_PAD/2, y + HEIGHT/2, LEFT_PAD * 0.35, -math.pi * 0.5, (-math.pi * 0.5) + entry.value * math.pi * 2)
+        love.graphics.setScissor()
+      end
+    end
+
+    local text = self.texts[i]
+    if text then
+      if (not hovered) and entry.slider and entry.value and colors.hoverText then
+        local x1, y1 = love.graphics.transformPoint(0, y)
+        local x2, y2 = love.graphics.transformPoint(self.width * entry.value, botY)
+        local x3, _  = love.graphics.transformPoint(self.width, botY)
+        love.graphics.setScissor(x1, y1, x2 - x1, y2 - y1)
+        love.graphics.setColor(colors.hoverText:unpack())
+        love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
+        love.graphics.setScissor(x2, y1, x3 - x2, y2 - y1)
+        love.graphics.setColor(colors.text:unpack())
+        love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
+        love.graphics.setScissor()
+      else
+        love.graphics.setColor(colors.text:unpack())
+        if hovered then
+          love.graphics.setColor((colors.hoverText or colors.text):unpack())
+        end
+        love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
+      end
     else
       love.graphics.setColor((colors.dull or colors.hover):unpack())
       love.graphics.line(0, (y + botY)/2, self.width, (y + botY)/2)

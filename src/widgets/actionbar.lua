@@ -168,6 +168,12 @@ local items = {
         end
         config.save()
       end, toggle = true, value = config.config.doubleResWaveform },
+      { 'Waveform opacity', function(value)
+        config.config.waveformOpacity = value
+      end, slider = true, value = config.config.waveformOpacity },
+      { 'Waveform brightness', function(value)
+        config.config.waveformBrightness = value
+      end, slider = true, value = config.config.waveformBrightness },
       {},
       { 'Cat', function()
         if not catjam or catjam.delete then

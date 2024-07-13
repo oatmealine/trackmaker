@@ -357,7 +357,7 @@ function self.draw()
 
   love.graphics.push()
   love.graphics.origin()
-  if waveform.meshes then
+  if waveform.meshes and config.config.waveform then
     local totalHeight = waveform.totalHeight
 
     local width = NOTE_WIDTH * 3
@@ -368,7 +368,8 @@ function self.draw()
     local segmentSize = totalHeight / #waveform.meshes
     local waveHeight = segmentSize / totalHeight * (y0 - yEnd)
 
-    love.graphics.setColor(0.3, 0.3, 0.3, 1)
+    local bri = config.config.waveformBrightness
+    love.graphics.setColor(bri, bri, bri, config.config.waveformOpacity)
 
     for i, wav in ipairs(waveform.meshes) do
       local y = y0 - ((i - 1) * waveHeight)
