@@ -299,7 +299,7 @@ function M.update(dt)
     lastT = M.time
 
     for i, event in ipairs(chart.chart) do
-      if event.beat < M.beat and not eventStates[i].hit then
+      if (event.note or event.gearShift) and event.beat < M.beat and not eventStates[i].hit then
         eventStates[i].hit = true
         if config.config.noteTick then
           noteTickSFX:play(0.75)
