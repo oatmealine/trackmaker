@@ -43,6 +43,14 @@ local function getColumnX(i)
   end
 end
 
+local function getLaneColor(i)
+  if i == xdrv.XDRVLane.Left then
+    return xdrvColors.scheme.colors.LeftGear
+  end
+  return xdrvColors.scheme.colors.RightGear
+end
+self.getLaneColor = getLaneColor
+
 local function getColumnColor(i)
   if i == 1 then
     return xdrvColors.scheme.colors.Column1
@@ -59,13 +67,16 @@ local function getColumnColor(i)
   end
   return xdrvColors.scheme.colors.Column1
 end
+self.getColumnColor = getColumnColor
 
 local function beatToY(b)
   return love.graphics.getHeight() - PAD_BOTTOM - (b - conductor.beat) * getScrollSpeed()
 end
+self.beatToY = beatToY
 local function yToBeat(y)
   return (love.graphics.getHeight() - PAD_BOTTOM - y) / getScrollSpeed() + conductor.beat
 end
+self.yToBeat = yToBeat
 
 local function getLeft()
   return (-GAP_WIDTH/2 - NOTE_WIDTH * 3) * scale()
@@ -123,13 +134,10 @@ local gradMesh = love.graphics.newMesh({
 local function drawGearShift(event)
   local gear = event.gearShift
 
-  local color
+  local color = getLaneColor(gear.lane)
   local offset = 1
   if gear.lane == xdrv.XDRVLane.Left then
-    color = xdrvColors.scheme.colors.LeftGear
     offset = -1
-  else
-    color = xdrvColors.scheme.colors.RightGear
   end
 
   local y = beatToY(event.beat)

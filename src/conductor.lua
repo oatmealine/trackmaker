@@ -188,6 +188,7 @@ end
 local eventStates = {}
 
 function M.initStates()
+  if not chart.loaded then return end
   for i, event in ipairs(chart.chart) do
     local state = { hit = event.beat < M.beat }
     if event.gearShift then

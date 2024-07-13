@@ -25,6 +25,7 @@ function Widget:new(x, y)
   self.delete = false
   self.ignoreFocus = false
   self.focused = false
+  self.dragged = false
 
   self.name = 'Widget'
   self.title = nil
@@ -229,13 +230,14 @@ end
 
 local InfobarWidget = require 'src.widgets.infobar'
 local ActionBarWidget = require 'src.widgets.actionbar'
+local MinimapWidget = require 'src.widgets.minimap'
 
 ---@type Widget?
 local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { InfobarWidget(), ActionBarWidget() }
+widgets = { InfobarWidget(), ActionBarWidget(), MinimapWidget(sw, 0) }
 
 function getWidgets()
   return widgets
@@ -301,6 +303,7 @@ function self.mousepressed(x, y, button)
       if button == 1 and (res == WidgetPointState.Bar or widget.dragAnywhere) and widget.isMovable then
         draggingWidget = widget
         dragX, dragY = x - widget.x, y - widget.y
+        widget.dragged = true
       end
 
       self.update()
@@ -323,6 +326,7 @@ function self.mousereleased(x, y, button)
   if button == 1 and draggingWidget then
     draggingWidget.x, draggingWidget.y = x - dragX, y - dragY
     clampWidget(draggingWidget)
+    draggingWidget.dragged = false
     draggingWidget = nil
     return true
   end
