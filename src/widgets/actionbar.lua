@@ -185,6 +185,10 @@ local items = {
       { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
       {},
       { 'UI Test',         function() openWidget(UITestWidget(150, 150)) end },
+      { 'Render unsupported events', function()
+        config.config.renderInvalidEvents = not config.config.renderInvalidEvents
+        config.save()
+      end, toggle = true, value = config.config.renderInvalidEvents },
       { 'About',         function() openWidget(AboutWidget(150, 150)) end },
     }
   end},

@@ -24,6 +24,7 @@ self.config = {
   },
   waveform = true,
   doubleResWaveform = false,
+  renderInvalidEvents = false,
 }
 self.defaults = deepcopy(self.config)
 
