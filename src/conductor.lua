@@ -55,6 +55,8 @@ function M.loadFromChart(chart, dir)
 
   M.initialBPM = chart.metadata.chartBPM
   M.bpms = { { 0, M.initialBPM } }
+  M.timeSignatures = {}
+  M.stops = {}
   for _, event in ipairs(chart.chart) do
     if event.bpm then
       table.insert(M.bpms, { event.beat, event.bpm })
