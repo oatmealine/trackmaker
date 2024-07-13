@@ -57,7 +57,7 @@ function MinimapWidget:draw()
   self.height = sh - 24
 
   if chart.loaded then
-    self.width = 50
+    self.width = 20
   else
     self.width = 0
     return
@@ -105,7 +105,7 @@ function MinimapWidget:draw()
 
   local height = math.abs(timeE - timeS) / chartDur * self.height
 
-  love.graphics.setColor(1, 1, 1, self.hovered and 0.3 or 0.2)
+  love.graphics.setColor(1, 1, 1, self.hovered and 0.5 or 0.3)
   love.graphics.rectangle('fill', 0, self.height - height - clamp(timeS / chartDur, 0, 1) * (self.height - height), self.width, height)
 
   if self.hovered and love.mouse.isDown(1) then
