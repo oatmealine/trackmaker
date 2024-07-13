@@ -49,6 +49,10 @@ function ContextWidget:new(x, y, entries)
   self.width = MARGIN * 2 + LEFT_PAD + RIGHT_PAD + width
   self.height = self:getElemY(#self.entries + 1)
 
+  if self.x + self.width >= sw then
+    self.x = sw - self.width
+  end
+
   self.supressClose = false
   self.hoveredIdx = 0
   self.activeIdx = nil
