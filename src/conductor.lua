@@ -146,9 +146,40 @@ function M.beatAtTime(t)
   return lastBPM[1] + M.secondsToBeats(t, lastBPM)
 end
 
-function M.timeAtBeat(b)
-  -- TODO
-  return M.beatsToSeconds(b, M.getBPM())
+function M.timeAtBeat(beat)
+  local tempElapsed = 0
+
+  for _, stop in ipairs(M.stops) do
+    local stopStartBeat = stop[1]
+    local stopDuration = stop[2]
+    local stopIsSeconds = stop[3]
+    -- The exact beat of a stop comes before the stop, not after, so use >=, not >.
+    if stopStartBeat >= beat then break end
+    if not stopIsSeconds then
+      -- stop duration must be in seconds
+      stopDuration = M.beatsToSeconds(stopDuration, M.getBPMAtBeat(stopStartBeat))
+    end
+    tempElapsed = tempElapsed + stopDuration
+  end
+
+  for i, segment in ipairs(M.bpms) do
+    local startBeat = segment[1]
+    local bpm = segment[2]
+
+    if i == #M.bpms then
+      tempElapsed = tempElapsed + M.beatsToSeconds(beat, bpm)
+    else
+      local startBeatThisSegment = startBeat
+      local startBeatNextSegment = M.bpms[i + 1][1]
+      local beatsThisSegment = math.min(startBeatNextSegment - startBeatThisSegment, beat)
+      tempElapsed = tempElapsed + M.beatsToSeconds(beatsThisSegment, bpm) -- count time based on how many beats we spent at each bpm
+      beat = beat - beatsThisSegment
+    end
+
+    if beat <= 0 then return tempElapsed end
+  end
+
+  return tempElapsed
 end
 
 function M.getTimeSignatureAtBeat(beat)

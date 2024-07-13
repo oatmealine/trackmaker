@@ -43,7 +43,7 @@ function MinimapWidget:moveFrame(x, y)
 end
 
 function MinimapWidget:getYFromBeat(beat, dur)
-  return (1 - (beat / dur)) * self.canvas:getHeight()
+  return (1 - (conductor.timeAtBeat(beat) / dur)) * self.canvas:getHeight()
 end
 
 function MinimapWidget:draw()
@@ -72,7 +72,7 @@ function MinimapWidget:draw()
   love.graphics.setCanvas(self.canvas)
   love.graphics.clear()
 
-  local chartDur = conductor.beatAtTime(conductor.getDuration())
+  local chartDur = conductor.getDuration()
 
   for _, event in ipairs(chart.chart) do
     if event.note then
@@ -101,14 +101,15 @@ function MinimapWidget:draw()
   love.graphics.draw(self.canvas, 0, 0, 0, self.width / self.canvas:getWidth(), self.height / self.canvas:getHeight())
 
   local beatS, beatE = renderer.yToBeat(sh), renderer.yToBeat(0)
+  local timeS, timeE = conductor.timeAtBeat(beatS), conductor.timeAtBeat(beatE)
 
-  local height = math.abs(beatE - beatS) / chartDur * self.height
+  local height = math.abs(timeE - timeS) / chartDur * self.height
 
   love.graphics.setColor(1, 1, 1, self.hovered and 0.3 or 0.2)
-  love.graphics.rectangle('fill', 0, self.height - height - clamp(beatS / chartDur, 0, 1) * (self.height - height), self.width, height)
+  love.graphics.rectangle('fill', 0, self.height - height - clamp(timeS / chartDur, 0, 1) * (self.height - height), self.width, height)
 
   if self.hovered and love.mouse.isDown(1) then
-    conductor.seekBeats((1 - clamp((self.my - height) / (self.height - height), 0, 1)) * chartDur)
+    conductor.seek((1 - clamp((self.my - height) / (self.height - height), 0, 1)) * chartDur)
   end
 end
 
