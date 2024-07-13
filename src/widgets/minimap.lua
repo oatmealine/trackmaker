@@ -46,6 +46,8 @@ function MinimapWidget:getYFromBeat(beat, dur)
   return (1 - (conductor.timeAtBeat(beat) / dur)) * self.canvas:getHeight()
 end
 
+local checkTex = love.graphics.newImage('assets/sprites/check.png')
+
 function MinimapWidget:draw()
   local canvasHeight = love.graphics.getHeight() - 24
   if self.canvasHeight ~= canvasHeight then
@@ -107,6 +109,14 @@ function MinimapWidget:draw()
 
   love.graphics.setColor(1, 1, 1, self.hovered and 0.5 or 0.3)
   love.graphics.rectangle('fill', 0, self.height - height - clamp(timeS / chartDur, 0, 1) * (self.height - height), self.width, height)
+
+  for _, event in ipairs(chart.chart) do
+    if event.checkpoint then
+      love.graphics.setColor(1, 1, 1, 1)
+      local size = 8 / checkTex:getHeight()
+      love.graphics.draw(checkTex, 0, (1 - (conductor.timeAtBeat(event.beat) / chartDur)) * self.height, 0, size, size, checkTex:getWidth(), checkTex:getHeight()/2)
+    end
+  end
 
   if self.hovered and love.mouse.isDown(1) then
     conductor.seek((1 - clamp((self.my - height) / (self.height - height), 0, 1)) * chartDur)
