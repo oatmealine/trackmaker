@@ -471,6 +471,8 @@ function self.draw()
     local w = fonts.inter_12:getWidth(waveform.status)
     love.graphics.printf(waveform.status, 0, sh - 100, sw, 'center')
     love.graphics.rectangle('fill', sw/2 - w/2, sh - 100 + fonts.inter_12:getHeight() + 1, w * waveform.progress, 2)
+    love.graphics.setColor(1, 1, 1, 0.3)
+    love.graphics.rectangle('fill', sw/2 - w/2, sh - 100 + fonts.inter_12:getHeight() + 1, w, 2)
   end
 
   if selectionX and selectionY then
