@@ -52,7 +52,7 @@ function ImportSMWidget:getContainer()
       Checkmark(0, 0, function() self:setStyle(1) end, self.styleIdx == 1, noNotes), Label(0, 0, 'Lasdl;"R<>')
     },
     {
-      Checkmark(0, 0, function() self:setStyle(2) end, self.styleIdx == 2, noNotes), Label(0, 0, '<Lasdl;"R>' .. (chart.type == 'xdrv' and ' (Detected)' or ''))
+      Checkmark(0, 0, function() self:setStyle(2) end, self.styleIdx == 2, noNotes), Label(0, 0, '<Lasdl;"R>' .. ((chart and chart.type == 'xdrv') and ' (Detected)' or ''))
     },
     {
       Checkmark(0, 0, function() self:setStyle(3) end, self.styleIdx == 3, noNotes), Label(0, 0, 'asdl;"LR<>')
@@ -63,7 +63,7 @@ function ImportSMWidget:getContainer()
     {
       Label(0, 0, noNotes and 'No notes' or (#self.chart.NOTES[self.chartIdx].notes) .. ' notes'), Button(0, 0, 'Import', function() self:finish() end)
     },
-  }, self.width))
+  }))
 end
 
 function ImportSMWidget:setChart(i)
@@ -71,7 +71,7 @@ function ImportSMWidget:setChart(i)
   self.container = self:getContainer()
 
   local chart = self.chart.NOTES[self.chartIdx]
-  if chart.type == 'xdrv' then
+  if chart and chart.type == 'xdrv' then
     self:setStyle(DEV and 4 or 2)
   end
 end
