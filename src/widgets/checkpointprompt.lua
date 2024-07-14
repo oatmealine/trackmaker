@@ -17,7 +17,7 @@ function CheckpointPromptWidget:new(beat, name)
       Label(0, 0, 'Beat'), Textfield(0, 0, 40, self.beat, function(value) self.beat = tonumber(value) end),
     },
     {
-      Label(0, 0, 'Name'), Textfield(0, 0, 100, self.checkName, function(value) self.checkName = value self:updateName() end),
+      Label(0, 0, 'Name'), Textfield(0, 0, 140, self.checkName, function(value) self.checkName = value self:updateName() end),
     },
     {
       Button(40, 10, 'Place', function() self:place(true) self.delete = true end),
@@ -26,7 +26,7 @@ function CheckpointPromptWidget:new(beat, name)
   }, self.width)))
 
   self.title = 'Place Checkpoint'
-  self.width = 180
+  self.width = 220
   self.height = 100
 
   self:updateName()
