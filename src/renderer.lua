@@ -10,6 +10,8 @@ local logs       = require 'src.logs'
 local xdrvColors = require 'src.xdrvcolors'
 local config     = require 'src.config'
 
+local CheckpointPromptWidget = require 'src.widgets.checkpointprompt'
+
 local layer = deep:new()
 
 local PAD_BOTTOM = 256
@@ -135,13 +137,15 @@ local function drawCheckpoint(event)
   local size = 12 / checkTex:getHeight() * scale()
   local x = (-GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52) * scale()
   local width = size * checkTex:getWidth()
-  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.setColor(1, 1, 1, check and 1 or 0.5)
   love.graphics.draw(checkTex, x, y, 0, size, size, checkTex:getWidth(), checkTex:getHeight()/2)
-  love.graphics.setFont(fonts.inter_16)
-  love.graphics.printf(check, math.floor(x - 8 - width - 256), math.floor(y - fonts.inter_16:getHeight()/2 + 8), 256, 'right')
-  love.graphics.setColor(1, 1, 1, 0.5)
-  love.graphics.setFont(fonts.inter_12)
-  love.graphics.printf('Checkpoint', math.floor(x - 8 - width - 256), math.floor(y - fonts.inter_12:getHeight()/2 - 8), 256, 'right')
+  if check then
+    love.graphics.setFont(fonts.inter_16)
+    love.graphics.printf(check, math.floor(x - 8 - width - 256), math.floor(y - fonts.inter_16:getHeight()/2 + 8), 256, 'right')
+    love.graphics.setColor(1, 1, 1, 0.5)
+    love.graphics.setFont(fonts.inter_12)
+    love.graphics.printf('Checkpoint', math.floor(x - 8 - width - 256), math.floor(y - fonts.inter_12:getHeight()/2 - 8), 256, 'right')
+  end
 end
 
 local gradMesh = love.graphics.newMesh({
@@ -318,6 +322,17 @@ local QUANT_COLORS = {
   nil,
 }
 
+local function canPlaceCheckpoint(x, y)
+  if x > (sw/2 - GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52) or x < (sw/2 - GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52 - 32) then return end
+
+  local closest = quantize(yToBeat(y), edit.quantIndex)
+  local closestY = beatToY(closest)
+
+  if math.abs(closestY - y) > 32 then return end
+
+  return closest
+end
+
 function self.draw()
   sw, sh = love.graphics.getDimensions()
   scx, scy = sw/2, sh/2
@@ -442,6 +457,11 @@ function self.draw()
 
   layer:draw()
 
+  local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
+  if checkBeat then
+    drawCheckpoint({ beat = checkBeat })
+  end
+
   if config.config.renderInvalidEvents then
     local lastBeat
     local concBeats = 0
@@ -554,8 +574,21 @@ function self.draw()
 end
 
 function self.mousepressed(x, y, button)
+  local check = canPlaceCheckpoint(x, y)
+  if button == 1 and check then
+    local name
+    local existingCheckpoint = chart.findEventOfType(check, 'checkpoint')
+    if existingCheckpoint then
+      name = chart.chart[existingCheckpoint].checkpoint
+    end
+
+    openWidget(CheckpointPromptWidget(check, name), true)
+    return
+  end
+
   if not edit.write and button == 1 and chart.loaded then
     selectionX, selectionY = x, y
+    return
   end
 end
 function self.mousereleased(x, y, button)

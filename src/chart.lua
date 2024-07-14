@@ -331,6 +331,19 @@ function self.findEvent(event)
     end
   end
 end
+---@param beat number
+---@param type string
+---@return number?
+function self.findEventOfType(beat, type)
+  for i, ev in ipairs(self.chart) do
+    if ev.beat > beat then
+      return
+    end
+    if ev.beat == beat and ev[type] then
+      return i
+    end
+  end
+end
 
 function self.removeEvent(i)
   self.markDirty()
