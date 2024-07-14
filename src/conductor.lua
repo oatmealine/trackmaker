@@ -32,7 +32,10 @@ function M.loadSong(songPath)
   local file, err = io.open(songPath, 'rb')
   if file then
     local data = file:read('*a')
-    if song then song:release() end
+    if song then
+      song:stop()
+      song:release()
+    end
     if data then
       local fileData = love.filesystem.newFileData(data, chart.metadata.musicAudio)
       waveform.clear()
