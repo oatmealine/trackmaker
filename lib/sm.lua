@@ -1,5 +1,16 @@
 local sm = {}
 
+sm.print = nil
+
+local _print = print
+local function print(...)
+  if not sm.print then
+    _print(...)
+  else
+    sm.print(...)
+  end
+end
+
 local function filterComments(text)
   local lines = {}
   for line in string.gmatch(text, '([^\n\r]*)[\n\r]?') do

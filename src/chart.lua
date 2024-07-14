@@ -6,6 +6,7 @@ local logs           = require 'src.logs'
 local config         = require 'src.config'
 local filesystem     = require 'src.filesystem'
 local sm             = require 'lib.sm'
+sm.print = function(s) logs.logFile('sm.lua: ' .. tostring(s)) end
 local ImportSMWidget = require 'src.widgets.importsm'
 local widgets        = require 'src.widgets'
 local exxdriver      = require 'src.exxdriver'
