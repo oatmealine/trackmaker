@@ -325,7 +325,10 @@ local function save(filepath)
   logs.logFile('Printing data just in case')
   logs.logFile(pretty(chart.chart))
 
-  local contents = '// Made with trackmaker v' .. release.version .. '\n' .. xdrv.serialize({ metadata = self.metadata, chart = self.chart })
+  local contents = xdrv.serialize({ metadata = self.metadata, chart = self.chart })
+  if not DEV then
+    contents = '// Made with trackmaker v' .. release.version .. '\n' .. contents
+  end
 
   local file, err = io.open(filepath, 'w')
   if not file then
