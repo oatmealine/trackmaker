@@ -54,7 +54,9 @@ function ImportSMWidget:getContainer()
     {
       Checkmark(0, 0, function() self:setStyle(3) end, self.styleIdx == 3, noNotes), Label(0, 0, 'asdl;"LR<>')
     },
-    {},
+    DEV and {
+      Checkmark(0, 0, function() self:setStyle(4) end, self.styleIdx == 4, noNotes), Label(0, 0, 'asdl;"LRD (XDRVAV)')
+    } or {},
     {
       Label(0, 0, noNotes and 'No notes' or (#self.chart.NOTES[self.chartIdx].notes) .. ' notes'), Button(0, 0, 'Import', function() self:finish() end)
     },

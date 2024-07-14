@@ -27,6 +27,7 @@ self.config = {
   renderInvalidEvents = false,
   waveformOpacity = 1,
   waveformBrightness = 0.3,
+  xdrvChartDev = false,
 }
 self.defaults = deepcopy(self.config)
 

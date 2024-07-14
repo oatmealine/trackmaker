@@ -141,9 +141,21 @@ local styleMappings = {
     [4] = { 'note',      5 },
     [5] = { 'note',      6 },
     [6] = { 'gearShift', xdrv.XDRVLane.Left },
-    [7] = { 'drift',     xdrv.XDRVDriftDirection.Left },
-    [8] = { 'gearShift', xdrv.XDRVLane.Right },
+    [7] = { 'gearShift', xdrv.XDRVLane.Right },
+    [8] = { 'drift',     xdrv.XDRVDriftDirection.Left },
     [9] = { 'drift',     xdrv.XDRVDriftDirection.Right },
+  },
+  -- asdl;"LRD
+  [4] = {
+    [0] = { 'note',      1 },
+    [1] = { 'note',      2 },
+    [2] = { 'note',      3 },
+    [3] = { 'note',      4 },
+    [4] = { 'note',      5 },
+    [5] = { 'note',      6 },
+    [6] = { 'gearShift', xdrv.XDRVLane.Left },
+    [7] = { 'gearShift', xdrv.XDRVLane.Right },
+    [8] = { 'driftRolls' },
   },
 }
 
@@ -202,6 +214,23 @@ function self.importSM(chart, filepath, notes, style)
           table.insert(self.chart, {
             beat = beat,
             drift = { direction = mapValue },
+          })
+        elseif note[3] == '3' then
+          table.insert(self.chart, {
+            beat = beat,
+            drift = { direction = xdrv.XDRVDriftDirection.Neutral },
+          })
+        end
+      elseif mapType == 'driftRolls' then
+        if note[3] == '2' then
+          table.insert(self.chart, {
+            beat = beat,
+            drift = { direction = xdrv.XDRVDriftDirection.Left },
+          })
+        elseif note[3] == '4' then
+          table.insert(self.chart, {
+            beat = beat,
+            drift = { direction = xdrv.XDRVDriftDirection.Right },
           })
         elseif note[3] == '3' then
           table.insert(self.chart, {

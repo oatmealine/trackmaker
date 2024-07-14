@@ -13,6 +13,9 @@ require 'lib.color'
 
 require 'src.util'
 
+-- enables some certain xdrv chart dev specific stuff
+DEV = false
+
 fonts = {
   inter_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
   inter_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),
@@ -31,12 +34,16 @@ local colors     = require 'src.colors'
 local waveform   = require 'src.waveform'
 local xdrvColors = require 'src.xdrvcolors'
 
-function love.load()
+function love.load(args)
   love.keyboard.setKeyRepeat(true)
   config.load()
   colors.setScheme(config.config.theme)
   xdrvColors.setScheme(config.config.xdrvColors)
   --chart.openChart()
+
+  if args[1] == '--dev' or config.config.xdrvChartDev then
+    DEV = true
+  end
 end
 
 function love.update(dt)
