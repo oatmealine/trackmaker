@@ -3,6 +3,11 @@ local self = {}
 local logs = {}
 local t = 0
 
+---@type string[]
+local appendBuffer = {}
+local appendBufferTimer = 0
+local APPEND_BUFFER_INTERVAL = 0.1
+
 local LOG_LIFETIME = 4
 
 function self.update(dt)
@@ -12,6 +17,13 @@ function self.update(dt)
     local lifetime = t - log.t
     if lifetime > LOG_LIFETIME then
       table.remove(logs, i)
+    end
+  end
+  if #appendBuffer > 0 then
+    appendBufferTimer = appendBufferTimer - dt
+    if appendBufferTimer < 0 then
+      love.filesystem.append('trackmaker.log', table.concat(appendBuffer, ''))
+      appendBuffer = {}
     end
   end
 end
@@ -33,7 +45,8 @@ end
 function self.logFile(text)
   local timestamped = '[' .. os.date('%c') .. '] ' .. tostring(text)
 
-  love.filesystem.append('trackmaker.log', timestamped .. '\n')
+  table.insert(appendBuffer, timestamped .. '\n')
+  appendBufferTimer = APPEND_BUFFER_INTERVAL
   self.logStdout(timestamped)
 end
 function self.log(text)
