@@ -30,9 +30,12 @@ function ImportSMWidget:new(chart, filepath, callback)
   self.title = 'Import SM/SSC'
   self.width = 280
   self.height = 240
+
+  self:setChart(1)
 end
 
 function ImportSMWidget:getContainer()
+  local chart = self.chart.NOTES[self.chartIdx]
   local noNotes = (self.chartIdx > #self.chart.NOTES)
 
   return Container(Container.placeRows({
@@ -49,7 +52,7 @@ function ImportSMWidget:getContainer()
       Checkmark(0, 0, function() self:setStyle(1) end, self.styleIdx == 1, noNotes), Label(0, 0, 'Lasdl;"R<>')
     },
     {
-      Checkmark(0, 0, function() self:setStyle(2) end, self.styleIdx == 2, noNotes), Label(0, 0, '<Lasdl;"R>')
+      Checkmark(0, 0, function() self:setStyle(2) end, self.styleIdx == 2, noNotes), Label(0, 0, '<Lasdl;"R>' .. (chart.type == 'xdrv' and ' (Detected)' or ''))
     },
     {
       Checkmark(0, 0, function() self:setStyle(3) end, self.styleIdx == 3, noNotes), Label(0, 0, 'asdl;"LR<>')
@@ -66,6 +69,11 @@ end
 function ImportSMWidget:setChart(i)
   self.chartIdx = i
   self.container = self:getContainer()
+
+  local chart = self.chart.NOTES[self.chartIdx]
+  if chart.type == 'xdrv' then
+    self:setStyle(DEV and 4 or 2)
+  end
 end
 
 function ImportSMWidget:setStyle(i)
