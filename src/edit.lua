@@ -369,6 +369,8 @@ function self.paste()
   chart.markDirty()
 end
 
+self.setBeat = setBeat
+
 ---@param key love.KeyConstant
 ---@param code love.Scancode
 function self.keypressed(key, code, isRepeat)

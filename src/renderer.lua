@@ -659,7 +659,7 @@ function self.wheelmoved(delta)
   if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
     zoom = zoom * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
   else
-    conductor.seekBeats(conductor.beat + sign(delta) * QUANTS[edit.quantIndex])
+    edit.setBeat(conductor.beat + sign(delta) * QUANTS[edit.quantIndex])
     edit.updateGhosts()
     conductor.initStates()
   end
