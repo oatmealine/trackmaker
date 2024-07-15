@@ -314,15 +314,32 @@ function self.importMenu(filetype)
   end)
 end
 
-local function save(filepath)
-  if string.sub(filepath, -5) ~= '.xdrv' then
-    filepath = filepath .. '.xdrv'
-  end
+local function save(filepath, noBackup)
+  logs.logFile('Saving to ' .. filepath)
 
   self.sort()
 
   logs.logFile('Printing data just in case')
   logs.logFile(pretty(chart.chart))
+
+  if not noBackup then
+    local oldFile, missing = io.open(filepath, 'r')
+    if oldFile then
+      local oldFilepath = filepath .. '.old'
+      logs.logFile('File exists, backing up to ' .. oldFilepath)
+      local oldContents = oldFile:read('*a')
+      oldFile:close()
+      local backupFile, err = io.open(oldFilepath, 'w')
+      if not backupFile then
+        logs.log(err)
+        return
+      end
+      backupFile:write(oldContents)
+      backupFile:close()
+    else
+      logs.logFile('File does not already exist')
+    end
+  end
 
   local contents = xdrv.serialize({ metadata = self.metadata, chart = self.chart })
   if not DEV then
@@ -331,7 +348,7 @@ local function save(filepath)
 
   local file, err = io.open(filepath, 'w')
   if not file then
-    print(err)
+    logs.log(err)
     return
   end
   file:write(contents)
@@ -441,6 +458,23 @@ end
 function self.markDirty()
   self.dirty = true
   updateTitle()
+end
+
+local autosaveTimer = 0
+--local AUTOSAVE_INTERVAL = 60 * 3
+local AUTOSAVE_INTERVAL = 10
+function self.update(dt)
+  if not (self.dirty and self.chart and self.chartLocation) then
+    autosaveTimer = 0
+  else
+    autosaveTimer = autosaveTimer + dt
+
+    if autosaveTimer > AUTOSAVE_INTERVAL then
+      logs.log('Autosaving..')
+      save(self.chartLocation .. '.auto', true)
+      autosaveTimer = autosaveTimer - AUTOSAVE_INTERVAL
+    end
+  end
 end
 
 updateTitle()

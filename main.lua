@@ -103,6 +103,7 @@ function love.update(dt)
   logs.update(dt)
   threads.update()
   waveform.update()
+  chart.update(dt)
 end
 
 function love.draw()
