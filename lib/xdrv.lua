@@ -48,6 +48,11 @@ local function getDivision(beat)
   return 1 / QUANTS[getQuantIndex(beat)]
 end
 
+local EPSILON = QUANTS[#QUANTS]
+local function snapBeat(beat)
+  return math.floor(beat / EPSILON + 0.5) * EPSILON
+end
+
 ---@enum XDRVDifficulty
 M.XDRVDifficulty = {
   Beginner = 0,
@@ -361,7 +366,7 @@ end
 local function formatGears(g)
   return gearEventToType(g[M.XDRVLane.Left]) .. gearEventToType(g[M.XDRVLane.Right])
 end
----@param s XDRVDriftDirection
+---@param s XDRVDriftDirection?
 local function formatDrift(s)
   if s == M.XDRVDriftDirection.Left then
     return '1'
@@ -410,6 +415,10 @@ end
 
 ---@param events XDRVEvent[]
 local function serializeChart(events)
+  for _, event in ipairs(events) do
+    event.beat = snapBeat(event.beat)
+  end
+
   events = M.addHoldEnds(events)
 
   -- a lot of code assumes this table is sorted
@@ -500,7 +509,6 @@ local function serializeChart(events)
         end
       end
 
-      -- todo: drifts
       table.insert(segmentStr, formatNotesCol(cols) .. '|' .. formatGears(gears) .. '|' .. formatDrift(drift))
     end
 
