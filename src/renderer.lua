@@ -470,25 +470,28 @@ function self.draw()
         local x = (GAP_WIDTH/2 + NOTE_WIDTH * 3) * scale()
         local y = beatToY(event.beat)
 
-        local type = getEventType(event)
+        if y < 0 then break end
+        if y < sh then
+          local type = getEventType(event)
 
-        if lastBeat ~= event.beat then
+          if lastBeat ~= event.beat then
+            love.graphics.setColor(1, 1, 1, 1)
+            love.graphics.setLineWidth(1)
+            love.graphics.line(x + 6, y, x + 18, y)
+            concBeats = 0
+          else
+            concBeats = concBeats + 1
+            y = y + 14 * concBeats
+
+            love.graphics.setColor(1, 1, 1, 0.5)
+            love.graphics.setLineWidth(1)
+            love.graphics.line(x + 14, y, x + 18, y)
+          end
           love.graphics.setColor(1, 1, 1, 1)
-          love.graphics.setLineWidth(1)
-          love.graphics.line(x + 6, y, x + 18, y)
-          concBeats = 0
-        else
-          concBeats = concBeats + 1
-          y = y + 14 * concBeats
+          love.graphics.print(string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', '')), x + 22, math.floor(y - 8))
 
-          love.graphics.setColor(1, 1, 1, 0.5)
-          love.graphics.setLineWidth(1)
-          love.graphics.line(x + 14, y, x + 18, y)
+          lastBeat = event.beat
         end
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.print(string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', '')), x + 22, math.floor(y - 8))
-
-        lastBeat = event.beat
       end
     end
   end
