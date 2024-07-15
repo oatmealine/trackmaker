@@ -48,7 +48,6 @@ end
 function self.openPath(filepath)
   local file, err = io.open(filepath, 'r')
   if not file then
-    print(err)
     logs.log(err)
     return
   end

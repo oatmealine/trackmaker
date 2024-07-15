@@ -41,8 +41,60 @@ function love.load(args)
   xdrvColors.setScheme(config.config.xdrvColors)
   --chart.openChart()
 
-  if args[1] == '--dev' or config.config.xdrvChartDev then
+  if config.config.xdrvChartDev then
     DEV = true
+  end
+
+  local loadedFile
+  local loadedFileBeat
+  local loadedFileCheckpoint
+  local argValue
+  for _, arg in ipairs(args) do
+    if string.sub(arg, 1, 2) == '--' then
+      argValue = nil
+      if arg == '--dev' then
+        DEV = true
+      end
+      if arg == '--beat' then
+        argValue = 'beat'
+      end
+      if arg == '--checkpoint' then
+        argValue = 'checkpoint'
+      end
+    else
+      if argValue then
+        if argValue == 'beat' then
+          loadedFileBeat = tonumber(arg)
+        end
+        if argValue == 'checkpoint' then
+          loadedFileCheckpoint = tonumber(arg)
+        end
+      else
+        if not loadedFile then
+          loadedFile = arg
+        end
+      end
+    end
+  end
+
+  if loadedFile then
+    chart.openPath(loadedFile)
+    if loadedFileBeat then
+      conductor.seekBeats(loadedFileBeat)
+    end
+    if loadedFileCheckpoint then
+      local checkIdx = 0
+      for _, event in ipairs(chart.chart) do
+        if event.checkpoint then
+          checkIdx = checkIdx + 1
+          if checkIdx == loadedFileCheckpoint then
+            conductor.seekBeats(event.beat)
+            logs.log('Jumped to checkpoint ' .. checkIdx .. ' (' .. event.checkpoint .. ')')
+            break
+          end
+        end
+      end
+    end
   end
 end
 
