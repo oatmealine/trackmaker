@@ -40,4 +40,5 @@ rm -r releases/trackmaker-linux
 
 # love
 
-mv releases/trackmaker.love "releases/trackmaker-${ver}.love"
+rm -f releases/trackmaker-*.love
+cp releases/trackmaker.love "releases/trackmaker-${ver}.love"
