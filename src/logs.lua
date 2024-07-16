@@ -34,7 +34,7 @@ function self.draw()
     local lifetime = t - log.t
     local alpha = math.min(1, LOG_LIFETIME - lifetime)
     love.graphics.setColor(1, 1, 1, alpha)
-    love.graphics.printf(log[1], 0, y, sw, 'right')
+    love.graphics.printf(log[1], 0, y, love.graphics.getWidth(), 'right')
     y = y + 16 * alpha
   end
 end

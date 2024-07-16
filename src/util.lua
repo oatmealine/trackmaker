@@ -255,3 +255,8 @@ function sign(x)
   if x < 0 then return -1 end
   return 0
 end
+
+function screenCoords()
+  local sw, sh = love.graphics.getDimensions()
+  return sw, sh, sw/2, sh/2
+end

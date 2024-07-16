@@ -110,6 +110,8 @@ function love.draw()
   love.graphics.setFont(fonts.inter_12)
   love.graphics.clear(colors.appBackground:unpack())
 
+  local sw, sh, scx, scy = screenCoords()
+
   renderer.draw()
 
   widgets.draw()

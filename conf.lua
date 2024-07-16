@@ -11,6 +11,7 @@ function love.conf(t)
   t.window.minwidth = 600
   t.window.minheight = 400
   t.window.vsync = 0
+  --t.window.depth = 24
 
   t.modules.audio = true
   t.modules.data = true

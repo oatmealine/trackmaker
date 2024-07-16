@@ -56,7 +56,7 @@ function MinimapWidget:draw()
     love.graphics.setDefaultFilter('linear', 'linear')
   end
 
-  self.height = sh - 24
+  self.height = love.graphics.getHeight() - 24
 
   if chart.loaded then
     self.width = 20
@@ -65,7 +65,7 @@ function MinimapWidget:draw()
     return
   end
 
-  self.x = sw - self.width
+  self.x = love.graphics.getWidth() - self.width
   self.y = 24
 
   love.graphics.push()
@@ -102,7 +102,7 @@ function MinimapWidget:draw()
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.draw(self.canvas, 0, 0, 0, self.width / self.canvas:getWidth(), self.height / self.canvas:getHeight())
 
-  local beatS, beatE = renderer.yToBeat(sh), renderer.yToBeat(0)
+  local beatS, beatE = renderer.yToBeat(love.graphics.getHeight()), renderer.yToBeat(0)
   local timeS, timeE = conductor.timeAtBeat(beatS), conductor.timeAtBeat(beatE)
 
   local height = math.abs(timeE - timeS) / chartDur * self.height

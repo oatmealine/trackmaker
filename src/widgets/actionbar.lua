@@ -55,6 +55,18 @@ local items = {
       { 'Exit',        function() love.event.quit(0) end}
     }
   end},
+  { 'View', function()
+    return {
+      { 'Render unsupported events', function()
+        config.config.renderInvalidEvents = not config.config.renderInvalidEvents
+        config.save()
+      end, toggle = true, value = config.config.renderInvalidEvents },
+      { 'Preview mode', function()
+        config.config.previewMode = not config.config.previewMode
+        config.save()
+      end, toggle = true, value = config.config.previewMode }
+    }
+  end },
   { 'Edit', function()
     return {
       { 'Undo',  function() edit.undo()  end, bind = keybinds.binds.undo },
@@ -191,10 +203,6 @@ local items = {
       { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
       {},
       { 'UI Test',         function() openWidget(UITestWidget(150, 150)) end },
-      { 'Render unsupported events', function()
-        config.config.renderInvalidEvents = not config.config.renderInvalidEvents
-        config.save()
-      end, toggle = true, value = config.config.renderInvalidEvents },
       { 'About',         function() openWidget(AboutWidget(150, 150)) end },
     }
   end},
@@ -261,7 +269,7 @@ function ActionBarWidget:click(x, y, button)
 end
 
 function ActionBarWidget:draw()
-  self.width = sw
+  self.width = love.graphics.getWidth()
   self.height = HEIGHT
 
   love.graphics.setColor(colors.element:unpack())

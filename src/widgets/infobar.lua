@@ -50,8 +50,8 @@ function InfobarWidget:drawFrame()
 
   self.width = width + MARGIN + MODE_WIDTH
   self.height = HEIGHT
-  self.x = scx - width / 2
-  self.y = sh - 16 - self.height
+  self.x = love.graphics.getWidth()/2 - width / 2
+  self.y = love.graphics.getHeight() - 16 - self.height
 
   love.graphics.push()
 

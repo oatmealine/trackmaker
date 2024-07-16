@@ -449,15 +449,19 @@ function self.keypressed(key, code, isRepeat)
   elseif key == 'down' then
     setBeat(conductor.beat - QUANTS[self.quantIndex])
     self.updateGhosts()
+    conductor.initStates()
   elseif key == 'up' then
     setBeat(conductor.beat + QUANTS[self.quantIndex])
     self.updateGhosts()
+    conductor.initStates()
   elseif key == 'pagedown' then
     setBeat(conductor.beat - 4)
     self.updateGhosts()
+    conductor.initStates()
   elseif key == 'pageup' then
     setBeat(conductor.beat + 4)
     self.updateGhosts()
+    conductor.initStates()
   elseif key == 'left' then
     self.quantIndex = math.max(self.quantIndex - 1, 1)
   elseif key == 'right' then

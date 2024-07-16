@@ -237,7 +237,7 @@ local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { InfobarWidget(), ActionBarWidget(), MinimapWidget(sw, 0) }
+widgets = { InfobarWidget(), ActionBarWidget(), MinimapWidget(love.graphics.getWidth(), 0) }
 
 function getWidgets()
   return widgets
@@ -276,9 +276,9 @@ end
 local function clampWidget(w)
   local bx1, by1, bx2, by2 = w:getBoundingBox()
   w.x, w.y =
-    clamp(w.x, w.x - bx1, sw + (w.x - bx2)),
+    clamp(w.x, w.x - bx1, love.graphics.getWidth() + (w.x - bx2)),
     -- +24 to account for action bar
-    clamp(w.y, w.y - by1 + 24, sh + (w.y - by2))
+    clamp(w.y, w.y - by1 + 24, love.graphics.getHeight() + (w.y - by2))
 end
 
 function self.mousepressed(x, y, button)

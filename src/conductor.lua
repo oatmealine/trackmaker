@@ -232,6 +232,9 @@ function M.initStates()
     end
     eventStates[i] = state
   end
+  for i = 1, 6 do
+    laneRelease(i)
+  end
 end
 
 function M.play()
@@ -293,6 +296,19 @@ function M.updateBeat()
   M.beat = M.beatAtTime(M.time)
 end
 
+---@param event XDRVEvent
+local function onInputPress(event)
+  if event.note then
+    laneHit(event.note.column)
+  end
+end
+---@param event XDRVEvent
+local function onInputRelease(event)
+  if event.note then
+    laneRelease(event.note.column)
+  end
+end
+
 local lastT = 0
 
 function M.update(dt)
@@ -306,14 +322,24 @@ function M.update(dt)
     for i, event in ipairs(chart.chart) do
       if (event.note or event.gearShift) and event.beat < M.beat and not eventStates[i].hit then
         eventStates[i].hit = true
+        onInputPress(event)
+        if event.note and not event.note.length then
+          onInputRelease(event)
+        end
         if config.config.noteTick then
           noteTickSFX:play(0.75)
         end
       end
-      if event.gearShift and (event.beat + event.gearShift.length) < M.beat and not eventStates[i].hitEnd then
-        eventStates[i].hitEnd = true
-        if config.config.noteTick then
-          noteTickSFX:play(0.75)
+      if ((event.note and event.note.length) or event.gearShift) and not eventStates[i].hitEnd then
+        local length = 0
+        if event.note then length = event.note.length end
+        if event.gearShift then length = event.gearShift.length end
+        if (event.beat + length) < M.beat then
+          eventStates[i].hitEnd = true
+          onInputRelease(event)
+          if event.gearShift and config.config.noteTick then
+            noteTickSFX:play(0.75)
+          end
         end
       end
     end
