@@ -50,6 +50,7 @@ local function getScrollSpeed()
 end
 
 local function scale()
+  if config.config.previewMode then return 1 end
   return math.min(zoom, 1)
 end
 
@@ -438,7 +439,7 @@ function self.draw()
     love.graphics.setCanvas(canvas3d)
 
     sw, sh = canvas3d:getDimensions()
-    scx, scy = sw/2, sh/2    
+    scx, scy = sw/2, sh/2
 
     love.graphics.clear(0, 0, 0, 0)
   end
@@ -558,7 +559,7 @@ function self.draw()
         layer:queue(0, drawDrift, event, lastDrift, sh)
         lastDrift = event
       end
-      if event.checkpoint then
+      if event.checkpoint and not config.config.previewMode then
         layer:queue(9, drawCheckpoint, event, sh)
       end
     end
@@ -577,11 +578,11 @@ function self.draw()
     layer:draw()
 
     local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
-    if checkBeat then
+    if checkBeat and not config.config.previewMode then
       drawCheckpoint({ beat = checkBeat }, sh)
     end
 
-    if config.config.renderInvalidEvents then
+    if config.config.renderInvalidEventsand and not config.config.previewMode then
       local lastBeat
       local concBeats = 0
       for _, event in ipairs(events) do
@@ -624,26 +625,28 @@ function self.draw()
 
   love.graphics.setLineWidth(1)
 
-  local quantCol = QUANT_COLORS[edit.quantIndex]
+  if not config.config.previewMode then
+    local quantCol = QUANT_COLORS[edit.quantIndex]
 
-  love.graphics.setColor((quantCol or QUANT_DEFAULT_COLOR):unpack())
-  love.graphics.polygon('fill',
-    getLeft() - 15, sh - padBottom,
-    getLeft() - 30, sh - padBottom - 15,
-    getLeft() - 45, sh - padBottom,
-    getLeft() - 30, sh - padBottom + 15
-  )
-  love.graphics.polygon('fill',
-    getRight() + 15, sh - padBottom,
-    getRight() + 30, sh - padBottom - 15,
-    getRight() + 45, sh - padBottom,
-    getRight() + 30, sh - padBottom + 15
-  )
+    love.graphics.setColor((quantCol or QUANT_DEFAULT_COLOR):unpack())
+    love.graphics.polygon('fill',
+      getLeft() - 15, sh - padBottom,
+      getLeft() - 30, sh - padBottom - 15,
+      getLeft() - 45, sh - padBottom,
+      getLeft() - 30, sh - padBottom + 15
+    )
+    love.graphics.polygon('fill',
+      getRight() + 15, sh - padBottom,
+      getRight() + 30, sh - padBottom - 15,
+      getRight() + 45, sh - padBottom,
+      getRight() + 30, sh - padBottom + 15
+    )
 
-  if not quantCol then
-    love.graphics.setColor(0, 0, 0, 1)
-    love.graphics.printf(tostring(getDivision(edit.quantIndex)), getLeft() - 45, sh - padBottom - fonts.inter_12:getHeight()/2, 30, 'center')
-    love.graphics.printf(tostring(getDivision(edit.quantIndex)), getRight() + 15, sh - padBottom - fonts.inter_12:getHeight()/2, 30, 'center')
+    if not quantCol then
+      love.graphics.setColor(0, 0, 0, 1)
+      love.graphics.printf(tostring(getDivision(edit.quantIndex)), getLeft() - 45, sh - padBottom - fonts.inter_12:getHeight()/2, 30, 'center')
+      love.graphics.printf(tostring(getDivision(edit.quantIndex)), getRight() + 15, sh - padBottom - fonts.inter_12:getHeight()/2, 30, 'center')
+    end
   end
 
   love.graphics.setLineWidth(1)
@@ -753,6 +756,8 @@ function laneRelease(i)
 end
 
 function self.mousepressed(x, y, button)
+  if config.config.previewMode then return end
+
   local check = canPlaceCheckpoint(x, y)
   if button == 1 and check then
     local name
