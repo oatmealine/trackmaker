@@ -145,6 +145,7 @@ local items = {
         end, toggle = true, value = xdrvColors.scheme.name == 'Custom' })
         table.insert(entries, { 'Import from JSON...', function()
           filesystem.openDialog(exxdriver.getColorSchemePath() .. '/', 'json', function(path)
+            if not path then return end
             local file, err = io.open(path, 'r')
             if not file then
               logs.log(err)
