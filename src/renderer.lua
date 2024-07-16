@@ -435,6 +435,12 @@ function self.draw()
     return
   end
 
+  if not config.config.view.chart then
+    love.graphics.setColor(0.7, 0.7, 0.7, 1)
+    love.graphics.printf('You hid the chart. Congratulations?\nI\'m not sure what you were expecting to happen...', 0, scy, sw, 'center')
+    return
+  end
+
   if config.config.previewMode then
     love.graphics.setCanvas(canvas3d)
 
@@ -555,11 +561,11 @@ function self.draw()
         layer:queue(3, drawHoldTail, event, sh)
         layer:queue(4, drawNote, event, sh)
       end
-      if event.drift then
+      if event.drift and config.config.view.drifts then
         layer:queue(0, drawDrift, event, lastDrift, sh)
         lastDrift = event
       end
-      if event.checkpoint and not config.config.previewMode then
+      if event.checkpoint and config.config.view.checkpoints and not config.config.previewMode then
         layer:queue(9, drawCheckpoint, event, sh)
       end
     end
@@ -578,11 +584,11 @@ function self.draw()
     layer:draw()
 
     local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
-    if checkBeat and not config.config.previewMode then
+    if checkBeat and config.config.view.checkpoints and not config.config.previewMode then
       drawCheckpoint({ beat = checkBeat }, sh)
     end
 
-    if config.config.renderInvalidEventsand and not config.config.previewMode then
+    if config.config.view.invalidEvents and not config.config.previewMode then
       local lastBeat
       local concBeats = 0
       for _, event in ipairs(events) do
@@ -757,9 +763,10 @@ end
 
 function self.mousepressed(x, y, button)
   if config.config.previewMode then return end
+  if not config.config.view.chart then return end
 
   local check = canPlaceCheckpoint(x, y)
-  if button == 1 and check then
+  if button == 1 and check and config.config.view.checkpoints then
     local name
     local existingCheckpoint = chart.findEventOfType(check, 'checkpoint')
     if existingCheckpoint then

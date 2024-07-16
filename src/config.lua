@@ -24,11 +24,17 @@ self.config = {
   },
   waveform = true,
   doubleResWaveform = false,
-  renderInvalidEvents = false,
+  --renderInvalidEvents = false,
   waveformOpacity = 1,
   waveformBrightness = 0.3,
   xdrvChartDev = false,
   previewMode = false,
+  view = {
+    chart = true,
+    drifts = true,
+    checkpoints = true,
+    invalidEvents = false,
+  },
 }
 self.defaults = deepcopy(self.config)
 
@@ -63,6 +69,10 @@ function self.load()
   local parsed = {}
   if love.filesystem.getInfo(CONFIG_FILENAME, 'file') then
     parsed = json.decode(love.filesystem.read(CONFIG_FILENAME))
+  end
+  if parsed.renderInvalidEvents ~= nil then
+    parsed.view = parsed.view or {}
+    parsed.view.invalidEvents = parsed.renderInvalidEvents
   end
 
   self.config = mergeTable(self.defaults, parsed)
