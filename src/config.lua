@@ -22,6 +22,7 @@ self.config = {
     Column6 = 'aa7fff',
     RightGear = 'ff9bf4',
   },
+  cmod = false,
   waveform = true,
   doubleResWaveform = false,
   --renderInvalidEvents = false,

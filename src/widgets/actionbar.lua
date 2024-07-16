@@ -61,6 +61,10 @@ local items = {
         config.config.previewMode = not config.config.previewMode
         config.save()
       end, toggle = true, value = config.config.previewMode },
+      { 'CMod', function()
+        config.config.cmod = not config.config.cmod
+        config.save()
+      end, toggle = true, value = config.config.cmod },
       { 'View...', hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
           { 'Chart',       function() config.config.view.chart                = not config.config.view.chart;         config.save() end,
