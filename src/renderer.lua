@@ -662,23 +662,41 @@ function self.draw()
           local text
 
           if event.bpm then
-            col = rgb(1, 0.2, 0.2)
+            col = rgb(0.6, 0.2, 0.2)
             text = string.format('%.3f', event.bpm)
+          elseif event.warp then
+            col = rgb(0.6, 0.2, 0.6)
+            text = string.format('%.3f', event.warp)
+          elseif event.stop then
+            col = hex('bbd06c')
+            text = string.format('%.3f', event.stop)
+          elseif event.stopSeconds then
+            col = hex('bbd06c')
+            text = string.format('%.3fs', event.stopSeconds)
           elseif not (event.note or event.gearShift or event.drift or event.checkpoint) and config.config.view.invalidEvents then
             local type = getEventType(event)
-            text = string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', ''))
+            col = rgb(0.6, 0.1, 0.7)
+            if hovered then
+              text = string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', ''))
+            else
+              text = type
+            end
           end
 
           if hovered then
-            col.a = 0.5
+            col = col * 0.7
           end
 
           if text then
             love.graphics.setColor(col:unpack())
-            love.graphics.circle('fill', x + 3, y, 6)
+            local textWidth = fonts.inter_16:getWidth(text)
+            love.graphics.rectangle('fill', x, y - 10, textWidth + 6, 20, 2, 2)
+            love.graphics.polygon('fill', x - 6, y, x, y - 6, x, y + 6)
+            love.graphics.setColor(0, 0, 0, 1)
+            love.graphics.print(text, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2 + 2))
             love.graphics.setColor(1, 1, 1, 1)
-            love.graphics.print(text, math.floor(x + 6 + 3 + 3), math.floor(y - fonts.inter_16:getHeight()/2))
-            width = 6 + 3 + 3 + fonts.inter_16:getWidth(text) + 6
+            love.graphics.print(text, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
+            width = 3 + textWidth + 3 + 8
 
             lastBeat = event.beat
             lastX, lastY = x + width, y
@@ -687,6 +705,8 @@ function self.draw()
       end
     end
   end
+
+  love.graphics.setFont(fonts.inter_12)
 
   love.graphics.setLineWidth(5 * scale())
   love.graphics.setColor(xdrvColors.scheme.colors.LeftGear:unpack())
