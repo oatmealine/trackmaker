@@ -526,10 +526,10 @@ function self.draw()
       local y = beatToY(b, sh)
       local measure = conductor.getMeasure(b)
 
-      if measure % 1 == 0 then
-        love.graphics.setColor(1, 1, 1, 1)
+      if measure % 1 == 0 and measure >= 0 then
+        love.graphics.setColor(0.6, 0.6, 0.6, 1)
         if not config.config.previewMode then
-          love.graphics.print(tostring(measure), getRight() + 4, y - fonts.inter_12:getHeight()/2)
+          love.graphics.print(tostring(measure), math.floor(getRight() + 16), math.floor(y - fonts.inter_12:getHeight()/2))
         end
 
         love.graphics.setColor(MEASURE_COL:unpack())
