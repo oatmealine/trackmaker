@@ -163,12 +163,59 @@ end
 
 local checkTex = love.graphics.newImage('assets/sprites/check.png')
 
+local function canPlaceCheckpoint(x, y)
+  if x > (love.graphics.getWidth()/2 - GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52) or x < (love.graphics.getWidth()/2 - GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52 - 32) then return end
+
+  local closest = quantize(yToBeat(y), edit.quantIndex)
+  local closestY = beatToY(closest)
+
+  if math.abs(closestY - y) > 32 then return end
+
+  return closest
+end
+
+local function getHoveredEvent()
+  local x, y = love.mouse.getPosition()
+  if x < (love.graphics.getWidth()/2 + GAP_WIDTH/2 + NOTE_WIDTH * 3 + 40) then return end
+
+  local hoverBeat = yToBeat(y)
+
+  local closestEvent
+  local closestEventDist = 9e9
+
+  for _, event in ipairs(chart.chart) do
+    if event.beat - hoverBeat > 1.5 then break end
+    if event.beat - hoverBeat > -1.5 then
+      local eventY = beatToY(event.beat)
+      local dist = math.abs(eventY - y)
+      if dist < closestEventDist then
+        closestEvent = event
+        closestEventDist = dist
+      end
+    end
+  end
+
+  if closestEventDist < 32 then
+    return closestEvent.beat
+  end
+
+  local closest = quantize(hoverBeat, edit.quantIndex)
+  local closestY = beatToY(closest)
+
+  if math.abs(closestY - y) > 32 then return end
+
+  return closest
+end
+
 ---@param event XDRVEvent
 ---@param sh number
 local function drawCheckpoint(event, sh)
   local check = event.checkpoint
+  local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
 
   local y = beatToY(event.beat, sh)
+
+  local renderTransparent = (not check) or (checkBeat == event.beat)
 
   if y < -64 then return -1 end
   if y > (sh + 64) then return end
@@ -176,9 +223,10 @@ local function drawCheckpoint(event, sh)
   local size = 12 / checkTex:getHeight() * scale()
   local x = (-GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52) * scale()
   local width = size * checkTex:getWidth()
-  love.graphics.setColor(1, 1, 1, check and 1 or 0.5)
+  love.graphics.setColor(1, 1, 1, renderTransparent and 0.3 or 1)
   love.graphics.draw(checkTex, x, y, 0, size, size, checkTex:getWidth(), checkTex:getHeight()/2)
   if check then
+    love.graphics.setColor(1, 1, 1, 1)
     love.graphics.setFont(fonts.inter_16)
     love.graphics.printf(check, math.floor(x - 8 - width - 256), math.floor(y - fonts.inter_16:getHeight()/2 + 8), 256, 'right')
     love.graphics.setColor(1, 1, 1, 0.5)
@@ -379,17 +427,6 @@ local QUANT_COLORS = {
   nil,
 }
 
-local function canPlaceCheckpoint(x, y)
-  if x > (love.graphics.getWidth()/2 - GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52) or x < (love.graphics.getWidth()/2 - GAP_WIDTH/2 - NOTE_WIDTH * 3 - 52 - 32) then return end
-
-  local closest = quantize(yToBeat(y), edit.quantIndex)
-  local closestY = beatToY(closest)
-
-  if math.abs(closestY - y) > 32 then return end
-
-  return closest
-end
-
 local laneGradMesh = love.graphics.newMesh({
   { 0,    0, 0, 0, 1, 1, 1, 0 },
   { 1,    0, 0, 0, 1, 1, 1, 0 },
@@ -426,6 +463,8 @@ vec4 position(mat4 transformProjection, vec4 vertexPosition) {
 }
 ]])
 
+local hoveredEventBeat
+
 function self.draw()
   local sw, sh, scx, scy = screenCoords()
 
@@ -448,6 +487,8 @@ function self.draw()
     love.graphics.printf('You hid the chart. Congratulations?\nI\'m not sure what you were expecting to happen...', 0, scy, sw, 'center')
     return
   end
+
+  hoveredEventBeat = getHoveredEvent()
 
   if config.config.previewMode then
     love.graphics.setCanvas(canvas3d)
@@ -596,35 +637,51 @@ function self.draw()
       drawCheckpoint({ beat = checkBeat }, sh)
     end
 
-    if config.config.view.invalidEvents and not config.config.previewMode then
+    if not config.config.previewMode then
+      love.graphics.setFont(fonts.inter_16)
+
       local lastBeat
-      local concBeats = 0
+      local lastX, lastY = 0, 0
       for _, event in ipairs(events) do
-        if not (event.note or event.gearShift or event.drift or event.checkpoint) then
-          local x = (GAP_WIDTH/2 + NOTE_WIDTH * 3) * scale()
-          local y = beatToY(event.beat, sh)
+        local hovered = event.beat == hoveredEventBeat
 
-          if y < 0 then break end
-          if y < sh then
-            local type = getEventType(event)
+        local x = (GAP_WIDTH/2 + NOTE_WIDTH * 3) * scale() + 50
+        local y = beatToY(event.beat, sh)
 
-            if lastBeat ~= event.beat then
-              love.graphics.setColor(1, 1, 1, 1)
-              love.graphics.setLineWidth(1)
-              love.graphics.line(x + 6, y, x + 18, y)
-              concBeats = 0
+        if y < 0 then break end
+        if y < sh then
+          if lastBeat == event.beat then
+            if hovered then
+              y = lastY + 16
             else
-              concBeats = concBeats + 1
-              y = y + 14 * concBeats
-
-              love.graphics.setColor(1, 1, 1, 0.5)
-              love.graphics.setLineWidth(1)
-              love.graphics.line(x + 14, y, x + 18, y)
+              x = lastX
             end
+          end
+
+          local col = rgb(1, 1, 1)
+          local text
+
+          if event.bpm then
+            col = rgb(1, 0.2, 0.2)
+            text = string.format('%.3f', event.bpm)
+          elseif not (event.note or event.gearShift or event.drift or event.checkpoint) and config.config.view.invalidEvents then
+            local type = getEventType(event)
+            text = string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', ''))
+          end
+
+          if hovered then
+            col.a = 0.5
+          end
+
+          if text then
+            love.graphics.setColor(col:unpack())
+            love.graphics.circle('fill', x + 3, y, 6)
             love.graphics.setColor(1, 1, 1, 1)
-            love.graphics.print(string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', '')), x + 22, math.floor(y - 8))
+            love.graphics.print(text, math.floor(x + 6 + 3 + 3), math.floor(y - fonts.inter_16:getHeight()/2))
+            width = 6 + 3 + 3 + fonts.inter_16:getWidth(text) + 6
 
             lastBeat = event.beat
+            lastX, lastY = x + width, y
           end
         end
       end

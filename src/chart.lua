@@ -353,15 +353,14 @@ local function save(filepath, noBackup)
   end
   file:write(contents)
   file:close()
-  self.dirty = false
-  updateTitle()
-
-  self.chartLocation = filepath
 
   logs.log('Saved chart to ' .. filepath)
   if not noBackup then
+    self.dirty = false
+    self.chartLocation = filepath
     config.appendRecent(filepath)
   end
+  updateTitle()
   config.save()
 end
 
@@ -464,7 +463,7 @@ end
 
 local autosaveTimer = 0
 local AUTOSAVE_INTERVAL = 60 * 3
---local AUTOSAVE_INTERVAL = 10
+--local AUTOSAVE_INTERVAL = 5
 function self.update(dt)
   if not (self.dirty and self.chart and self.chartLocation) then
     autosaveTimer = 0
