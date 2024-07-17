@@ -17,6 +17,8 @@ unzip releases/trackmaker-win64.zip -d releases/
 rm releases/trackmaker-win64.zip
 
 cp nfd.dll releases/trackmaker-win64/
+cp LICENSE.txt releases/trackmaker-win64/license.txt
+cp platform/universal/love-license.txt releases/trackmaker-win64/love-license.txt
 
 cd releases/trackmaker-win64/
 zip -9 "../trackmaker-win64-${ver}.zip" ./*
@@ -32,6 +34,8 @@ mkdir -p releases/trackmaker-linux
 cp nfd.so releases/trackmaker-linux/
 cp releases/trackmaker.love releases/trackmaker-linux/
 cp platform/linux/start.sh releases/trackmaker-linux/
+cp LICENSE.txt releases/trackmaker-linux/license.txt
+cp platform/universal/love-license.txt releases/trackmaker-linux/love-license.txt
 
 cd "releases/trackmaker-linux/"
 zip -9 "../trackmaker-linux-${ver}.zip" ./*

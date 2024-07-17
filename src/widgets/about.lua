@@ -12,7 +12,7 @@ local function outSine(x) return math.sin(x * (math.pi * 0.5)) end
 function AboutWidget:new(x, y)
   AboutWidget.super.new(self, x, y)
   self.width = 250
-  self.height = 200
+  self.height = 255
 
   self.lastClick = 0
   self.title = 'About'
@@ -50,6 +50,8 @@ function AboutWidget:draw()
   love.graphics.printf('by oatmealine', 0, offset + 40, self.width, 'center')
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.draw(jillo, self.width/2, offset + 40 + 80, 0, sx, sy, jillo:getWidth()/2, jillo:getHeight()/2)
+  love.graphics.setColor(colors.textSecondary:unpack())
+  love.graphics.printf('Licensed under the zlib license\nCopyright © 2024\nJill "oatmealine" Monoids\nSee license.txt for more information', 0, offset + 180, self.width, 'center')
 end
 
 return AboutWidget

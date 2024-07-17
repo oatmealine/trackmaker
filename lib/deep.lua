@@ -1,5 +1,5 @@
 --[[
-   deep v3.0.0
+   deep v3.0.0, modified by Jill "oatmealine" Monoids
    Add layers or z axis to 2D graphics.
    View full source code at https://github.com/Nikaoto/deep
 
