@@ -18,6 +18,7 @@ M.bpms = { { 0, 120 } }
 M.stops = {}
 M.timeSignatures = {}
 M.fileData = nil
+M.measures = {}
 
 M.time = 0
 M.playing = false
@@ -58,6 +59,7 @@ function M.loadFromChart(chart, dir)
 
   M.initialBPM = chart.metadata.chartBPM
   M.bpms = { { 0, M.initialBPM } }
+  M.measures = {}
   M.timeSignatures = {}
   M.stops = {}
   for _, thing in ipairs(chart.chart) do
@@ -71,6 +73,32 @@ function M.loadFromChart(chart, dir)
       local seconds = thing.stopSeconds ~= nil
       table.insert(M.stops, { thing.beat, duration, seconds })
     end
+  end
+  M.makeMeasureLines()
+end
+
+function M.makeMeasureLines()
+  -- borrowed from tari
+
+  M.measures = {}
+
+  local timeSigBeat = 4
+  local timeSigSubdiv = 4
+
+  local nextMeasure = 0
+  local totalBeats = math.ceil(M.beatAtTime(M.getDuration() + M.offset))
+
+  while nextMeasure < totalBeats do
+    local sig = M.getTimeSignatureAtBeat(nextMeasure)
+    timeSigBeat, timeSigSubdiv = sig[1], sig[2]
+
+    if timeSigBeat <= 0 or timeSigSubdiv <= 0 then -- what
+      break
+    end
+
+    table.insert(M.measures, nextMeasure)
+
+    nextMeasure = nextMeasure + timeSigBeat / (timeSigSubdiv / 4)
   end
 end
 
@@ -190,35 +218,15 @@ end
 function M.getTimeSignatureAtBeat(beat)
   local sig = { 4, 4 }
   for _, change in ipairs(M.timeSignatures) do
-    if change.beat > beat then
+    if change[1] > beat then
       return sig
     end
-    sig = change.timeSignature
+    sig = change[2]
   end
   return sig
 end
 function M.getTimeSignature()
   return M.getTimeSignatureAtBeat(M.beat)
-end
-
-function M.getMeasure(beat)
-  local m = 0
-  local b = beat
-  local sig = { 4, 4 }
-  local lastBeat = 0
-  for _, change in ipairs(M.timeSignatures) do
-    if beat < change[1] then
-      m = m + b / sig[1]
-      return m
-    else
-      sig = change[2]
-      b = b - (change[1] - lastBeat)
-      m = m + (change[1] - lastBeat) / sig[1]
-      lastBeat = change[1]
-    end
-  end
-  m = m + b / sig[1]
-  return m
 end
 
 local chartStates = {}

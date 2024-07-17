@@ -522,18 +522,27 @@ function self.draw()
     end
 
     love.graphics.setLineWidth(4 * scale())
+
+    local nextMeasureI = 1
+    local nextMeasure = conductor.measures[1]
+
+    while nextMeasure < botB do
+      nextMeasureI = nextMeasureI + 1
+      nextMeasure = conductor.measures[nextMeasureI]
+    end
+
     for b = botB, topB do
       local y = beatToY(b, sh)
-      local measure = conductor.getMeasure(b)
 
-      if measure % 1 == 0 and measure >= 0 then
-        love.graphics.setColor(0.6, 0.6, 0.6, 1)
+      love.graphics.setColor(0.6, 0.6, 0.6, 1)
+      if b == nextMeasure then
         if not config.config.previewMode then
-          love.graphics.print(tostring(measure), math.floor(getRight() + 16), math.floor(y - fonts.inter_12:getHeight()/2))
+          love.graphics.print(tostring(nextMeasureI), math.floor(getRight() + 16), math.floor(y - fonts.inter_12:getHeight()/2))
         end
-
+        nextMeasureI = nextMeasureI + 1
+        nextMeasure = conductor.measures[nextMeasureI]
         love.graphics.setColor(MEASURE_COL:unpack())
-      elseif measure % 1 == 0.5 then
+      elseif not config.config.previewMode then
         love.graphics.setColor(MEASURE_COL:alpha(0.5):unpack())
       else
         love.graphics.setColor(0, 0, 0, 0)
