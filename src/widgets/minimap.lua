@@ -76,16 +76,16 @@ function MinimapWidget:draw()
 
   local chartDur = conductor.getDuration()
 
-  for _, event in ipairs(chart.chart) do
-    if event.note then
-      love.graphics.setColor(renderer.getColumnColor(event.note.column):unpack())
-      love.graphics.points(event.note.column - 1, self:getYFromBeat(event.beat, chartDur))
+  for _, thing in ipairs(chart.chart) do
+    if thing.note then
+      love.graphics.setColor(renderer.getColumnColor(thing.note.column):unpack())
+      love.graphics.points(thing.note.column - 1, self:getYFromBeat(thing.beat, chartDur))
     end
-    if event.gearShift then
-      love.graphics.setColor(renderer.getLaneColor(event.gearShift.lane):alpha(0.9):unpack())
-      local startY = self:getYFromBeat(event.beat, chartDur)
-      local endY = self:getYFromBeat(event.beat + event.gearShift.length, chartDur)
-      love.graphics.rectangle('fill', (event.gearShift.lane - 1) * 3, startY, 3, endY - startY)
+    if thing.gearShift then
+      love.graphics.setColor(renderer.getLaneColor(thing.gearShift.lane):alpha(0.9):unpack())
+      local startY = self:getYFromBeat(thing.beat, chartDur)
+      local endY = self:getYFromBeat(thing.beat + thing.gearShift.length, chartDur)
+      love.graphics.rectangle('fill', (thing.gearShift.lane - 1) * 3, startY, 3, endY - startY)
     end
   end
 
@@ -110,11 +110,11 @@ function MinimapWidget:draw()
   love.graphics.setColor(1, 1, 1, self.hovered and 0.5 or 0.3)
   love.graphics.rectangle('fill', 0, self.height - height - clamp(timeS / chartDur, 0, 1) * (self.height - height), self.width, height)
 
-  for _, event in ipairs(chart.chart) do
-    if event.checkpoint then
+  for _, thing in ipairs(chart.chart) do
+    if thing.checkpoint then
       love.graphics.setColor(1, 1, 1, 1)
       local size = 8 / checkTex:getHeight()
-      love.graphics.draw(checkTex, 0, (1 - (conductor.timeAtBeat(event.beat) / chartDur)) * self.height, 0, size, size, checkTex:getWidth(), checkTex:getHeight()/2)
+      love.graphics.draw(checkTex, 0, (1 - (conductor.timeAtBeat(thing.beat) / chartDur)) * self.height, 0, size, size, checkTex:getWidth(), checkTex:getHeight()/2)
     end
   end
 

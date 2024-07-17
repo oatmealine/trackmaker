@@ -9,12 +9,12 @@ function self.getScrollSpeed(beat)
   local speed = 1
   -- update i don't think scroll events work like this
   --[[
-  for _, event in ipairs(chart.chart) do
-    if event.beat > beat then
+  for _, thing in ipairs(chart.chart) do
+    if thing.beat > beat then
       return speed
     end
-    if event.scroll then
-      speed = event.scroll
+    if thing.scroll then
+      speed = thing.scroll
     end
   end
   ]]

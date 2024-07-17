@@ -178,9 +178,9 @@ M.XDRVDriftDirection = {
 ---@alias XDRVFake { beat: number, fake: number }
 ---@alias XDRVSceneEvent { beat: number, event: { name: string, args: string[] } }
 ---@alias XDRVCheckpoint { beat: number, checkpoint: string }
----@alias XDRVEvent XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVDrift | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
+---@alias XDRVThing XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVDrift | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
 
----@return XDRVEvent?
+---@return XDRVThing?
 local function parseTimingSegment(beat, s)
   s = string.sub(s, 2) -- remove leading #
   local eq = string.find(s, '=')
@@ -262,67 +262,67 @@ local function parseTimingSegment(beat, s)
   return nil
 end
 
----@param events XDRVEvent[]
----@return XDRVEvent[]
-function M.addHoldEnds(events)
+---@param things XDRVThing[]
+---@return XDRVThing[]
+function M.addHoldEnds(things)
   local newEvents = {}
-  for _, event in ipairs(events) do
-    if event.note and event.note.length then
-      table.insert(newEvents, { beat = event.beat, holdStart = { column = event.note.column } })
-      table.insert(newEvents, { beat = event.beat + event.note.length, holdEnd = { column = event.note.column } })
-    elseif event.gearShift then
-      table.insert(newEvents, { beat = event.beat, gearShiftStart = { lane = event.gearShift.lane } })
-      table.insert(newEvents, { beat = event.beat + event.gearShift.length, gearShiftEnd = { lane = event.gearShift.lane } })
+  for _, thing in ipairs(things) do
+    if thing.note and thing.note.length then
+      table.insert(newEvents, { beat = thing.beat, holdStart = { column = thing.note.column } })
+      table.insert(newEvents, { beat = thing.beat + thing.note.length, holdEnd = { column = thing.note.column } })
+    elseif thing.gearShift then
+      table.insert(newEvents, { beat = thing.beat, gearShiftStart = { lane = thing.gearShift.lane } })
+      table.insert(newEvents, { beat = thing.beat + thing.gearShift.length, gearShiftEnd = { lane = thing.gearShift.lane } })
     else
-      table.insert(newEvents, event)
+      table.insert(newEvents, thing)
     end
   end
   return newEvents
 end
----@param events XDRVEvent[]
----@return XDRVEvent[]
-function M.collapseHoldEnds(events)
+---@param things XDRVThing[]
+---@return XDRVThing[]
+function M.collapseHoldEnds(things)
   local indices = {}
   local insertIndices = {}
 
   local newEvents = {}
 
-  for i, event in ipairs(events) do
-    if event.holdStart then
-      local column = event.holdStart.column
+  for i, thing in ipairs(things) do
+    if thing.holdStart then
+      local column = thing.holdStart.column
       indices[column] = i
       insertIndices[column] = #newEvents + 1
-    elseif event.gearShiftStart then
-      local column = -event.gearShiftStart.lane
+    elseif thing.gearShiftStart then
+      local column = -thing.gearShiftStart.lane
       indices[column] = i
       insertIndices[column] = #newEvents + 1
-    elseif event.holdEnd then
-      local column = event.holdEnd.column
+    elseif thing.holdEnd then
+      local column = thing.holdEnd.column
       local start = indices[column]
       local insert = insertIndices[column]
       if start then
         table.insert(newEvents, insert, {
-          beat = events[start].beat,
+          beat = things[start].beat,
           note = {
             column = column,
-            length = event.beat - events[start].beat
+            length = thing.beat - things[start].beat
           }
         })
         for k, v in pairs(insertIndices) do
           insertIndices[k] = v + 1
         end
       end
-    elseif event.gearShiftEnd then
-      local lane = event.gearShiftEnd.lane
+    elseif thing.gearShiftEnd then
+      local lane = thing.gearShiftEnd.lane
       local column = -lane
       local start = indices[column]
       local insert = insertIndices[column]
       if start then
         table.insert(newEvents, insert, {
-          beat = events[start].beat,
+          beat = things[start].beat,
           gearShift = {
             lane = lane,
-            length = event.beat - events[start].beat
+            length = thing.beat - things[start].beat
           }
         })
         for k, v in pairs(insertIndices) do
@@ -330,41 +330,41 @@ function M.collapseHoldEnds(events)
         end
       end
     else
-      table.insert(newEvents, event)
+      table.insert(newEvents, thing)
     end
   end
 
   return newEvents
 end
 
----@param event XDRVEvent
-local function noteEventToType(event)
-  if not event then return '0' end
-  if event.note then return '1' end
-  if event.holdStart then return '2' end
-  if event.holdEnd then return '4' end
+---@param thing XDRVThing
+local function noteToType(thing)
+  if not thing then return '0' end
+  if thing.note then return '1' end
+  if thing.holdStart then return '2' end
+  if thing.holdEnd then return '4' end
   return '0'
 end
----@param c table<number, XDRVEvent>
+---@param c table<number, XDRVThing>
 local function formatNotesCol(c)
   return
-    noteEventToType(c[1]) ..
-    noteEventToType(c[2]) ..
-    noteEventToType(c[3]) .. '-' ..
-    noteEventToType(c[4]) ..
-    noteEventToType(c[5]) ..
-    noteEventToType(c[6])
+    noteToType(c[1]) ..
+    noteToType(c[2]) ..
+    noteToType(c[3]) .. '-' ..
+    noteToType(c[4]) ..
+    noteToType(c[5]) ..
+    noteToType(c[6])
 end
----@param event XDRVEvent
-local function gearEventToType(event)
-  if not event then return '0' end
-  if event.gearShiftStart then return '1' end
-  if event.gearShiftEnd then return '2' end
+---@param thing XDRVThing
+local function gearToType(thing)
+  if not thing then return '0' end
+  if thing.gearShiftStart then return '1' end
+  if thing.gearShiftEnd then return '2' end
   return '0'
 end
----@param g table<XDRVLane, XDRVEvent>
+---@param g table<XDRVLane, XDRVThing>
 local function formatGears(g)
-  return gearEventToType(g[M.XDRVLane.Left]) .. gearEventToType(g[M.XDRVLane.Right])
+  return gearToType(g[M.XDRVLane.Left]) .. gearToType(g[M.XDRVLane.Right])
 end
 ---@param s XDRVDriftDirection?
 local function formatDrift(s)
@@ -413,23 +413,23 @@ local function driftEvent(beat, s)
   return nil
 end
 
----@param events XDRVEvent[]
-local function serializeChart(events)
-  for _, event in ipairs(events) do
-    event.beat = snapBeat(event.beat)
+---@param things XDRVThing[]
+local function serializeChart(things)
+  for _, thing in ipairs(things) do
+    thing.beat = snapBeat(thing.beat)
   end
 
-  events = M.addHoldEnds(events)
+  things = M.addHoldEnds(things)
 
   -- a lot of code assumes this table is sorted
   -- preferably we shouldn't sort it to do so, but making `addHoldEnds` work
   -- with properly sorted tables is a TODO
-  table.sort(events, function(a, b) return a.beat < b.beat end)
+  table.sort(things, function(a, b) return a.beat < b.beat end)
 
   local segments = {}
 
   local b = 0
-  local eventIdx = 1
+  local thingIdx = 1
   local iter = 0
   while true do
     iter = iter + 1
@@ -437,27 +437,27 @@ local function serializeChart(events)
       print('Preventing infinite loop!!! backup and run before everything explodes')
       break
     end
-    if eventIdx > #events then break end
+    if thingIdx > #things then break end
 
-    ---@type XDRVEvent[]
+    ---@type XDRVThing[]
     local segment = {}
     local add = 0
-    for i = eventIdx, #events do
-      local event = events[i]
-      if event.beat >= (b + SEGMENT_INCR) then
+    for i = thingIdx, #things do
+      local thing = things[i]
+      if thing.beat >= (b + SEGMENT_INCR) then
         break
       end
       add = add + 1
-      if event.beat >= b then
-        table.insert(segment, event)
+      if thing.beat >= b then
+        table.insert(segment, thing)
       end
     end
-    eventIdx = eventIdx + add
+    thingIdx = thingIdx + add
 
     local rowsN = 1
-    for _, event in ipairs(segment) do
-      if event.beat > b then
-        rowsN = lcm(rowsN, getDivision(event.beat))
+    for _, thing in ipairs(segment) do
+      if thing.beat > b then
+        rowsN = lcm(rowsN, getDivision(thing.beat))
       end
     end
     --print('-> ', #segment, rowsN)
@@ -473,38 +473,38 @@ local function serializeChart(events)
       local gears = {}
       local drift = nil
 
-      for i, event in ipairs(segment) do
-        if math.abs(event.beat - (b + offset)) < 0.001 then
-          if event.note or event.holdStart or event.holdEnd then
-            local note = event.note or event.holdStart or event.holdEnd
-            cols[note.column] = event
-          elseif event.gearShiftStart or event.gearShiftEnd then
-            local gear = event.gearShiftStart or event.gearShiftEnd
-            gears[gear.lane] = event
-          elseif event.drift then
-            drift = event.drift.direction
-          elseif event.bpm then
-            table.insert(segmentStr, '#BPM=' .. event.bpm)
-          elseif event.warp then
-            table.insert(segmentStr, '#WARP=' .. event.warp)
-          elseif event.stop then
-            table.insert(segmentStr, '#STOP=' .. event.stop)
-          elseif event.stopSeconds then
-            table.insert(segmentStr, '#STOP_SECONDS=' .. event.stopSeconds)
-          elseif event.scroll then
-            table.insert(segmentStr, '#SCROLL=' .. event.scroll)
-          elseif event.timeSignature then
-            table.insert(segmentStr, '#TIME_SIGNATURE=' .. event.timeSignature[1] .. ',' .. event.timeSignature[2])
-          elseif event.comboTicks then
-            table.insert(segmentStr, '#COMBO_TICKS=' .. event.comboTicks)
-          elseif event.label then
-            table.insert(segmentStr, '#LABEL=' .. event.label)
-          elseif event.fake then
-            table.insert(segmentStr, '#FAKE=' .. event.fake)
-          elseif event.event then
-            table.insert(segmentStr, '#EVENT=' .. event.event.name .. ',' .. table.concat(event.event.args, ','))
-          elseif event.checkpoint then
-            table.insert(segmentStr, '#CHECKPOINT=' .. event.checkpoint)
+      for i, thing in ipairs(segment) do
+        if math.abs(thing.beat - (b + offset)) < 0.001 then
+          if thing.note or thing.holdStart or thing.holdEnd then
+            local note = thing.note or thing.holdStart or thing.holdEnd
+            cols[note.column] = thing
+          elseif thing.gearShiftStart or thing.gearShiftEnd then
+            local gear = thing.gearShiftStart or thing.gearShiftEnd
+            gears[gear.lane] = thing
+          elseif thing.drift then
+            drift = thing.drift.direction
+          elseif thing.bpm then
+            table.insert(segmentStr, '#BPM=' .. thing.bpm)
+          elseif thing.warp then
+            table.insert(segmentStr, '#WARP=' .. thing.warp)
+          elseif thing.stop then
+            table.insert(segmentStr, '#STOP=' .. thing.stop)
+          elseif thing.stopSeconds then
+            table.insert(segmentStr, '#STOP_SECONDS=' .. thing.stopSeconds)
+          elseif thing.scroll then
+            table.insert(segmentStr, '#SCROLL=' .. thing.scroll)
+          elseif thing.timeSignature then
+            table.insert(segmentStr, '#TIME_SIGNATURE=' .. thing.timeSignature[1] .. ',' .. thing.timeSignature[2])
+          elseif thing.comboTicks then
+            table.insert(segmentStr, '#COMBO_TICKS=' .. thing.comboTicks)
+          elseif thing.label then
+            table.insert(segmentStr, '#LABEL=' .. thing.label)
+          elseif thing.fake then
+            table.insert(segmentStr, '#FAKE=' .. thing.fake)
+          elseif thing.event then
+            table.insert(segmentStr, '#EVENT=' .. thing.event.name .. ',' .. table.concat(thing.event.args, ','))
+          elseif thing.checkpoint then
+            table.insert(segmentStr, '#CHECKPOINT=' .. thing.checkpoint)
           end
         end
       end
@@ -563,9 +563,9 @@ function M.serialize(chart)
   return serializeMetadata(chart.metadata) .. '\n' .. serializeChart(chart.chart)
 end
 
----@return XDRVEvent[]
+---@return XDRVThing[]
 local function deserializeChart(str)
-  local events = {}
+  local things = {}
 
   local parsePos = 1
 
@@ -599,7 +599,7 @@ local function deserializeChart(str)
         local seg = row[n]
         local parsed = parseTimingSegment(b, seg)
         if parsed then
-          table.insert(events, parsed)
+          table.insert(things, parsed)
         end
       end
       local noterow = row[#row]
@@ -607,14 +607,14 @@ local function deserializeChart(str)
       if c1 then
         for column, s in ipairs({c1, c2, c3, c4, c5, c6}) do
           local ev = noteEvent(b, s, column)
-          if ev then table.insert(events, ev) end
+          if ev then table.insert(things, ev) end
         end
         for lane, gear in ipairs({l, r}) do
           local ev = gearShiftEvent(b, gear, lane)
-          if ev then table.insert(events, ev) end
+          if ev then table.insert(things, ev) end
         end
         local ev = driftEvent(b, d)
-        if ev then table.insert(events, ev) end
+        if ev then table.insert(things, ev) end
       end
     end
 
@@ -626,7 +626,7 @@ local function deserializeChart(str)
     end
   end
 
-  return M.collapseHoldEnds(events)
+  return M.collapseHoldEnds(things)
 end
 
 ---@param m table<string, string>
@@ -679,7 +679,7 @@ local function deserializeMetadata(str)
   return makeMetdata(metadata)
 end
 
----@alias XDRVChart { metadata: XDRVMetadata, chart: XDRVEvent[] }
+---@alias XDRVChart { metadata: XDRVMetadata, chart: XDRVThing[] }
 
 ---@return XDRVChart
 function M.deserialize(str)

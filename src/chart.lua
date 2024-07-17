@@ -12,7 +12,7 @@ local widgets        = require 'src.widgets'
 local exxdriver      = require 'src.exxdriver'
 
 self.loaded = false
----@type XDRVEvent[]
+---@type XDRVThing[]
 self.chart = nil
 ---@type XDRVMetadata
 self.metadata = nil
@@ -369,14 +369,14 @@ local function makeChartFilename(m)
   return xdrv.formatDifficulty(m.chartDifficulty) .. '.xdrv'
 end
 
----@param event XDRVEvent
+---@param thing XDRVThing
 ---@return number?
-function self.findEvent(event)
+function self.findThing(thing)
   for i, ev in ipairs(self.chart) do
-    if ev.beat > event.beat then
+    if ev.beat > thing.beat then
       return
     end
-    if ev.beat == event.beat and looseComp(event, ev) then
+    if ev.beat == thing.beat and looseComp(thing, ev) then
       return i
     end
   end
@@ -401,37 +401,37 @@ function self.removeEvent(i)
   conductor.initStates()
 end
 
----@param event XDRVEvent
-function self.placeEvent(event)
+---@param thing XDRVThing
+function self.placeEvent(thing)
   self.markDirty()
   for i, ev in ipairs(self.chart) do
-    if ev.beat == event.beat and getEventType(ev) == getEventType(event) then
+    if ev.beat == thing.beat and getThingType(ev) == getThingType(thing) then
       -- prevent collisions/overlap
       -- different types have different definitions of a collision, so
       -- we handle them all seperately
       if ev.note then
-        if ev.note.column == event.note.column then
-          self.chart[i] = event
+        if ev.note.column == thing.note.column then
+          self.chart[i] = thing
           return
         end
       elseif ev.gearShift then
-        if ev.gearShift.lane == event.gearShift.lane then
-          self.chart[i] = event
+        if ev.gearShift.lane == thing.gearShift.lane then
+          self.chart[i] = thing
           return
         end
       elseif ev.event then
         -- there's nothing that says you can't use multiple events at the same time
       else
         -- else just remove them anyways
-        self.chart[i] = event
+        self.chart[i] = thing
         return
       end
-    elseif ev.beat > event.beat then
-      table.insert(self.chart, i, event)
+    elseif ev.beat > thing.beat then
+      table.insert(self.chart, i, thing)
       return
     end
   end
-  table.insert(self.chart, event)
+  table.insert(self.chart, thing)
   conductor.initStates()
 end
 

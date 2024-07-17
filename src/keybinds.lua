@@ -119,7 +119,7 @@ self.binds = {
     trigger = function()
       local t = love.system.getClipboardText()
       chart.chart = loadstring('return ' .. t)()
-      logs.log('Loaded ' .. #chart.chart .. ' events from clipboard')
+      logs.log('Loaded ' .. #chart.chart .. ' notes from clipboard')
       chart.sort()
     end
   },

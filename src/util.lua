@@ -241,9 +241,9 @@ function includes(t, e)
 end
 
 -- hacky slow and awful. use in moderation
----@param event XDRVEvent
-function getEventType(event)
-  for k in pairs(event) do
+---@param thing XDRVThing
+function getThingType(thing)
+  for k in pairs(thing) do
     if k ~= 'beat' then return k end
   end
 end

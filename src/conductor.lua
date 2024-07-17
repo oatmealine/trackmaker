@@ -60,16 +60,16 @@ function M.loadFromChart(chart, dir)
   M.bpms = { { 0, M.initialBPM } }
   M.timeSignatures = {}
   M.stops = {}
-  for _, event in ipairs(chart.chart) do
-    if event.bpm then
-      table.insert(M.bpms, { event.beat, event.bpm })
-    elseif event.timeSignature then
-      table.insert(M.timeSignatures, { event.beat, event.timeSignature })
-    elseif event.stop or event.stopSeconds or event.warp then
-      local duration = event.stop or event.stopSeconds or event.warp
-      if event.warp then duration = -duration end
-      local seconds = event.stopSeconds ~= nil
-      table.insert(M.stops, { event.beat, duration, seconds })
+  for _, thing in ipairs(chart.chart) do
+    if thing.bpm then
+      table.insert(M.bpms, { thing.beat, thing.bpm })
+    elseif thing.timeSignature then
+      table.insert(M.timeSignatures, { thing.beat, thing.timeSignature })
+    elseif thing.stop or thing.stopSeconds or thing.warp then
+      local duration = thing.stop or thing.stopSeconds or thing.warp
+      if thing.warp then duration = -duration end
+      local seconds = thing.stopSeconds ~= nil
+      table.insert(M.stops, { thing.beat, duration, seconds })
     end
   end
 end
@@ -221,16 +221,16 @@ function M.getMeasure(beat)
   return m
 end
 
-local eventStates = {}
+local chartStates = {}
 
 function M.initStates()
   if not chart.loaded then return end
-  for i, event in ipairs(chart.chart) do
-    local state = { hit = event.beat < M.beat }
-    if event.gearShift then
-      state.hitEnd = (event.beat + event.gearShift.length) < M.beat
+  for i, thing in ipairs(chart.chart) do
+    local state = { hit = thing.beat < M.beat }
+    if thing.gearShift then
+      state.hitEnd = (thing.beat + thing.gearShift.length) < M.beat
     end
-    eventStates[i] = state
+    chartStates[i] = state
   end
   for i = 1, 6 do
     laneRelease(i)
@@ -296,16 +296,16 @@ function M.updateBeat()
   M.beat = M.beatAtTime(M.time)
 end
 
----@param event XDRVEvent
-local function onInputPress(event)
-  if event.note then
-    laneHit(event.note.column)
+---@param thing XDRVThing
+local function onInputPress(thing)
+  if thing.note then
+    laneHit(thing.note.column)
   end
 end
----@param event XDRVEvent
-local function onInputRelease(event)
-  if event.note then
-    laneRelease(event.note.column)
+---@param thing XDRVThing
+local function onInputRelease(thing)
+  if thing.note then
+    laneRelease(thing.note.column)
   end
 end
 
@@ -319,25 +319,25 @@ function M.update(dt)
     end
     lastT = M.time
 
-    for i, event in ipairs(chart.chart) do
-      if (event.note or event.gearShift) and event.beat < M.beat and not eventStates[i].hit then
-        eventStates[i].hit = true
-        onInputPress(event)
-        if event.note and not event.note.length then
-          onInputRelease(event)
+    for i, thing in ipairs(chart.chart) do
+      if (thing.note or thing.gearShift) and thing.beat < M.beat and not chartStates[i].hit then
+        chartStates[i].hit = true
+        onInputPress(thing)
+        if thing.note and not thing.note.length then
+          onInputRelease(thing)
         end
         if config.config.noteTick then
           noteTickSFX:play(0.75)
         end
       end
-      if ((event.note and event.note.length) or event.gearShift) and not eventStates[i].hitEnd then
+      if ((thing.note and thing.note.length) or thing.gearShift) and not chartStates[i].hitEnd then
         local length = 0
-        if event.note then length = event.note.length end
-        if event.gearShift then length = event.gearShift.length end
-        if (event.beat + length) < M.beat then
-          eventStates[i].hitEnd = true
-          onInputRelease(event)
-          if event.gearShift and config.config.noteTick then
+        if thing.note then length = thing.note.length end
+        if thing.gearShift then length = thing.gearShift.length end
+        if (thing.beat + length) < M.beat then
+          chartStates[i].hitEnd = true
+          onInputRelease(thing)
+          if thing.gearShift and config.config.noteTick then
             noteTickSFX:play(0.75)
           end
         end

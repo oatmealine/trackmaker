@@ -122,12 +122,12 @@ local function getMRight()
   return -getMLeft()
 end
 
-local function drawNote(event, sh)
-  if config.config.previewMode and event.beat < conductor.beat then return end
+local function drawNote(thing, sh)
+  if config.config.previewMode and thing.beat < conductor.beat then return end
 
-  local note = event.note
+  local note = thing.note
   local x = getColumnX(note.column) * scale()
-  local y = beatToY(event.beat, sh)
+  local y = beatToY(thing.beat, sh)
 
   local width = NOTE_WIDTH * scale() * 0.95
 
@@ -137,21 +137,21 @@ local function drawNote(event, sh)
   love.graphics.setColor(getColumnColor(note.column):unpack())
   love.graphics.rectangle('fill', x - width/2, y - (NOTE_HEIGHT/2) * scale(), width, NOTE_HEIGHT * scale(), 1, 1)
 end
-local function drawHoldTail(event, sh)
-  local note = event.note
+local function drawHoldTail(thing, sh)
+  local note = thing.note
   if not note.length then return end
 
-  if config.config.previewMode and (event.beat + note.length) < conductor.beat then return end
+  if config.config.previewMode and (thing.beat + note.length) < conductor.beat then return end
 
-  local startBeat = event.beat
+  local startBeat = thing.beat
 
   if config.config.previewMode then
-    startBeat = math.max(event.beat, conductor.beat)
+    startBeat = math.max(thing.beat, conductor.beat)
   end
 
   local x = getColumnX(note.column) * scale()
   local y = beatToY(startBeat, sh)
-  local yEnd = beatToY(event.beat + (note.length or 0), sh)
+  local yEnd = beatToY(thing.beat + (note.length or 0), sh)
 
   if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
   if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
@@ -183,13 +183,13 @@ local function getHoveredEvent()
   local closestEvent
   local closestEventDist = 9e9
 
-  for _, event in ipairs(chart.chart) do
-    if event.beat - hoverBeat > 1.5 then break end
-    if event.beat - hoverBeat > -1.5 then
-      local eventY = beatToY(event.beat)
-      local dist = math.abs(eventY - y)
+  for _, thing in ipairs(chart.chart) do
+    if thing.beat - hoverBeat > 1.5 then break end
+    if thing.beat - hoverBeat > -1.5 then
+      local thingY = beatToY(thing.beat)
+      local dist = math.abs(thingY - y)
       if dist < closestEventDist then
-        closestEvent = event
+        closestEvent = thing
         closestEventDist = dist
       end
     end
@@ -207,15 +207,15 @@ local function getHoveredEvent()
   return closest
 end
 
----@param event XDRVEvent
+---@param thing XDRVThing
 ---@param sh number
-local function drawCheckpoint(event, sh)
-  local check = event.checkpoint
+local function drawCheckpoint(thing, sh)
+  local check = thing.checkpoint
   local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
 
-  local y = beatToY(event.beat, sh)
+  local y = beatToY(thing.beat, sh)
 
-  local renderTransparent = (not check) or (checkBeat == event.beat)
+  local renderTransparent = (not check) or (checkBeat == thing.beat)
 
   if y < -64 then return -1 end
   if y > (sh + 64) then return end
@@ -246,10 +246,10 @@ local gradMesh = love.graphics.newMesh({
   { 1,    1, 0, 0, 1, 1, 1, 1 },
 }, 'strip', 'static')
 
-local function drawGearShift(event, sh)
-  local gear = event.gearShift
+local function drawGearShift(thing, sh)
+  local gear = thing.gearShift
 
-  if config.config.previewMode and (event.beat + gear.length) < conductor.beat then return end
+  if config.config.previewMode and (thing.beat + gear.length) < conductor.beat then return end
 
   local color = getLaneColor(gear.lane)
   local offset = 1
@@ -257,14 +257,14 @@ local function drawGearShift(event, sh)
     offset = -1
   end
 
-  local startBeat = event.beat
+  local startBeat = thing.beat
 
   if config.config.previewMode then
-    startBeat = math.max(event.beat, conductor.beat)
+    startBeat = math.max(thing.beat, conductor.beat)
   end
 
   local y = beatToY(startBeat, sh)
-  local yEnd = beatToY(event.beat + gear.length, sh)
+  local yEnd = beatToY(thing.beat + gear.length, sh)
 
   if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
   if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
@@ -278,8 +278,8 @@ local function drawGearShift(event, sh)
   love.graphics.rectangle('fill', x, yEnd, width, y - yEnd)
 end
 
-local function drawGearShiftEnds(event, sh)
-  local gear = event.gearShift
+local function drawGearShiftEnds(thing, sh)
+  local gear = thing.gearShift
 
   local color
   local offset = 1
@@ -290,8 +290,8 @@ local function drawGearShiftEnds(event, sh)
     color = xdrvColors.scheme.colors.RightGear
   end
 
-  local y = beatToY(event.beat, sh)
-  local yEnd = beatToY(event.beat + gear.length, sh)
+  local y = beatToY(thing.beat, sh)
+  local yEnd = beatToY(thing.beat + gear.length, sh)
 
   if math.max(y, yEnd) < -NOTE_HEIGHT then return -1 end
   if math.min(y, yEnd) > (sh + NOTE_HEIGHT) then return end
@@ -299,10 +299,10 @@ local function drawGearShiftEnds(event, sh)
   love.graphics.setLineWidth(6 * scale())
 
   love.graphics.setColor(color:alpha(0.8):unpack())
-  if not (config.config.previewMode and event.beat < conductor.beat) then
+  if not (config.config.previewMode and thing.beat < conductor.beat) then
     love.graphics.line(getRight() * offset, y, getMRight() * offset, y)
   end
-  if not (config.config.previewMode and (event.beat + gear.length) < conductor.beat) then
+  if not (config.config.previewMode and (thing.beat + gear.length) < conductor.beat) then
     love.graphics.line(getRight() * offset, yEnd, getMRight() * offset, yEnd)
   end
 end
@@ -318,9 +318,9 @@ local function driftX(dir)
 end
 
 -- all of this is Quite Janky, but oh well
--- with the way drifts are handled in the events table it's hard to do better
-local function drawDrift(event, prevEvent, sh)
-  local dir = event.drift.direction
+-- with the way drifts are handled in the things table it's hard to do better
+local function drawDrift(thing, prevEvent, sh)
+  local dir = thing.drift.direction
   local lastDir = prevEvent and prevEvent.drift.direction or xdrv.XDRVDriftDirection.Neutral
 
   local side
@@ -335,11 +335,11 @@ local function drawDrift(event, prevEvent, sh)
   local startBeat
   local endBeat
   if dir == xdrv.XDRVDriftDirection.Neutral then
-    startBeat = event.beat
-    endBeat = conductor.beatAtTime(conductor.timeAtBeat(event.beat) + 1.5)
+    startBeat = thing.beat
+    endBeat = conductor.beatAtTime(conductor.timeAtBeat(thing.beat) + 1.5)
   else
-    endBeat = conductor.beatAtTime(conductor.timeAtBeat(event.beat) - 1.5)
-    startBeat = event.beat
+    endBeat = conductor.beatAtTime(conductor.timeAtBeat(thing.beat) - 1.5)
+    startBeat = thing.beat
   end
 
   local size = 32 * scale()
@@ -386,8 +386,8 @@ local function drawDrift(event, prevEvent, sh)
 
   love.graphics.setColor(col:unpack())
   love.graphics.setLineWidth(1 * scale())
-  local y = beatToY(event.beat, sh)
-  if not (config.config.previewMode and conductor.beat > event.beat) then
+  local y = beatToY(thing.beat, sh)
+  if not (config.config.previewMode and conductor.beat > thing.beat) then
     local leftX = baseX * side - NOTE_WIDTH * 1.5 * scale()
     local rightX = baseX * side + NOTE_WIDTH * 1.5 * scale()
     for x = leftX, rightX, 15 do
@@ -598,24 +598,24 @@ function self.draw()
   love.graphics.pop()
 
   if not noNotes then
-    local events = chart.chart
+    local things = chart.chart
 
     local lastDrift
-    for _, event in ipairs(events) do
-      if event.gearShift then
-        layer:queue(1, drawGearShift, event, sh)
-        layer:queue(7, drawGearShiftEnds, event, sh)
+    for _, thing in ipairs(things) do
+      if thing.gearShift then
+        layer:queue(1, drawGearShift, thing, sh)
+        layer:queue(7, drawGearShiftEnds, thing, sh)
       end
-      if event.note then
-        layer:queue(3, drawHoldTail, event, sh)
-        layer:queue(4, drawNote, event, sh)
+      if thing.note then
+        layer:queue(3, drawHoldTail, thing, sh)
+        layer:queue(4, drawNote, thing, sh)
       end
-      if event.drift and config.config.view.drifts then
-        layer:queue(0, drawDrift, event, lastDrift, sh)
-        lastDrift = event
+      if thing.drift and config.config.view.drifts then
+        layer:queue(0, drawDrift, thing, lastDrift, sh)
+        lastDrift = thing
       end
-      if event.checkpoint and config.config.view.checkpoints and not config.config.previewMode then
-        layer:queue(9, drawCheckpoint, event, sh)
+      if thing.checkpoint and config.config.view.checkpoints and not config.config.previewMode then
+        layer:queue(9, drawCheckpoint, thing, sh)
       end
     end
 
@@ -642,15 +642,15 @@ function self.draw()
 
       local lastBeat
       local lastX, lastY = 0, 0
-      for _, event in ipairs(events) do
-        local hovered = event.beat == hoveredEventBeat
+      for _, thing in ipairs(things) do
+        local hovered = thing.beat == hoveredEventBeat
 
         local x = (GAP_WIDTH/2 + NOTE_WIDTH * 3) * scale() + 50
-        local y = beatToY(event.beat, sh)
+        local y = beatToY(thing.beat, sh)
 
         if y < 0 then break end
         if y < sh then
-          if lastBeat == event.beat then
+          if lastBeat == thing.beat then
             if hovered then
               y = lastY + 16
             else
@@ -661,23 +661,23 @@ function self.draw()
           local col = rgb(1, 1, 1)
           local text
 
-          if event.bpm then
+          if thing.bpm then
             col = rgb(0.6, 0.2, 0.2)
-            text = string.format('%.3f', event.bpm)
-          elseif event.warp then
+            text = string.format('%.3f', thing.bpm)
+          elseif thing.warp then
             col = rgb(0.6, 0.2, 0.6)
-            text = string.format('%.3f', event.warp)
-          elseif event.stop then
+            text = string.format('%.3f', thing.warp)
+          elseif thing.stop then
             col = hex('bbd06c')
-            text = string.format('%.3f', event.stop)
-          elseif event.stopSeconds then
+            text = string.format('%.3f', thing.stop)
+          elseif thing.stopSeconds then
             col = hex('bbd06c')
-            text = string.format('%.3fs', event.stopSeconds)
-          elseif not (event.note or event.gearShift or event.drift or event.checkpoint) and config.config.view.invalidEvents then
-            local type = getEventType(event)
+            text = string.format('%.3fs', thing.stopSeconds)
+          elseif not (thing.note or thing.gearShift or thing.drift or thing.checkpoint) and config.config.view.invalidEvents then
+            local type = getThingType(thing)
             col = rgb(0.6, 0.1, 0.7)
             if hovered then
-              text = string.format('%s : %s', type, string.gsub(pretty(event[type]), '\n', ''))
+              text = string.format('%s : %s', type, string.gsub(pretty(thing[type]), '\n', ''))
             else
               text = type
             end
@@ -698,7 +698,7 @@ function self.draw()
             love.graphics.print(text, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
             width = 3 + textWidth + 3 + 8
 
-            lastBeat = event.beat
+            lastBeat = thing.beat
             lastX, lastY = x + width, y
           end
         end
@@ -743,23 +743,23 @@ function self.draw()
   love.graphics.setLineWidth(1)
 
   if not noNotes then
-    for _, event in ipairs(edit.selection) do
-      if event.note then
-        local note = event.note
+    for _, things in ipairs(edit.selection) do
+      if things.note then
+        local note = things.note
         local x = getColumnX(note.column) * scale()
-        local y = beatToY(event.beat, sh)
+        local y = beatToY(things.beat, sh)
         local size = NOTE_WIDTH * scale()
         love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
         love.graphics.rectangle('fill', x - size/2, y - size/2, size, size)
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.rectangle('line', x - size/2, y - size/2, size, size)
       end
-      if event.gearShift then
-        local gear = event.gearShift
+      if things.gearShift then
+        local gear = things.gearShift
 
         local x = ((gear.lane == xdrv.XDRVLane.Left) and getLeft() or getMRight())
-        local y = beatToY(event.beat, sh)
-        local yEnd = beatToY(event.beat + gear.length, sh)
+        local y = beatToY(things.beat, sh)
+        local yEnd = beatToY(things.beat + gear.length, sh)
 
         love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
         love.graphics.rectangle('fill', x, y, NOTE_WIDTH * 3 * scale(), yEnd - y)
@@ -882,26 +882,26 @@ function self.mousereleased(x, y, button)
 
     local selected = {}
 
-    for _, event in ipairs(chart.chart) do
-      if event.note then
-        local note = event.note
+    for _, thing in ipairs(chart.chart) do
+      if thing.note then
+        local note = thing.note
         local x = getColumnX(note.column) * scale() + love.graphics.getWidth()/2
-        local y = beatToY(event.beat)
-        local yEnd = beatToY(event.beat + (note.length or 0))
+        local y = beatToY(thing.beat)
+        local yEnd = beatToY(thing.beat + (note.length or 0))
 
         if x >= x1 and x <= x2 and math.min(y, yEnd) >= y1 and math.max(y, yEnd) <= y2 then
-          table.insert(selected, event)
+          table.insert(selected, thing)
         end
       end
-      if event.gearShift then
-        local gear = event.gearShift
+      if thing.gearShift then
+        local gear = thing.gearShift
 
         local x = ((gear.lane == xdrv.XDRVLane.Left) and (getLeft() + getMLeft())/2 or (getRight() + getMRight())/2) + love.graphics.getWidth()/2
-        local y = beatToY(event.beat)
-        local yEnd = beatToY(event.beat + gear.length)
+        local y = beatToY(thing.beat)
+        local yEnd = beatToY(thing.beat + gear.length)
 
         if x >= x1 and x <= x2 and math.min(y, yEnd) >= y1 and math.max(y, yEnd) <= y2 then
-          table.insert(selected, event)
+          table.insert(selected, thing)
         end
       end
     end
@@ -914,7 +914,7 @@ function self.mousereleased(x, y, button)
           n = n + 1
         end
       end
-      logs.log('Selected +' .. n .. ' events')
+      logs.log('Selected +' .. n .. ' notes')
     elseif #selected == 0 then
       if #edit.selection > 0 then
         edit.clearSelection()
@@ -923,7 +923,7 @@ function self.mousereleased(x, y, button)
     else
       edit.clearSelection()
       edit.selection = selected
-      logs.log('Selected ' .. #selected .. ' events')
+      logs.log('Selected ' .. #selected .. ' notes')
     end
   end
 end

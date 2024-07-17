@@ -24,7 +24,7 @@ function self.modeName(mode)
   if mode == self.Mode.Rewrite then return 'Rewrite' end
 end
 
----@type XDRVEvent[]
+---@type XDRVThing[]
 self.selection = {}
 
 function self.clearSelection()
@@ -104,25 +104,25 @@ function self.beginNote(column)
   local beat = getBeat()
 
   if mode == self.Mode.Insert or mode == self.Mode.Append then
-    local event = { beat = beat, note = { column = column } }
-    local eventIdx = chart.findEvent(event)
-    if eventIdx then
-      chart.removeEvent(eventIdx)
+    local thing = { beat = beat, note = { column = column } }
+    local thingIdx = chart.findThing(thing)
+    if thingIdx then
+      chart.removeEvent(thingIdx)
       logs.log('Removed note')
     else
-      table.insert(ghosts, event)
+      table.insert(ghosts, thing)
     end
     if mode == self.Mode.Append then
       setBeat(beat + QUANTS[self.quantIndex])
     end
   else
-    local event = { beat = beat, note = { } }
-    local eventIdx = chart.findEvent(event)
-    local lastIdx = eventIdx or 1
-    while eventIdx do
-      chart.removeEvent(eventIdx)
-      lastIdx = eventIdx
-      eventIdx = chart.findEvent(event)
+    local thing = { beat = beat, note = { } }
+    local thingIdx = chart.findThing(thing)
+    local lastIdx = thingIdx or 1
+    while thingIdx do
+      chart.removeEvent(thingIdx)
+      lastIdx = thingIdx
+      thingIdx = chart.findThing(thing)
     end
     local placed = { beat = beat, note = { column = column } }
     table.insert(ghosts, placed)
@@ -139,12 +139,12 @@ end
 ---@param lane XDRVLane
 function self.beginGearShift(lane)
   local beat = getBeat()
-  local event = { beat = beat, gearShift = { lane = lane } }
+  local thing = { beat = beat, gearShift = { lane = lane } }
 
-  local eventIdx = chart.findEvent(event)
+  local thingIdx = chart.findThing(thing)
 
-  if eventIdx then
-    chart.removeEvent(eventIdx)
+  if thingIdx then
+    chart.removeEvent(thingIdx)
     logs.log('Removed gear shift')
   else
     table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
@@ -154,17 +154,17 @@ end
 ---@param dir XDRVDriftDirection
 function self.placeDrift(dir)
   local beat = getBeat()
-  local event = { beat = beat, drift = { } }
-  local eventIdx = chart.findEvent(event)
-  local cmpEvent = chart.chart[eventIdx]
+  local thing = { beat = beat, drift = { } }
+  local thingIdx = chart.findThing(thing)
+  local cmpEvent = chart.chart[thingIdx]
 
-  if eventIdx then
-    chart.removeEvent(eventIdx)
+  if thingIdx then
+    chart.removeEvent(thingIdx)
   end
 
-  if not eventIdx or cmpEvent.drift.direction ~= dir then
+  if not thingIdx or cmpEvent.drift.direction ~= dir then
     chart.placeEvent({ beat = beat, drift = { direction = dir } })
-    logs.log(eventIdx and 'Replaced drift' or 'Placed drift')
+    logs.log(thingIdx and 'Replaced drift' or 'Placed drift')
   else
     logs.log('Removed drift')
   end
@@ -265,38 +265,38 @@ end
 function self.mirrorSelection(type)
   local isHorizontal = type == self.MirrorType.Horizontal or type == self.MirrorType.Both
   local isVertical = type == self.MirrorType.Vertical or type == self.MirrorType.Both
-  for _, event in ipairs(self.selection) do
-    if event.note then
+  for _, thing in ipairs(self.selection) do
+    if thing.note then
       if isHorizontal then
-        event.note.column = mirrorColumnHoriz(event.note.column)
+        thing.note.column = mirrorColumnHoriz(thing.note.column)
       end
       if isVertical then
-        event.note.column = mirrorColumnVert(event.note.column)
+        thing.note.column = mirrorColumnVert(thing.note.column)
       end
     end
-    if event.gearShift and isHorizontal then
-      event.gearShift.lane = mirrorLane(event.gearShift.lane)
+    if thing.gearShift and isHorizontal then
+      thing.gearShift.lane = mirrorLane(thing.gearShift.lane)
     end
-    if event.drift then
-      event.drift.direction = mirrorDriftDir(event.drift.direction)
+    if thing.drift then
+      thing.drift.direction = mirrorDriftDir(thing.drift.direction)
     end
   end
-  logs.log('Mirrored ' .. #self.selection .. ' events ' .. mirrorStr(type))
+  logs.log('Mirrored ' .. #self.selection .. ' notes ' .. mirrorStr(type))
   chart.markDirty()
 end
 
 function self.deleteSelection()
   if not chart.loaded then return end
   for i = #chart.chart, 1, -1 do
-    local event = chart.chart[i]
-    if includes(self.selection, event) then
+    local thing = chart.chart[i]
+    if includes(self.selection, thing) then
       table.remove(chart.chart, i)
     end
   end
 end
 function self.deleteKey()
   self.deleteSelection()
-  logs.log('Deleted ' .. #self.selection .. ' events')
+  logs.log('Deleted ' .. #self.selection .. ' notes')
   self.clearSelection()
   chart.markDirty()
 end
@@ -305,10 +305,10 @@ function self.selectAll()
   if not chart.loaded then return end
   self.clearSelection() -- bugfix by regen=Q
 
-  for _, event in ipairs(chart.chart) do
-    table.insert(self.selection, event)
+  for _, thing in ipairs(chart.chart) do
+    table.insert(self.selection, thing)
   end
-  logs.log('Selected ' .. #self.selection .. ' events')
+  logs.log('Selected ' .. #self.selection .. ' notes')
 end
 
 function self.undo()
@@ -338,7 +338,7 @@ function self.copy()
     logs.log('System clipboard unavailable?')
   end
 
-  logs.log('Copied ' .. #self.selection .. ' events')
+  logs.log('Copied ' .. #self.selection .. ' things')
   self.clearSelection()
 
   chart.markDirty()
@@ -348,9 +348,9 @@ function self.paste()
 
   local clip = love.system.getClipboardText()
 
-  local events = clipboard.decode(clip)
+  local things = clipboard.decode(clip)
 
-  if not events then
+  if not things then
     logs.log('Nothing in clipboard')
     return
   end
@@ -358,13 +358,13 @@ function self.paste()
   self.clearSelection()
 
   local b = getBeat()
-  for _, event in ipairs(events) do
-    event.beat = event.beat + b
-    chart.placeEvent(event)
-    table.insert(self.selection, event)
+  for _, thing in ipairs(things) do
+    thing.beat = thing.beat + b
+    chart.placeEvent(thing)
+    table.insert(self.selection, thing)
   end
 
-  logs.log('Pasted ' .. #events .. ' events')
+  logs.log('Pasted ' .. #things .. ' notes')
 
   chart.markDirty()
 end
