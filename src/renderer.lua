@@ -511,7 +511,7 @@ function self.draw()
   for c = 1, 6 do
     local x = getColumnX(c)
     love.graphics.setColor(1, 1, 1, laneActive[c].eased * 0.45)
-    love.graphics.draw(laneGradMesh, x - NOTE_WIDTH/2, 32, 0, NOTE_WIDTH, (sh - 32) - padBottom)
+    love.graphics.draw(laneGradMesh, (x - NOTE_WIDTH/2) * scale(), 32, 0, NOTE_WIDTH * scale(), (sh - 32) - padBottom)
   end
 
   if not noNotes then
