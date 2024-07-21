@@ -558,7 +558,7 @@ function self.draw()
     local nextMeasureI = 1
     local nextMeasure = conductor.measures[1]
 
-    while nextMeasure < botB do
+    while nextMeasure and nextMeasure < botB do
       nextMeasureI = nextMeasureI + 1
       nextMeasure = conductor.measures[nextMeasureI]
     end
