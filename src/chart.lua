@@ -60,12 +60,11 @@ function self.openPath(filepath)
   self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
-  conductor.reset()
-  conductor.loadFromChart({ chart = self.chart, metadata = self.metadata }, self.chartDir)
 
   self.loaded = true
   updateTitle()
-  widgets.callEvent('chartUpdate')
+
+  events.onChartLoad()
 
   logs.log('Loaded chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
   config.appendRecent(filepath)
@@ -294,12 +293,12 @@ function self.importSM(chart, filepath, notes, style)
 
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
   conductor.reset()
-  conductor.loadFromChart({ chart = self.chart, metadata = self.metadata }, self.chartDir)
 
-  self.loaded = true
   updateTitle()
 
-  widgets.callEvent('chartUpdate')
+  self.loaded = true
+
+  events.onChartLoad()
 
   logs.log('Imported chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
 end
@@ -384,7 +383,7 @@ end
 ---@param beat number
 ---@param type string
 ---@return number?
-function self.findEventOfType(beat, type)
+function self.findThingOfType(beat, type)
   for i, ev in ipairs(self.chart) do
     if ev.beat > beat then
       return
@@ -395,14 +394,15 @@ function self.findEventOfType(beat, type)
   end
 end
 
-function self.removeEvent(i)
+function self.removeThing(i)
   self.markDirty()
+  local thing = self.chart[i]
   table.remove(self.chart, i)
-  conductor.initStates()
+  events.onThingRemove(thing)
 end
 
 ---@param thing XDRVThing
-function self.placeEvent(thing)
+function self.placeThing(thing)
   self.markDirty()
   for i, ev in ipairs(self.chart) do
     if ev.beat == thing.beat and getThingType(ev) == getThingType(thing) then
@@ -428,11 +428,12 @@ function self.placeEvent(thing)
       end
     elseif ev.beat > thing.beat then
       table.insert(self.chart, i, thing)
+      events.onThingPlace(thing)
       return
     end
   end
   table.insert(self.chart, thing)
-  conductor.initStates()
+  events.onThingPlace(thing)
 end
 
 function self.saveChart()

@@ -53,10 +53,7 @@ function M.loadSong(songPath)
 end
 
 ---@param chart XDRVChart
-function M.loadFromChart(chart, dir)
-  M.offset = chart.metadata.musicOffset
-  M.loadSong(dir .. chart.metadata.musicAudio)
-
+function M.loadTimings(chart)
   M.initialBPM = chart.metadata.chartBPM
   M.bpms = { { 0, M.initialBPM } }
   M.measures = {}
@@ -75,6 +72,14 @@ function M.loadFromChart(chart, dir)
     end
   end
   M.makeMeasureLines()
+end
+
+---@param chart XDRVChart
+function M.loadFromChart(chart, dir)
+  M.offset = chart.metadata.musicOffset
+  M.loadSong(dir .. chart.metadata.musicAudio)
+
+  M.loadTimings(chart)
 end
 
 function M.makeMeasureLines()

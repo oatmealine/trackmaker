@@ -107,7 +107,7 @@ function self.beginNote(column)
     local thing = { beat = beat, note = { column = column } }
     local thingIdx = chart.findThing(thing)
     if thingIdx then
-      chart.removeEvent(thingIdx)
+      chart.removeThing(thingIdx)
       logs.log('Removed note')
     else
       table.insert(ghosts, thing)
@@ -120,7 +120,7 @@ function self.beginNote(column)
     local thingIdx = chart.findThing(thing)
     local lastIdx = thingIdx or 1
     while thingIdx do
-      chart.removeEvent(thingIdx)
+      chart.removeThing(thingIdx)
       lastIdx = thingIdx
       thingIdx = chart.findThing(thing)
     end
@@ -144,7 +144,7 @@ function self.beginGearShift(lane)
   local thingIdx = chart.findThing(thing)
 
   if thingIdx then
-    chart.removeEvent(thingIdx)
+    chart.removeThing(thingIdx)
     logs.log('Removed gear shift')
   else
     table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
@@ -159,11 +159,11 @@ function self.placeDrift(dir)
   local cmpEvent = chart.chart[thingIdx]
 
   if thingIdx then
-    chart.removeEvent(thingIdx)
+    chart.removeThing(thingIdx)
   end
 
   if not thingIdx or cmpEvent.drift.direction ~= dir then
-    chart.placeEvent({ beat = beat, drift = { direction = dir } })
+    chart.placeThing({ beat = beat, drift = { direction = dir } })
     logs.log(thingIdx and 'Replaced drift' or 'Placed drift')
   else
     logs.log('Removed drift')
@@ -182,7 +182,7 @@ function self.endNote(column)
       if ghost.note.length == 0 then
         ghost.note.length = nil
       end
-      chart.placeEvent(ghost)
+      chart.placeThing(ghost)
       logs.log('Placed note')
       table.remove(ghosts, i)
     end
@@ -198,7 +198,7 @@ function self.endGearShift(lane)
         ghost.gearShift.length = math.abs(ghost.gearShift.length)
       end
       if ghost.gearShift.length ~= 0 then
-        chart.placeEvent(ghost)
+        chart.placeThing(ghost)
         logs.log('Placed gear shift')
       end
       table.remove(ghosts, i)
@@ -360,7 +360,7 @@ function self.paste()
   local b = getBeat()
   for _, thing in ipairs(things) do
     thing.beat = thing.beat + b
-    chart.placeEvent(thing)
+    chart.placeThing(thing)
     table.insert(self.selection, thing)
   end
 

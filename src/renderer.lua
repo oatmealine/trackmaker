@@ -174,39 +174,6 @@ local function canPlaceCheckpoint(x, y)
   return closest
 end
 
-local function getHoveredEvent()
-  local x, y = love.mouse.getPosition()
-  if x < (love.graphics.getWidth()/2 + GAP_WIDTH/2 + NOTE_WIDTH * 3 + 40) then return end
-
-  local hoverBeat = yToBeat(y)
-
-  local closestEvent
-  local closestEventDist = 9e9
-
-  for _, thing in ipairs(chart.chart) do
-    if thing.beat - hoverBeat > 1.5 then break end
-    if thing.beat - hoverBeat > -1.5 then
-      local thingY = beatToY(thing.beat)
-      local dist = math.abs(thingY - y)
-      if dist < closestEventDist then
-        closestEvent = thing
-        closestEventDist = dist
-      end
-    end
-  end
-
-  if closestEventDist < 32 then
-    return closestEvent.beat
-  end
-
-  local closest = quantize(hoverBeat, edit.quantIndex)
-  local closestY = beatToY(closest)
-
-  if math.abs(closestY - y) > 32 then return end
-
-  return closest
-end
-
 ---@param thing XDRVThing
 ---@param sh number
 local function drawCheckpoint(thing, sh)
@@ -463,7 +430,74 @@ vec4 position(mat4 transformProjection, vec4 vertexPosition) {
 }
 ]])
 
-local hoveredEventBeat
+local timingEvents = {}
+
+local TIMING_PAD = 4
+local TIMING_SPACING = 8
+
+function self.updateTimingEvents()
+  timingEvents = {}
+
+  print('update timing events')
+
+  if not chart.loaded then return end
+
+  for _, thing in ipairs(chart.chart) do
+    local x = GAP_WIDTH/2 + NOTE_WIDTH * 3 + 52
+
+    local lastEvent = timingEvents[#timingEvents]
+    if lastEvent and thing.beat == lastEvent.beat then
+      x = lastEvent.x + lastEvent.width + TIMING_SPACING
+    end
+
+    local col, text, hoverText
+
+    if thing.bpm then
+      col = rgb(0.6, 0.2, 0.2)
+      text = string.format('%.3f', thing.bpm)
+      hoverText = 'BPM Change'
+    elseif thing.warp then
+      col = rgb(0.6, 0.2, 0.6)
+      text = string.format('%.3f', thing.warp)
+      hoverText = 'Warp'
+    elseif thing.stop then
+      col = hex('bbd06c')
+      text = string.format('%.3f', thing.stop)
+      hoverText = 'Stop'
+    elseif thing.stopSeconds then
+      col = hex('bbd06c')
+      text = string.format('%.3fs', thing.stopSeconds)
+      hoverText = 'Stop'
+    elseif thing.scroll then
+      col = hex('66aaff')
+      text = string.format('x%.2f', thing.scroll)
+      hoverText = 'Scroll'
+    elseif not (thing.note or thing.gearShift or thing.drift or thing.checkpoint) then
+      local type = getThingType(thing)
+      col = rgb(0.6, 0.1, 0.7)
+      text = type
+      hoverText = string.gsub(pretty(thing[type]), '\n', '')
+    end
+
+    if text then
+      --local height = fonts.inter_16:getHeight() + TIMING_PAD * 2
+      local height = 20
+      local textObj = love.graphics.newText(fonts.inter_16, text)
+      local width = textObj:getWidth() + TIMING_PAD * 2
+
+      table.insert(timingEvents, {
+        text = text,
+        textObj = textObj,
+        col = col,
+        x = x,
+        beat = thing.beat,
+        width = width,
+        height = height,
+        event = thing,
+      })
+    end
+  end
+end
 
 function self.draw()
   local sw, sh, scx, scy = screenCoords()
@@ -487,8 +521,6 @@ function self.draw()
     love.graphics.printf('You hid the chart. Congratulations?\nI\'m not sure what you were expecting to happen...', 0, scy, sw, 'center')
     return
   end
-
-  hoveredEventBeat = getHoveredEvent()
 
   if config.config.previewMode then
     love.graphics.setCanvas(canvas3d)
@@ -649,67 +681,25 @@ function self.draw()
     if not config.config.previewMode then
       love.graphics.setFont(fonts.inter_16)
 
-      local lastBeat
-      local lastX, lastY = 0, 0
-      for _, thing in ipairs(things) do
-        local hovered = thing.beat == hoveredEventBeat
-
-        local x = (GAP_WIDTH/2 + NOTE_WIDTH * 3) * scale() + 50
-        local y = beatToY(thing.beat, sh)
+      for _, event in ipairs(timingEvents) do
+        local x, y = event.x * scale(), beatToY(event.beat, sh)
+        local width, height = event.width, event.height
+        local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
+        local hovered = mx > x and mx < (x + width) and my > (y - height/2) and my < (y + height / 2)
 
         if y < 0 then break end
         if y < sh then
-          if lastBeat == thing.beat then
-            if hovered then
-              y = lastY + 16
-            else
-              x = lastX
-            end
-          end
-
-          local col = rgb(1, 1, 1)
-          local text
-
-          if thing.bpm then
-            col = rgb(0.6, 0.2, 0.2)
-            text = string.format('%.3f', thing.bpm)
-          elseif thing.warp then
-            col = rgb(0.6, 0.2, 0.6)
-            text = string.format('%.3f', thing.warp)
-          elseif thing.stop then
-            col = hex('bbd06c')
-            text = string.format('%.3f', thing.stop)
-          elseif thing.stopSeconds then
-            col = hex('bbd06c')
-            text = string.format('%.3fs', thing.stopSeconds)
-          elseif not (thing.note or thing.gearShift or thing.drift or thing.checkpoint) and config.config.view.invalidEvents then
-            local type = getThingType(thing)
-            col = rgb(0.6, 0.1, 0.7)
-            if hovered then
-              text = string.format('%s : %s', type, string.gsub(pretty(thing[type]), '\n', ''))
-            else
-              text = type
-            end
-          end
-
+          local col = event.col
           if hovered then
-            col = col * 0.7
+            col = col * 0.6
           end
-
-          if text then
-            love.graphics.setColor(col:unpack())
-            local textWidth = fonts.inter_16:getWidth(text)
-            love.graphics.rectangle('fill', x, y - 10, textWidth + 6, 20, 2, 2)
-            love.graphics.polygon('fill', x - 6, y, x, y - 6, x, y + 6)
-            love.graphics.setColor(0, 0, 0, 1)
-            love.graphics.print(text, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2 + 2))
-            love.graphics.setColor(1, 1, 1, 1)
-            love.graphics.print(text, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
-            width = 3 + textWidth + 3 + 8
-
-            lastBeat = thing.beat
-            lastX, lastY = x + width, y
-          end
+          love.graphics.setColor(col:unpack())
+          love.graphics.rectangle('fill', x, y - height/2, width, height, 2, 2)
+          love.graphics.polygon('fill', x - 6, y, x, y - 6, x, y + 6)
+          love.graphics.setColor(0, 0, 0, 1)
+          love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2 + 2))
+          love.graphics.setColor(1, 1, 1, 1)
+          love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
         end
       end
     end
@@ -862,7 +852,7 @@ function self.mousepressed(x, y, button)
   local check = canPlaceCheckpoint(x, y)
   if button == 1 and check and config.config.view.checkpoints then
     local name
-    local existingCheckpoint = chart.findEventOfType(check, 'checkpoint')
+    local existingCheckpoint = chart.findThingOfType(check, 'checkpoint')
     if existingCheckpoint then
       name = chart.chart[existingCheckpoint].checkpoint
     end

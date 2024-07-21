@@ -33,6 +33,7 @@ local threads    = require 'src.threads'
 local colors     = require 'src.colors'
 local waveform   = require 'src.waveform'
 local xdrvColors = require 'src.xdrvcolors'
+require 'src.events'
 
 function love.load(args)
   love.keyboard.setKeyRepeat(true)

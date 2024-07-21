@@ -46,13 +46,13 @@ function CheckpointPromptWidget:textInput(t)
 end
 
 function CheckpointPromptWidget:place(shouldPlace)
-  local existingCheckpoint = chart.findEventOfType(self.beat, 'checkpoint')
+  local existingCheckpoint = chart.findThingOfType(self.beat, 'checkpoint')
   if existingCheckpoint then
-    chart.removeEvent(existingCheckpoint)
+    chart.removeThing(existingCheckpoint)
   end
 
   if shouldPlace then
-    chart.placeEvent({
+    chart.placeThing({
       beat = self.beat,
       checkpoint = self.checkName,
     })
