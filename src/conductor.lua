@@ -23,6 +23,8 @@ M.measures = {}
 M.time = 0
 M.playing = false
 
+M.lastSec = 0
+
 function M.reset()
   M.time = 0
   M.playing = false
@@ -80,6 +82,7 @@ function M.loadFromChart(chart, dir)
   M.loadSong(dir .. chart.metadata.musicAudio)
 
   M.loadTimings(chart)
+  M.lastSec = M.timeAtBeat(chart.chart[#chart.chart].beat)
 end
 
 function M.makeMeasureLines()
@@ -261,7 +264,7 @@ function M.pause()
 end
 
 function M.getDuration()
-  if not song then return 0 end
+  if not song then return M.lastSec end
   return song:getDuration()
 end
 
@@ -270,7 +273,8 @@ local function updateSongPos()
   M.time = math.min(M.time, M.getDuration())
   if not song then
     M.playing = false
-    M.time = 0
+    --M.time = 0
+    M.updateBeat()
     return
   end
   local position = M.time - M.offset
