@@ -91,7 +91,7 @@ QUANTS = {
 EPSILON = QUANTS[#QUANTS] / 8 -- div by 8 to be safe
 
 function beatCmp(a, b)
-  return math.abs(a - b) < EPSILON
+  return a and b and math.abs(a - b) < EPSILON
 end
 
 function getQuantIndex(beat)
