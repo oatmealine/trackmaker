@@ -88,6 +88,12 @@ QUANTS = {
   1 / 48,
 }
 
+EPSILON = QUANTS[#QUANTS] / 8 -- div by 8 to be safe
+
+function beatCmp(a, b)
+  return math.abs(a - b) < EPSILON
+end
+
 function getQuantIndex(beat)
   for i, quant in ipairs(QUANTS) do
     if math.abs(beat - round(beat / quant) * quant) < 0.01 then

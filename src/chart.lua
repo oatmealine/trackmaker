@@ -375,7 +375,7 @@ function self.findThing(thing)
     if ev.beat > thing.beat then
       return
     end
-    if ev.beat == thing.beat and looseComp(thing, ev) then
+    if beatCmp(ev.beat, thing.beat) and looseComp(thing, ev) then
       return i
     end
   end
@@ -388,7 +388,7 @@ function self.findThingOfType(beat, type)
     if ev.beat > beat then
       return
     end
-    if ev.beat == beat and ev[type] then
+    if beatCmp(ev.beat, beat) and ev[type] then
       return i
     end
   end
@@ -405,7 +405,7 @@ end
 function self.placeThing(thing)
   self.markDirty()
   for i, ev in ipairs(self.chart) do
-    if ev.beat == thing.beat and getThingType(ev) == getThingType(thing) then
+    if beatCmp(ev.beat, thing.beat) and getThingType(ev) == getThingType(thing) then
       -- prevent collisions/overlap
       -- different types have different definitions of a collision, so
       -- we handle them all seperately

@@ -182,7 +182,7 @@ local function drawCheckpoint(thing, sh)
 
   local y = beatToY(thing.beat, sh)
 
-  local renderTransparent = (not check) or (checkBeat == thing.beat)
+  local renderTransparent = (not check) or beatCmp(checkBeat, thing.beat)
 
   if y < -64 then return -1 end
   if y > (sh + 64) then return end
@@ -446,7 +446,7 @@ function self.updateTimingEvents()
     local x = GAP_WIDTH/2 + NOTE_WIDTH * 3 + 52
 
     local lastEvent = timingEvents[#timingEvents]
-    if lastEvent and thing.beat == lastEvent.beat then
+    if lastEvent and beatCmp(thing.beat, lastEvent.beat) then
       x = lastEvent.x + lastEvent.width + TIMING_SPACING
     end
 

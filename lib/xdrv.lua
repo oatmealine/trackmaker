@@ -35,7 +35,7 @@ local QUANTS = {
   1 / 48,
 }
 
-local EPSILON = QUANTS[#QUANTS] / 2
+local EPSILON = QUANTS[#QUANTS] / 8
 
 local function getQuantIndex(beat)
   for i, quant in ipairs(QUANTS) do
@@ -419,6 +419,8 @@ local function serializeChart(things)
   -- with properly sorted tables is a TODO
   table.sort(things, function(a, b) return a.beat < b.beat end)
 
+  --print(pretty(things))
+
   local segments = {}
 
   local b = 0
@@ -437,11 +439,11 @@ local function serializeChart(things)
     local add = 0
     for i = thingIdx, #things do
       local thing = things[i]
-      if thing.beat >= (b + SEGMENT_INCR) then
+      if thing.beat >= (b + SEGMENT_INCR - EPSILON) then
         break
       end
       add = add + 1
-      if thing.beat >= b then
+      if thing.beat >= (b - EPSILON) then
         table.insert(segment, thing)
       end
     end
@@ -449,11 +451,12 @@ local function serializeChart(things)
 
     local rowsN = 1
     for _, thing in ipairs(segment) do
-      if thing.beat > b then
+      if thing.beat >= (b - EPSILON) then
         rowsN = lcm(rowsN, getDivision(thing.beat))
       end
     end
-    --print('-> ', #segment, rowsN)
+    rowsN = math.min(rowsN, 48) -- the game will only parse up to 48 rows per beat
+    --sprint('-> ', #segment, rowsN)
 
     local segmentStr = {}
 
