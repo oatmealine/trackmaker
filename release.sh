@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # this script assumes you have nfd.dll and nfd.so in your root dir, as well as
 # love-release (https://github.com/MisterDA/love-release) installed
