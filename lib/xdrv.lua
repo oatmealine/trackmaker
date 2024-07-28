@@ -35,9 +35,11 @@ local QUANTS = {
   1 / 48,
 }
 
+local EPSILON = QUANTS[#QUANTS] / 2
+
 local function getQuantIndex(beat)
   for i, quant in ipairs(QUANTS) do
-    if math.abs(beat - round(beat / quant) * quant) < 0.01 then
+    if math.abs(beat - round(beat / quant) * quant) < EPSILON then
       return i
     end
   end
@@ -46,11 +48,6 @@ end
 
 local function getDivision(beat)
   return 1 / QUANTS[getQuantIndex(beat)]
-end
-
-local EPSILON = QUANTS[#QUANTS]
-local function snapBeat(beat)
-  return math.floor(beat / EPSILON + 0.5) * EPSILON
 end
 
 ---@enum XDRVDifficulty
@@ -415,10 +412,6 @@ end
 
 ---@param things XDRVThing[]
 local function serializeChart(things)
-  for _, thing in ipairs(things) do
-    thing.beat = snapBeat(thing.beat)
-  end
-
   things = M.addHoldEnds(things)
 
   -- a lot of code assumes this table is sorted
@@ -474,7 +467,7 @@ local function serializeChart(things)
       local drift = nil
 
       for i, thing in ipairs(segment) do
-        if math.abs(thing.beat - (b + offset)) < 0.001 then
+        if math.abs(thing.beat - (b + offset)) < EPSILON then
           if thing.note or thing.holdStart or thing.holdEnd then
             local note = thing.note or thing.holdStart or thing.holdEnd
             cols[note.column] = thing
