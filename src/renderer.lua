@@ -14,6 +14,7 @@ local xdrvColors = require 'src.xdrvcolors'
 local config     = require 'src.config'
 
 local CheckpointPromptWidget = require 'src.widgets.checkpointprompt'
+local ContextWidget          = require 'src.widgets.context'
 
 local layer = deep:new()
 
@@ -537,6 +538,11 @@ function self.updateTimingEvents()
   end
 end
 
+---@type TimingEvent?
+local hoveredEvent
+---@type ContextWidget?
+local hoveredEventCtx
+
 function self.draw()
   local sw, sh, scx, scy = screenCoords()
 
@@ -717,19 +723,25 @@ function self.draw()
     end
 
     if not config.config.previewMode then
-      ---@type TimingEvent?
-      local hoveredEvent
       local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-      for i = #timingEvents, 1, -1 do
-        local event = timingEvents[i]
-        local x, y = event.x * scale(), beatToY(event.beat, sh)
-        local width, height = event.width, event.height
-        local hovered = mx > x and mx < (x + width) and my > (y - height/2) and my < (y + height / 2)
-        if hovered then
-          hoveredEvent = event
-          break
+
+      if hoveredEventCtx and hoveredEventCtx.delete then
+        hoveredEventCtx = nil
+      end
+
+      if not hoveredEventCtx then
+        hoveredEvent = nil
+        for i = #timingEvents, 1, -1 do
+          local event = timingEvents[i]
+          local x, y = event.x * scale(), beatToY(event.beat, sh)
+          local width, height = event.width, event.height
+          local hovered = mx > x and mx < (x + width) and my > (y - height/2) and my < (y + height / 2)
+          if hovered then
+            hoveredEvent = event
+            break
+          end
+          if y > sh then break end
         end
-        if y > sh then break end
       end
 
       love.graphics.setFont(fonts.inter_16)
@@ -755,7 +767,7 @@ function self.draw()
         end
       end
 
-      if hoveredEvent then
+      if hoveredEvent and not hoveredEventCtx then
         local event = hoveredEvent
         local x, y = event.x * scale(), beatToY(event.beat, sh)
         local width, height = event.width, event.height
@@ -942,6 +954,12 @@ function laneRelease(i)
 end
 
 function self.mousepressed(x, y, button)
+  if hoveredEventCtx then
+    hoveredEventCtx.delete = true
+    hoveredEventCtx = nil
+    return
+  end
+
   if config.config.previewMode then return end
   if not config.config.view.chart then return end
 
@@ -959,6 +977,16 @@ function self.mousepressed(x, y, button)
 
   if not edit.write and button == 1 and chart.loaded then
     selectionX, selectionY = x, y
+    return
+  end
+
+  if button == 2 and hoveredEvent and not hoveredEventCtx then
+    hoveredEventCtx = ContextWidget(x, y, {
+      {'Edit', function() end},
+      {'Delete', function() end},
+      {'Hide \'' .. hoveredEvent.text .. '\' events', function() end},
+    })
+    openWidget(hoveredEventCtx)
     return
   end
 end
