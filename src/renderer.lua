@@ -435,6 +435,9 @@ local timingEvents = {}
 local TIMING_PAD = 4
 local TIMING_SPACING = 8
 
+local TOOLTIP_WIDTH = 140
+local TOOLTIP_PAD = 4
+
 function self.updateTimingEvents()
   timingEvents = {}
 
@@ -450,33 +453,39 @@ function self.updateTimingEvents()
       x = lastEvent.x + lastEvent.width + TIMING_SPACING
     end
 
-    local col, text, hoverText
+    local col, text, hoverText, hoverSummary
 
     if thing.bpm then
       col = rgb(0.6, 0.2, 0.2)
       text = string.format('%.3f', thing.bpm)
       hoverText = 'BPM Change'
+      hoverSummary = string.format('%.3f BPM', thing.bpm)
     elseif thing.warp then
       col = rgb(0.6, 0.2, 0.6)
       text = string.format('%.3f', thing.warp)
       hoverText = 'Warp'
+      hoverSummary = string.format('%.3f beats', thing.warp)
     elseif thing.stop then
       col = hex('bbd06c')
       text = string.format('%.3f', thing.stop)
       hoverText = 'Stop'
+      hoverSummary = string.format('%.3f beats', thing.stop)
     elseif thing.stopSeconds then
       col = hex('bbd06c')
       text = string.format('%.3fs', thing.stopSeconds)
       hoverText = 'Stop'
+      hoverSummary = string.format('%.3f seconds', thing.stopSeconds)
     elseif thing.scroll then
       col = hex('66aaff')
       text = string.format('x%.2f', thing.scroll)
       hoverText = 'Scroll'
+      hoverSummary = string.format('%.3fx', thing.scroll)
     elseif not (thing.note or thing.gearShift or thing.drift or thing.checkpoint) then
       local type = getThingType(thing)
       col = rgb(0.6, 0.1, 0.7)
       text = type
-      hoverText = string.gsub(pretty(thing[type]), '\n', '')
+      hoverText = type
+      hoverSummary = string.gsub(pretty(thing[type]), '\n', '')
     end
 
     if text then
@@ -494,6 +503,8 @@ function self.updateTimingEvents()
         width = width,
         height = height,
         event = thing,
+        hoverText = newWrapText(fonts.inter_16, hoverText, TOOLTIP_WIDTH - TOOLTIP_PAD * 2),
+        hoverSummary = newWrapText(fonts.inter_12, hoverSummary, TOOLTIP_WIDTH - TOOLTIP_PAD * 2),
       })
     end
   end
@@ -679,13 +690,26 @@ function self.draw()
     end
 
     if not config.config.previewMode then
+      local hoveredEvent
+      local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
+      for i = #timingEvents, 1, -1 do
+        local event = timingEvents[i]
+        local x, y = event.x * scale(), beatToY(event.beat, sh)
+        local width, height = event.width, event.height
+        local hovered = mx > x and mx < (x + width) and my > (y - height/2) and my < (y + height / 2)
+        if hovered then
+          hoveredEvent = event
+          break
+        end
+        if y > sh then break end
+      end
+
       love.graphics.setFont(fonts.inter_16)
 
       for _, event in ipairs(timingEvents) do
         local x, y = event.x * scale(), beatToY(event.beat, sh)
         local width, height = event.width, event.height
-        local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-        local hovered = mx > x and mx < (x + width) and my > (y - height/2) and my < (y + height / 2)
+        local hovered = hoveredEvent == event
 
         if y < 0 then break end
         if y < sh then
@@ -701,6 +725,50 @@ function self.draw()
           love.graphics.setColor(1, 1, 1, 1)
           love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
         end
+      end
+
+      if hoveredEvent then
+        local event = hoveredEvent
+        local x, y = event.x * scale(), beatToY(event.beat, sh)
+        local width, height = event.width, event.height
+
+        --local tooltipX = math.min(x + width/2 - TOOLTIP_WIDTH/2, sw/2 - TOOLTIP_WIDTH - 40)
+        local tooltipX = math.min(mx - TOOLTIP_WIDTH/2, sw/2 - TOOLTIP_WIDTH - 40)
+        local arrSize = 10
+        local cx = clamp(mx, tooltipX + arrSize + 2, tooltipX + TOOLTIP_WIDTH - arrSize - 2)
+
+        local tooltipHeight = 2 + event.hoverText:getHeight() + 2 + event.hoverSummary:getHeight() + 2
+
+        local tooltipY = y + 20
+        local flipped = false
+        if tooltipY + tooltipHeight > (sw - 20) then
+          flipped = true
+          tooltipY = y - 20 - tooltipHeight
+        end
+
+        love.graphics.setLineWidth(1)
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.rectangle('fill', tooltipX, tooltipY, TOOLTIP_WIDTH, tooltipHeight, 2, 2)
+        love.graphics.setColor(0.3, 0.3, 0.3, 1)
+        love.graphics.rectangle('line', tooltipX, tooltipY, TOOLTIP_WIDTH, tooltipHeight, 2, 2)
+        if not flipped then
+          love.graphics.setColor(0, 0, 0, 1)
+          love.graphics.polygon('fill', cx - arrSize - 2, tooltipY + 2, cx, tooltipY - arrSize, cx + arrSize + 2, tooltipY + 2)
+          love.graphics.setColor(0.3, 0.3, 0.3, 1)
+          love.graphics.line(cx - arrSize, tooltipY, cx, tooltipY - arrSize, cx + arrSize, tooltipY)
+        else
+          love.graphics.setColor(0, 0, 0, 1)
+          love.graphics.polygon('fill', cx - arrSize - 2, tooltipY + tooltipHeight - 2, cx, tooltipY + tooltipHeight + arrSize, cx + arrSize + 2, tooltipY + tooltipHeight - 2)
+          love.graphics.setColor(0.3, 0.3, 0.3, 1)
+          love.graphics.line(cx - arrSize, tooltipY + tooltipHeight, cx, tooltipY + tooltipHeight + arrSize, cx + arrSize, tooltipY + tooltipHeight)
+        end
+
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.setFont(fonts.inter_16)
+        love.graphics.draw(event.hoverText, tooltipX + TOOLTIP_PAD, tooltipY + 2)
+        love.graphics.setColor(0.8, 0.8, 0.8, 1)
+        love.graphics.setFont(fonts.inter_12)
+        love.graphics.draw(event.hoverSummary, tooltipX + TOOLTIP_PAD, tooltipY + 2 + event.hoverText:getHeight() + 2)
       end
     end
   end

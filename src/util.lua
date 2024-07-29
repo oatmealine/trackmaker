@@ -266,3 +266,13 @@ function screenCoords()
   local sw, sh = love.graphics.getDimensions()
   return sw, sh, sw/2, sh/2
 end
+
+---@param font love.Font
+---@param text string
+---@param width number
+---@param align love.AlignMode?
+function newWrapText(font, text, width, align)
+  local t = love.graphics.newText(font, '')
+  t:setf(text, width, align or 'center')
+  return t
+end
