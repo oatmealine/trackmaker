@@ -73,7 +73,7 @@ local items = {
           toggle = true, value = config.config.view.drifts },
           { 'Checkpoints', function() config.config.view.checkpoints          = not config.config.view.checkpoints;   config.save() end,
           toggle = true, value = config.config.view.checkpoints },
-          { 'Unsupported events', function() config.config.view.invalidEvents = not config.config.view.invalidEvents; config.save() end,
+          { 'Unsupported events', function() config.config.view.invalidEvents = not config.config.view.invalidEvents; config.save(); events.onEventsModify() end,
           toggle = true, value = config.config.view.invalidEvents },
         }))
       end, expandable = true },

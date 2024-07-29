@@ -21,7 +21,7 @@ function events.onNoteAlter(event)
   logs.logFile('event : onNoteAlter')
   events.onNotesModify(event)
 end
----@param event XDRVNote | XDRVGearShift | XDRVDrift
+---@param event (XDRVNote | XDRVGearShift | XDRVDrift)?
 function events.onNotesModify(event)
   logs.logFile('event : onNotesModify')
 end
@@ -43,12 +43,12 @@ function events.onEventAlter(event)
 
   events.onEventsModify(event)
 end
----@param event XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
+---@param event (XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint)?
 function events.onEventsModify(event)
   logs.logFile('event : onEventsModify')
 
-  if event.bpm or event.warp or event.stop or event.stopSeconds or event.timeSignature then
-    conductor.loadTimings(chart.chart)
+  if not event or event.bpm or event.warp or event.stop or event.stopSeconds or event.timeSignature then
+    conductor.loadTimings(chart)
   end
   renderer.updateTimingEvents()
 end

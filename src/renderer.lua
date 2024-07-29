@@ -430,6 +430,7 @@ vec4 position(mat4 transformProjection, vec4 vertexPosition) {
 }
 ]])
 
+---@type TimingEvent[]
 local timingEvents = {}
 
 local TIMING_PAD = 4
@@ -437,6 +438,25 @@ local TIMING_SPACING = 8
 
 local TOOLTIP_WIDTH = 140
 local TOOLTIP_PAD = 4
+
+---@class TimingEvent
+---@field text string
+---@field textObj love.Text
+---@field col color
+---@field x number
+---@field beat number
+---@field width number
+---@field height number
+---@field event XDRVThing
+---@field hoverText love.Text
+---@field hoverSummary love.Text
+---@field invalid boolean
+
+---@param event TimingEvent
+local function shouldRenderTimingEvent(event)
+  if event.invalid then return config.config.view.invalidEvents end
+  return true
+end
 
 function self.updateTimingEvents()
   timingEvents = {}
@@ -454,6 +474,7 @@ function self.updateTimingEvents()
     end
 
     local col, text, hoverText, hoverSummary
+    local invalid = false
 
     if thing.bpm then
       col = rgb(0.6, 0.2, 0.2)
@@ -482,6 +503,7 @@ function self.updateTimingEvents()
       hoverSummary = string.format('%.3fx', thing.scroll)
     elseif not (thing.note or thing.gearShift or thing.drift or thing.checkpoint) then
       local type = getThingType(thing)
+      invalid = true
       col = rgb(0.6, 0.1, 0.7)
       text = type
       hoverText = type
@@ -494,7 +516,7 @@ function self.updateTimingEvents()
       local textObj = love.graphics.newText(fonts.inter_16, text)
       local width = textObj:getWidth() + TIMING_PAD * 2
 
-      table.insert(timingEvents, {
+      local event = {
         text = text,
         textObj = textObj,
         col = col,
@@ -505,7 +527,12 @@ function self.updateTimingEvents()
         event = thing,
         hoverText = newWrapText(fonts.inter_16, hoverText, TOOLTIP_WIDTH - TOOLTIP_PAD * 2),
         hoverSummary = newWrapText(fonts.inter_12, hoverSummary, TOOLTIP_WIDTH - TOOLTIP_PAD * 2),
-      })
+        invalid = invalid,
+      }
+
+      if shouldRenderTimingEvent(event) then
+        table.insert(timingEvents, event)
+      end
     end
   end
 end
@@ -690,6 +717,7 @@ function self.draw()
     end
 
     if not config.config.previewMode then
+      ---@type TimingEvent?
       local hoveredEvent
       local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
       for i = #timingEvents, 1, -1 do
