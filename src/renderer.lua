@@ -14,6 +14,7 @@ local xdrvColors = require 'src.xdrvcolors'
 local config     = require 'src.config'
 
 local CheckpointPromptWidget = require 'src.widgets.checkpointprompt'
+local EventEditWidget        = require 'src.widgets.eventedit'
 local ContextWidget          = require 'src.widgets.context'
 
 local layer = deep:new()
@@ -982,7 +983,9 @@ function self.mousepressed(x, y, button)
 
   if button == 2 and hoveredEvent and not hoveredEventCtx then
     hoveredEventCtx = ContextWidget(x, y, {
-      {'Edit', function() end},
+      {'Edit', function()
+        openWidget(EventEditWidget(hoveredEvent.event), true)
+      end},
       {'Delete', function() end},
       {'Hide \'' .. hoveredEvent.text .. '\' events', function() end},
     })
