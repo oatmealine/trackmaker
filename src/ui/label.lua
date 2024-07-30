@@ -4,10 +4,11 @@ local colors = require 'src.colors'
 ---@class Label : Node
 local Label = Node:extend()
 
-function Label:new(x, y, text)
+function Label:new(x, y, text, font)
   self.x = x
   self.y = y
   self.text = text
+  self.font = font or fonts.inter_12
 
   self:updateText()
 
@@ -16,7 +17,7 @@ function Label:new(x, y, text)
 end
 
 function Label:updateText()
-  self.textObj = love.graphics.newText(fonts.inter_12, self.text)
+  self.textObj = love.graphics.newText(self.font, self.text)
 end
 
 function Label:draw()

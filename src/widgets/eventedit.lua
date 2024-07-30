@@ -10,9 +10,8 @@ local EventEditWidget = UIWidget:extend()
 
 ---@param event XDRVThing
 function EventEditWidget:new(event)
-  print(pretty(event))
   self.editEvent = event
-  self.originalEvent = deepcopy(self.editEvent)
+  self.originalEvent = deepcopy(event)
   self.type = getThingType(event)
 
   EventEditWidget.super.new(self, 0, 0, self:getContainer())
@@ -22,6 +21,18 @@ function EventEditWidget:new(event)
   self.height = 100
 end
 
+local eventNames = {
+  bpm = 'BPM Change',
+  warp = 'Warp',
+  stop = 'Stop',
+  stopSeconds = 'Stop',
+  scroll = 'Scroll Speed',
+  timeSignature = 'Time Signature',
+  comboTicks = 'Combo Ticks',
+  label = 'Label',
+  fake = 'Fake',
+  event = 'Stage Event',
+}
 local eventFields = {
   bpm = { 'number', nil, 'BPM' },
   warp = { 'number', nil, 'Beats' },
@@ -47,11 +58,17 @@ function EventEditWidget:getRows(field, store)
   local t = field[1]
   if t == 'number' then
     return {
-      { Textfield(0, 0, 40, tostring(store[1]), function(value) store[1] = tonumber(value) self:updateFields() end), }
+      {
+        Textfield(0, 0, 40, tostring(store[1]), function(value) store[1] = tonumber(value) self:updateFields() end),
+        field[3] and Label(0, 0, field[3]) or nil,
+      }
     }
   elseif t == 'string' then
     return {
-      { Textfield(0, 0, 140, store[1], function(value) store[1] = value self:updateFields() end), }
+      {
+        Textfield(0, 0, 140, store[1], function(value) store[1] = value self:updateFields() end),
+        field[3] and Label(0, 0, field[3]) or nil,
+      }
     }
   elseif t == 'arr' then
     local resRow = {}
@@ -67,8 +84,24 @@ function EventEditWidget:getRows(field, store)
   end
 end
 
+function EventEditWidget:getStore(field, store)
+  field = field or eventFields[self.type]
+  store = store or self.dataStore
+
+  if not field then return end
+  if not store then return end
+  if field[1] == 'string' or field[1] == 'number' then
+    return store[1]
+  elseif field[1] == 'arr' then
+    local res = {}
+    for i, v in ipairs(store) do
+      table.insert(res, self:getStore(field[2][i], v))
+    end
+    return res
+  end
+end
 function EventEditWidget:updateFields()
-  -- TODO
+  self.editEvent[self.type] = self:getStore()
 end
 function EventEditWidget:fillStore(obj)
   obj = obj or self.editEvent[self.type]
@@ -87,13 +120,15 @@ end
 function EventEditWidget:getContainer()
   local rows = {
     {
+      Label(0, 0, eventNames[self.type], fonts.inter_16)
+    },
+    --[[{
       Label(0, 0, 'Beat'), Textfield(0, 0, 40, self.editEvent.beat, function(value) self.editEvent.beat = tonumber(value) end),
-    }
+    }]]
   }
 
   self.dataStore = self:fillStore()
 
-  print(self.type)
   local fields = eventFields[self.type]
   for _, field in ipairs(self:getRows(fields, self.dataStore)) do
     table.insert(rows, field)

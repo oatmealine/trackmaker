@@ -503,6 +503,21 @@ function self.updateTimingEvents()
       text = string.format('x%.2f', thing.scroll)
       hoverText = 'Scroll'
       hoverSummary = string.format('%.3fx', thing.scroll)
+    elseif thing.timeSignature then
+      col = rgb(0.9, 0.1, 0.4)
+      text = string.format('%i/%i', thing.timeSignature[1], thing.timeSignature[2])
+      hoverText = 'Time Signature'
+      hoverSummary = string.format('%i/%i', thing.timeSignature[1], thing.timeSignature[2])
+    elseif thing.comboTicks then
+      col = rgb(0.3, 0.4, 0.7)
+      text = string.format('x%.2f', thing.comboTicks)
+      hoverText = 'Combo Ticks'
+      hoverSummary = string.format('x%.2f', thing.comboTicks)
+    elseif thing.label then
+      col = hex('3386ff')
+      text = thing.label
+      hoverText = 'Label'
+      hoverSummary = '"' .. thing.label .. '"'
     elseif not (thing.note or thing.gearShift or thing.drift or thing.checkpoint) then
       local type = getThingType(thing)
       invalid = true

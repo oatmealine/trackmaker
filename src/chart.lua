@@ -412,11 +412,13 @@ function self.placeThing(thing)
       if ev.note then
         if ev.note.column == thing.note.column then
           self.chart[i] = thing
+          events.onThingPlace(thing)
           return
         end
       elseif ev.gearShift then
         if ev.gearShift.lane == thing.gearShift.lane then
           self.chart[i] = thing
+          events.onThingPlace(thing)
           return
         end
       elseif ev.event then
@@ -424,6 +426,7 @@ function self.placeThing(thing)
       else
         -- else just remove them anyways
         self.chart[i] = thing
+        events.onThingPlace(thing)
         return
       end
     elseif ev.beat > thing.beat then
