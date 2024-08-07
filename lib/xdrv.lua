@@ -58,9 +58,11 @@ M.XDRVDifficulty = {
   Extreme = 3,
 }
 
----@class XDRVMetadata @ https://github.com/Dylannichols702/SCXEditor/blob/d3339f664c739a3d7d9120c8411192bbb3a1779a/SCXEditor/SCXEditor/Models/XDRV/XDRV.cs#L465
+---@class XDRVMetadata @ https://github.com/tari-cat/XDRV/blob/main/Assets/Scripts/XDRVEditorScripts/XDRV.cs#L631
 ---@field musicTitle string @ MUSIC_TITLE
 ---@field alternateTitle string @ ALTERNATE_TITLE
+---@field subtitle string @ SUBTITLE
+---@field musicCredit string @ MUSIC_CREDIT
 ---@field musicArtist string @ MUSIC_ARTIST
 ---@field musicAudio string @ MUSIC_AUDIO
 ---@field jacketImage string @ JACKET_IMAGE
@@ -522,6 +524,8 @@ local function serializeMetadata(m)
   local data = {
     MUSIC_TITLE = formatString(m.musicTitle),
     ALTERNATE_TITLE = formatString(m.alternateTitle),
+    SUBTITLE = formatString(m.subtitle),
+    MUSIC_CREDIT = formatString(m.musicCredit),
     MUSIC_ARTIST = formatString(m.musicArtist),
     MUSIC_AUDIO = formatString(m.musicAudio),
     JACKET_IMAGE = formatString(m.jacketImage),
@@ -631,6 +635,8 @@ local function makeMetdata(m)
   return {
     musicTitle = parseString(m.MUSIC_TITLE),
     alternateTitle = parseString(m.ALTERNATE_TITLE),
+    subtitle = parseString(m.SUBTITLE),
+    musicCredit = parseString(m.MUSIC_CREDIT),
     musicArtist = parseString(m.MUSIC_ARTIST),
     musicAudio = parseString(m.MUSIC_AUDIO),
     jacketImage = parseString(m.JACKET_IMAGE),
