@@ -799,7 +799,7 @@ function self.draw()
 
         local tooltipY = y + 20
         local flipped = false
-        if tooltipY + tooltipHeight > (sw - 20) then
+        if tooltipY + tooltipHeight > (sh - 20) then
           flipped = true
           tooltipY = y - 20 - tooltipHeight
         end
