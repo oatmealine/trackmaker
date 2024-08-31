@@ -15,7 +15,7 @@ local colors    = require 'src.colors'
 local MetadataWidget = UIWidget:extend()
 
 local WIDTH = 300
-local HEIGHT = 610
+local HEIGHT = 630
 
 ---@class JacketPreview : Node
 local JacketPreview = Node:extend()
@@ -55,6 +55,10 @@ function MetadataWidget:getContainer()
   local elems = Container.placeFormLike({
     { Label(0, 0, 'Title'),   { Textfield(0, 0, 100, metadata.musicTitle or '',  function(value)
       chart.metadata.musicTitle = value
+      chart.markDirty()
+    end), } },
+    { Label(0, 0, 'Subtitle'),   { Textfield(0, 0, 100, metadata.subtitle or '',  function(value)
+      chart.metadata.subtitle = value
       chart.markDirty()
     end), } },
     { Label(0, 0, 'Artist'),  { Textfield(0, 0, 100, metadata.musicArtist or '', function(value)
