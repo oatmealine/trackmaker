@@ -1,5 +1,7 @@
 local M = {}
 
+local sort = require 'lib.sort'
+
 local SEGMENT_INCR = 1 -- beats
 
 local function gcd(m, n)
@@ -419,7 +421,7 @@ local function serializeChart(things)
   -- a lot of code assumes this table is sorted
   -- preferably we shouldn't sort it to do so, but making `addHoldEnds` work
   -- with properly sorted tables is a TODO
-  table.sort(things, function(a, b) return a.beat < b.beat end)
+  sort.insertion_sort(things, function(a, b) return a.beat < b.beat end)
 
   --print(pretty(things))
 

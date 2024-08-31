@@ -10,6 +10,7 @@ sm.print = function(s) logs.logFile('sm.lua: ' .. tostring(s)) end
 local ImportSMWidget = require 'src.widgets.importsm'
 local widgets        = require 'src.widgets'
 local exxdriver      = require 'src.exxdriver'
+local sort           = require 'lib.sort'
 
 self.loaded = false
 ---@type XDRVThing[]
@@ -42,7 +43,20 @@ local function updateTitle()
 end
 
 function self.sort()
-  table.sort(self.chart, function (a, b) return a and b and a.beat < b.beat end)
+  -- wikipedia describes an insertion sort's advantages as follows:
+  -- - [...]
+  -- - Efficient for (quite) small data sets, much like other quadratic (i.e.,
+  --   O(n2)) sorting algorithms
+  -- - Adaptive, i.e., efficient for data sets that are already substantially
+  --   sorted: the time complexity is O(kn) when each element in the input is no
+  --   more than k places away from its sorted position
+  -- - Stable; i.e., does not change the relative order of elements with equal
+  --   keys
+  -- - [...]
+  -- this seems ideal for us, as the sort call here is mostly a sanity check.
+  -- it's called on nearly every operation editing the chart, so having it be
+  -- fast for at least most of the time is preferable
+  sort.insertion_sort(self.chart, function (a, b) return a and b and a.beat < b.beat end)
 end
 
 function self.openPath(filepath)
