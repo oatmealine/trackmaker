@@ -65,6 +65,7 @@ This project would not be possible without these projects:
 [nativefiledialog](https://github.com/Vexatos/nativefiledialog) _(licensed under [zlib](https://github.com/Vexatos/nativefiledialog/blob/bea4560b9269bdc142fef946ccd8682450748958/LICENSE))_
 - [deep](https://github.com/Nikaoto/deep), slightly tweaked _(licensed under [MIT](https://github.com/Nikaoto/deep/blob/a948f7724a3772fbb5d539ed06d828e64eceaa7b/LICENSE))_
 - [Cirno's Perfect Math Library](https://github.com/excessive/cpml) _([Mixed license](https://github.com/excessive/cpml/blob/eb209f6d9111625d8e0e8a32dafb4a0aed12a84e/LICENSE.md))_
+- [sort.lua](https://github.com/1bardesign/batteries/blob/master/sort.lua) from [batteries](https://github.com/1bardesign/batteries) _(licensed under MIT)_
 - [Inter](https://rsms.me/inter/) _(licensed under [OFL](https://openfontlicense.org))_
 - Assets, code from [EX-XDRiVER](https://xdrv.team/) _(all rights reserved, used with permission)_
 - [Lönn](https://github.com/CelestialCartographers/Loenn/): A lot of the
