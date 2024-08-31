@@ -57,7 +57,8 @@ end
 ---@param chart XDRVChart
 function M.loadTimings(chart)
   M.initialBPM = chart.metadata.chartBPM
-  M.bpms = { { 0, M.initialBPM } }
+  --M.bpms = { { 0, M.initialBPM } }
+  M.bpms = {}
   M.measures = {}
   M.timeSignatures = {}
   M.stops = {}
@@ -72,6 +73,11 @@ function M.loadTimings(chart)
       local seconds = thing.stopSeconds ~= nil
       table.insert(M.stops, { thing.beat, duration, seconds })
     end
+  end
+  -- this really should only be a failsafe, as a similar check is done on the
+  -- chart loading level
+  if not M.bpms[1] or M.bpms[1][1] > 0 then
+    table.insert(M.bpms, 1, { 0, M.initialBPM })
   end
   M.makeMeasureLines()
 end

@@ -48,6 +48,7 @@ function events.onEventsModify(event)
   logs.logFile('event : onEventsModify')
 
   if not event or event.bpm or event.warp or event.stop or event.stopSeconds or event.timeSignature then
+    chart.ensureInitialBPM()
     conductor.loadTimings(chart)
   end
   renderer.updateTimingEvents()
@@ -96,6 +97,7 @@ end
 function events.onChartLoad()
   logs.logFile('event : onChartLoad')
 
+  chart.ensureInitialBPM()
   conductor.reset()
   conductor.loadFromChart({ chart = chart.chart, metadata = chart.metadata }, chart.chartDir)
   widgets.callEvent('chartUpdate')

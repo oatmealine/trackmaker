@@ -59,6 +59,19 @@ function self.sort()
   sort.insertion_sort(self.chart, function (a, b) return a and b and a.beat < b.beat end)
 end
 
+function self.ensureInitialBPM()
+  for _, event in ipairs(self.chart) do
+    if event.bpm and event.beat <= 0 then
+      self.metadata.chartBPM = event.bpm
+      return
+    elseif event.bpm then
+      break
+    end
+  end
+
+  table.insert(self.chart, 1, { beat = 0, bpm = self.metadata.chartBPM })
+end
+
 function self.openPath(filepath)
   local file, err = io.open(filepath, 'r')
   if not file then

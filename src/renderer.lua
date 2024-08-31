@@ -452,6 +452,7 @@ local TOOLTIP_PAD = 4
 ---@field event XDRVThing
 ---@field hoverText love.Text
 ---@field hoverSummary love.Text
+---@field type string
 ---@field invalid boolean
 
 ---@param event TimingEvent
@@ -542,6 +543,7 @@ function self.updateTimingEvents()
         width = width,
         height = height,
         event = thing,
+        type = hoverText,
         hoverText = newWrapText(fonts.inter_16, hoverText, TOOLTIP_WIDTH - TOOLTIP_PAD * 2),
         hoverSummary = newWrapText(fonts.inter_12, hoverSummary, TOOLTIP_WIDTH - TOOLTIP_PAD * 2),
         invalid = invalid,
@@ -1001,8 +1003,10 @@ function self.mousepressed(x, y, button)
       {'Edit', function()
         openWidget(EventEditWidget(hoveredEvent.event), true)
       end},
-      {'Delete', function() end},
-      {'Hide \'' .. hoveredEvent.text .. '\' events', function() end},
+      {'Delete', function()
+        chart.removeThing(chart.findThing(hoveredEvent.event))
+      end},
+      {'Hide \'' .. hoveredEvent.type .. '\' events (UNIMPLEMENTED)', function() end},
     })
     openWidget(hoveredEventCtx)
     return
