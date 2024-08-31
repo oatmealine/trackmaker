@@ -600,12 +600,6 @@ function self.draw()
 
   local padBottom = getPadBottom()
 
-  for c = 1, 6 do
-    local x = getColumnX(c)
-    love.graphics.setColor(1, 1, 1, laneActive[c].eased * 0.45)
-    love.graphics.draw(laneGradMesh, (x - NOTE_WIDTH/2) * scale(), 32, 0, NOTE_WIDTH * scale(), (sh - 32) - padBottom)
-  end
-
   if not noNotes then
     local topB = math.ceil(yToBeat(0, sh)) + 1
     local botB = math.floor(yToBeat(sh, sh)) - 1
@@ -697,6 +691,12 @@ function self.draw()
     end
   end
   love.graphics.pop()
+
+  for c = 1, 6 do
+    local x = getColumnX(c)
+    love.graphics.setColor(1, 1, 1, laneActive[c].eased * 0.45)
+    love.graphics.draw(laneGradMesh, (x - NOTE_WIDTH/2) * scale(), 32, 0, NOTE_WIDTH * scale(), (sh - 32) - padBottom)
+  end
 
   if not noNotes then
     local things = chart.chart
