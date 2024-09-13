@@ -150,6 +150,9 @@ function EventEditWidget:place(shouldPlace)
 
   if shouldPlace then
     chart.placeThing(self.editEvent)
+    chart.insertHistory('Place event')
+  else
+    chart.insertHistory('Remove event')
   end
 end
 

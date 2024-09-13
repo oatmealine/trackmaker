@@ -144,6 +144,20 @@ function love.draw()
   love.graphics.print(
     'FPS ' .. love.timer.getFPS()
   , 0, sh - fonts.inter_12:getHeight())
+
+  if config.config.debug.undoHistory then
+    local y = 24
+    for i, v in ipairs(chart.history) do
+      love.graphics.print(tostring(i), 0, y)
+      love.graphics.print((v.message or 'Action') .. (i == #chart.history and ' <-' or ''), 16, y)
+      y = y + 14
+    end
+    for i, v in ipairs(chart.future) do
+      love.graphics.print(tostring(i), 0, y)
+      love.graphics.print((v.message or 'Action'), 16, y)
+      y = y + 14
+    end
+  end
 end
 
 function love.mousepressed(x, y, button)

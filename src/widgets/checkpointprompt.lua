@@ -56,6 +56,9 @@ function CheckpointPromptWidget:place(shouldPlace)
       beat = self.beat,
       checkpoint = self.checkName,
     })
+    chart.insertHistory('Create checkpoint')
+  else
+    chart.insertHistory('Remove checkpoint')
   end
 end
 

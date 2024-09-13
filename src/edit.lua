@@ -109,6 +109,7 @@ function self.beginNote(column)
     if thingIdx then
       chart.removeThing(thingIdx)
       logs.log('Removed note')
+      chart.insertHistory('Remove note')
     else
       table.insert(ghosts, thing)
     end
@@ -146,6 +147,7 @@ function self.beginGearShift(lane)
   if thingIdx then
     chart.removeThing(thingIdx)
     logs.log('Removed gear shift')
+    chart.insertHistory('Remove gear shift')
   else
     table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
   end
@@ -164,8 +166,10 @@ function self.placeDrift(dir)
 
   if not thingIdx or cmpEvent.drift.direction ~= dir then
     chart.placeThing({ beat = beat, drift = { direction = dir } })
+    chart.insertHistory('Place drift')
     logs.log(thingIdx and 'Replaced drift' or 'Placed drift')
   else
+    chart.insertHistory('Remove drift')
     logs.log('Removed drift')
   end
 end
@@ -184,6 +188,7 @@ function self.endNote(column)
       end
       chart.placeThing(ghost)
       logs.log('Placed note')
+      chart.insertHistory('Place note')
       table.remove(ghosts, i)
     end
   end
@@ -199,6 +204,7 @@ function self.endGearShift(lane)
       end
       if ghost.gearShift.length ~= 0 then
         chart.placeThing(ghost)
+        chart.insertHistory('Place gear shift')
         logs.log('Placed gear shift')
       end
       table.remove(ghosts, i)
@@ -312,10 +318,20 @@ function self.selectAll()
 end
 
 function self.undo()
-  logs.log('Undo - not implemented')
+  local mem = chart.undo()
+  if mem then
+    logs.log('Undid ' .. (mem.message or 'action'))
+  else
+    logs.log('Nothing to undo')
+  end
 end
 function self.redo()
-  logs.log('Redo - not implemented')
+  local mem = chart.redo()
+  if mem then
+    logs.log('Redid ' .. (mem.message or 'action'))
+  else
+    logs.log('Nothing to redo')
+  end
 end
 
 function self.cut()
@@ -361,6 +377,7 @@ function self.paste()
   for _, thing in ipairs(things) do
     thing.beat = thing.beat + b
     chart.placeThing(thing)
+    chart.insertHistory('Paste notes')
     table.insert(self.selection, thing)
   end
 

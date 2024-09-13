@@ -36,6 +36,9 @@ self.config = {
     checkpoints = true,
     invalidEvents = false,
   },
+  debug = {
+    undoHistory = false,
+  },
 }
 self.defaults = deepcopy(self.config)
 

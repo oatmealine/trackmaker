@@ -1005,6 +1005,7 @@ function self.mousepressed(x, y, button)
       end},
       {'Delete', function()
         chart.removeThing(chart.findThing(hoveredEvent.event))
+        chart.insertHistory('Remove event')
       end},
       {'Hide \'' .. hoveredEvent.type .. '\' events (UNIMPLEMENTED)', function() end},
     })

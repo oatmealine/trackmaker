@@ -22,6 +22,65 @@ self.chartDir = nil
 ---@type string
 self.chartLocation = nil
 
+local MAX_HISTORY_LENGTH = 50
+
+---@alias Memory { message: string?, chart: XDRVThing[] }
+---@type Memory[]
+self.history = {}
+---@type Memory[]
+self.future = {}
+function self.insertHistory(message)
+  self.future = {}
+  table.insert(self.history, {
+    message = message,
+    chart = deepcopy(self.chart),
+  })
+
+  if #self.history > MAX_HISTORY_LENGTH then
+    table.remove(self.history, 1)
+  end
+end
+
+---@param memory Memory
+local function applyMemory(memory)
+  self.chart = deepcopy(memory.chart)
+end
+
+---@return Memory?
+function self.undo()
+  if #self.history <= 1 then return end
+  local top = table.remove(self.history, #self.history)
+  if not top then return end
+
+  table.insert(self.future, 1, top)
+  applyMemory(self.history[#self.history])
+
+  if #self.future > MAX_HISTORY_LENGTH then
+    table.remove(self.future, #self.future)
+  end
+
+  events.onChartEdit()
+
+  return top
+end
+---@return Memory?
+function self.redo()
+  local top = table.remove(self.future, 1)
+  if not top then return end
+
+  applyMemory(top)
+
+  table.insert(self.history, top)
+
+  if #self.history > MAX_HISTORY_LENGTH then
+    table.remove(self.history, 1)
+  end
+
+  events.onChartEdit()
+
+  return top
+end
+
 self.dirty = false
 
 function self.diffMark()

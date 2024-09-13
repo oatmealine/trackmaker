@@ -217,6 +217,13 @@ local items = {
       {},
       { 'UI Test',         function() openWidget(UITestWidget(150, 150)) end },
       { 'About',         function() openWidget(AboutWidget(150, 150)) end },
+      {},
+      { 'Debug...', hover = function(self, i)
+        self:openChild(i, ContextWidget(0, 0, {
+          { 'Undo history', function() config.config.debug.undoHistory = not config.config.debug.undoHistory; config.save() end,
+          toggle = true, value = config.config.debug.undoHistory },
+        }))
+      end, expandable = true },
     }
   end},
 }

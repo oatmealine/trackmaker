@@ -102,4 +102,5 @@ function events.onChartLoad()
   conductor.loadFromChart({ chart = chart.chart, metadata = chart.metadata }, chart.chartDir)
   widgets.callEvent('chartUpdate')
   renderer.updateTimingEvents()
+  chart.insertHistory('Load chart')
 end
