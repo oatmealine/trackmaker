@@ -11,7 +11,7 @@ local GAP = 10
 local LEFT_PAD = 14
 local RIGHT_PAD = 14
 
----@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean?, slider: boolean? }
+---@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean?, slider: boolean?, disabled: boolean? }
 
 ---@param entries ContextWidgetEntry[]
 function ContextWidget:new(x, y, entries)
@@ -160,7 +160,7 @@ function ContextWidget:draw()
 
     local hovered = false
 
-    if entry[1] then
+    if entry[1] and not entry.disabled then
       local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
       hovered = self.activeIdx == i or my > y and my <= botY and mx > 0 and mx < self.width
       if hovered then

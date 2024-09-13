@@ -218,9 +218,11 @@ local items = {
       { 'UI Test',         function() openWidget(UITestWidget(150, 150)) end },
       { 'About',         function() openWidget(AboutWidget(150, 150)) end },
       {},
-      { 'Debug...', hover = function(self, i)
+      { 'Debug', hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
-          { 'Undo history',      function() config.config.debug.undoHistory       = not config.config.debug.undoHistory;       config.save() end,
+          { '!! No support will be offered !!', disabled = true },
+          { 'Use the options here at your own risk', disabled = true },
+          { 'Undo history', function() config.config.debug.undoHistory = not config.config.debug.undoHistory; config.save() end,
           toggle = true, value = config.config.debug.undoHistory },
           { 'Ignore draw cache', function() config.config.debug.alwaysIgnoreCache = not config.config.debug.alwaysIgnoreCache; config.save() end,
           toggle = true, value = config.config.debug.alwaysIgnoreCache },
