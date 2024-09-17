@@ -144,6 +144,11 @@ function love.draw()
   love.graphics.print(
     'FPS ' .. love.timer.getFPS()
   , 0, sh - fonts.inter_12:getHeight())
+  if not renderer.ignoreCache() then
+    love.graphics.print(
+      'last draw took ' .. math.floor(renderer.drawProfile * 1000) .. 'ms | FPS ' .. math.floor(1 / renderer.drawProfile)
+    , 0, sh - fonts.inter_12:getHeight() * 2)
+  end
 
   if config.config.debug.undoHistory then
     local y = 24
@@ -188,4 +193,8 @@ end
 
 function love.textinput(t)
   widgets.textinput(t)
+end
+
+function love.resize(w, h)
+  renderer.resize(w, h)
 end

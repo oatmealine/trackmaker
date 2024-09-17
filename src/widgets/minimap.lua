@@ -1,6 +1,7 @@
 local conductor = require 'src.conductor'
 local ContextWidget = require 'src.widgets.context'
 local renderer      = require 'src.renderer'
+local edit          = require 'src.edit'
 
 ---@class MinimapWidget : Widget
 local MinimapWidget = Widget:extend()
@@ -120,6 +121,7 @@ function MinimapWidget:draw()
 
   if self.hovered and love.mouse.isDown(1) then
     conductor.seek((1 - clamp((self.my - height) / (self.height - height), 0, 1)) * chartDur)
+    events.redraw()
   end
 end
 

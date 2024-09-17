@@ -59,6 +59,7 @@ local function getBeat()
 end
 local function setBeat(b)
   conductor.seekBeats(quantize(b, self.quantIndex))
+  events.redraw()
 end
 
 ---@type (XDRVNote | XDRVGearShift)[]
@@ -136,6 +137,7 @@ function self.beginNote(column)
       end
     end
   end
+  events.redraw()
 end
 ---@param lane XDRVLane
 function self.beginGearShift(lane)
@@ -151,6 +153,7 @@ function self.beginGearShift(lane)
   else
     table.insert(ghosts, { beat = getBeat(), gearShift = { lane = lane, length = 0 } })
   end
+  events.redraw()
 end
 
 ---@param dir XDRVDriftDirection
@@ -219,6 +222,7 @@ function self.updateGhosts()
       ev.length = conductor.beat - ghost.beat
     end
   end
+  events.redraw()
 end
 
 ---@enum MirrorType

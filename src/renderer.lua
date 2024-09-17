@@ -420,7 +420,6 @@ local mesh3d = love.graphics.newMesh({
   {-0.5,  0.5,  0, 0, 0},
   { 0.5,  0.5,  0, 1, 0},
 }, 'strip', 'static')
-mesh3d:setTexture(canvas3d)
 
 local vertShader = love.graphics.newShader([[
 uniform mat4 projectionMatrix;
@@ -556,16 +555,31 @@ function self.updateTimingEvents()
   end
 end
 
+local cacheCanvas
+
+local function initCanvases()
+  canvas3d = love.graphics.newCanvas(CANVAS_PAD * 2 + NOTE_WIDTH * 6 + GAP_WIDTH, love.graphics.getHeight() * 4)
+  mesh3d:setTexture(canvas3d)
+  cacheCanvas = love.graphics.newCanvas(love.graphics.getWidth(), love.graphics.getHeight(), {
+    msaa = 2
+  })
+end
+initCanvases()
+
 ---@type TimingEvent?
 local hoveredEvent
 ---@type ContextWidget?
 local hoveredEventCtx
 
-function self.draw()
+-- Must optionally be static; this is the chart body
+---@param static boolean
+function self.drawCanvas(static)
   local sw, sh, scx, scy = screenCoords()
 
-  for _, ease in ipairs(laneActive) do
-    ease:update(love.timer.getDelta())
+  if not static then
+    for _, ease in ipairs(laneActive) do
+      ease:update(love.timer.getDelta())
+    end
   end
 
   cachedScrollSpeed = preview.getScrollSpeed(conductor.beat)
@@ -694,10 +708,12 @@ function self.draw()
   end
   love.graphics.pop()
 
-  for c = 1, 6 do
-    local x = getColumnX(c)
-    love.graphics.setColor(1, 1, 1, laneActive[c].eased * 0.45)
-    love.graphics.draw(laneGradMesh, (x - NOTE_WIDTH/2) * scale(), 32, 0, NOTE_WIDTH * scale(), (sh - 32) - padBottom)
+  if not static then
+    for c = 1, 6 do
+      local x = getColumnX(c)
+      love.graphics.setColor(1, 1, 1, laneActive[c].eased * 0.45)
+      love.graphics.draw(laneGradMesh, (x - NOTE_WIDTH/2) * scale(), 32, 0, NOTE_WIDTH * scale(), (sh - 32) - padBottom)
+    end
   end
 
   if not noNotes then
@@ -734,101 +750,6 @@ function self.draw()
     end
 
     layer:draw()
-
-    local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
-    if checkBeat and config.config.view.checkpoints and not config.config.previewMode then
-      drawCheckpoint({ beat = checkBeat }, sh)
-    end
-
-    if not config.config.previewMode then
-      local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-
-      if hoveredEventCtx and hoveredEventCtx.delete then
-        hoveredEventCtx = nil
-      end
-
-      if not hoveredEventCtx then
-        hoveredEvent = nil
-        for i = #timingEvents, 1, -1 do
-          local event = timingEvents[i]
-          local x, y = event.x * scale(), beatToY(event.beat, sh)
-          local width, height = event.width, event.height
-          local hovered = mx > x and mx < (x + width) and my > (y - height/2) and my < (y + height / 2)
-          if hovered then
-            hoveredEvent = event
-            break
-          end
-          if y > sh then break end
-        end
-      end
-
-      love.graphics.setFont(fonts.inter_16)
-
-      for _, event in ipairs(timingEvents) do
-        local x, y = event.x * scale(), beatToY(event.beat, sh)
-        local width, height = event.width, event.height
-        local hovered = hoveredEvent == event
-
-        if y < 0 then break end
-        if y < sh then
-          local col = event.col
-          if hovered then
-            col = col * 0.6
-          end
-          love.graphics.setColor(col:unpack())
-          love.graphics.rectangle('fill', x, y - height/2, width, height, 2, 2)
-          love.graphics.polygon('fill', x - 6, y, x, y - 6, x, y + 6)
-          love.graphics.setColor(0, 0, 0, 1)
-          love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2 + 2))
-          love.graphics.setColor(1, 1, 1, 1)
-          love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
-        end
-      end
-
-      if hoveredEvent and not hoveredEventCtx then
-        local event = hoveredEvent
-        local x, y = event.x * scale(), beatToY(event.beat, sh)
-        local width, height = event.width, event.height
-
-        --local tooltipX = math.min(x + width/2 - TOOLTIP_WIDTH/2, sw/2 - TOOLTIP_WIDTH - 40)
-        local tooltipX = math.min(mx - TOOLTIP_WIDTH/2, sw/2 - TOOLTIP_WIDTH - 40)
-        local arrSize = 10
-        local cx = clamp(mx, tooltipX + arrSize + 2, tooltipX + TOOLTIP_WIDTH - arrSize - 2)
-
-        local tooltipHeight = 2 + event.hoverText:getHeight() + 2 + event.hoverSummary:getHeight() + 2
-
-        local tooltipY = y + 20
-        local flipped = false
-        if tooltipY + tooltipHeight > (sh - 20) then
-          flipped = true
-          tooltipY = y - 20 - tooltipHeight
-        end
-
-        love.graphics.setLineWidth(1)
-        love.graphics.setColor(0, 0, 0, 1)
-        love.graphics.rectangle('fill', tooltipX, tooltipY, TOOLTIP_WIDTH, tooltipHeight, 2, 2)
-        love.graphics.setColor(0.3, 0.3, 0.3, 1)
-        love.graphics.rectangle('line', tooltipX, tooltipY, TOOLTIP_WIDTH, tooltipHeight, 2, 2)
-        if not flipped then
-          love.graphics.setColor(0, 0, 0, 1)
-          love.graphics.polygon('fill', cx - arrSize - 2, tooltipY + 2, cx, tooltipY - arrSize, cx + arrSize + 2, tooltipY + 2)
-          love.graphics.setColor(0.3, 0.3, 0.3, 1)
-          love.graphics.line(cx - arrSize, tooltipY, cx, tooltipY - arrSize, cx + arrSize, tooltipY)
-        else
-          love.graphics.setColor(0, 0, 0, 1)
-          love.graphics.polygon('fill', cx - arrSize - 2, tooltipY + tooltipHeight - 2, cx, tooltipY + tooltipHeight + arrSize, cx + arrSize + 2, tooltipY + tooltipHeight - 2)
-          love.graphics.setColor(0.3, 0.3, 0.3, 1)
-          love.graphics.line(cx - arrSize, tooltipY + tooltipHeight, cx, tooltipY + tooltipHeight + arrSize, cx + arrSize, tooltipY + tooltipHeight)
-        end
-
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.setFont(fonts.inter_16)
-        love.graphics.draw(event.hoverText, tooltipX + TOOLTIP_PAD, tooltipY + 2)
-        love.graphics.setColor(0.8, 0.8, 0.8, 1)
-        love.graphics.setFont(fonts.inter_12)
-        love.graphics.draw(event.hoverSummary, tooltipX + TOOLTIP_PAD, tooltipY + 2 + event.hoverText:getHeight() + 2)
-      end
-    end
   end
 
   love.graphics.setFont(fonts.inter_12)
@@ -866,33 +787,6 @@ function self.draw()
   end
 
   love.graphics.setLineWidth(1)
-
-  if not noNotes then
-    for _, things in ipairs(edit.selection) do
-      if things.note then
-        local note = things.note
-        local x = getColumnX(note.column) * scale()
-        local y = beatToY(things.beat, sh)
-        local size = NOTE_WIDTH * scale()
-        love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
-        love.graphics.rectangle('fill', x - size/2, y - size/2, size, size)
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.rectangle('line', x - size/2, y - size/2, size, size)
-      end
-      if things.gearShift then
-        local gear = things.gearShift
-
-        local x = ((gear.lane == xdrv.XDRVLane.Left) and getLeft() or getMRight())
-        local y = beatToY(things.beat, sh)
-        local yEnd = beatToY(things.beat + gear.length, sh)
-
-        love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
-        love.graphics.rectangle('fill', x, y, NOTE_WIDTH * 3 * scale(), yEnd - y)
-        love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.rectangle('line', x, y, NOTE_WIDTH * 3 * scale(), yEnd - y)
-      end
-    end
-  end
 
   love.graphics.pop()
 
@@ -941,6 +835,141 @@ function self.draw()
 
     love.graphics.pop()
   end
+end
+
+-- Cannot be static; for animated / frequently updating anims
+function self.drawPost()
+  local sw, sh, scx, scy = screenCoords()
+
+  love.graphics.push()
+  love.graphics.translate(scx, 0)
+
+  local noNotes = getScrollSpeed() == 0
+
+  if not config.config.previewMode then
+    local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
+    if checkBeat and config.config.view.checkpoints and not config.config.previewMode then
+      drawCheckpoint({ beat = checkBeat }, sh)
+    end
+
+    local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
+
+    if hoveredEventCtx and hoveredEventCtx.delete then
+      hoveredEventCtx = nil
+    end
+
+    if not hoveredEventCtx then
+      hoveredEvent = nil
+      for i = #timingEvents, 1, -1 do
+        local event = timingEvents[i]
+        local x, y = event.x * scale(), beatToY(event.beat, sh)
+        local width, height = event.width, event.height
+        local hovered = mx > x and mx < (x + width) and my > (y - height/2) and my < (y + height / 2)
+        if hovered then
+          hoveredEvent = event
+          break
+        end
+        if y > sh then break end
+      end
+    end
+
+    love.graphics.setFont(fonts.inter_16)
+
+    for _, event in ipairs(timingEvents) do
+      local x, y = event.x * scale(), beatToY(event.beat, sh)
+      local width, height = event.width, event.height
+      local hovered = hoveredEvent == event
+
+      if y < 0 then break end
+      if y < sh then
+        local col = event.col
+        if hovered then
+          col = col * 0.6
+        end
+        love.graphics.setColor(col:unpack())
+        love.graphics.rectangle('fill', x, y - height/2, width, height, 2, 2)
+        love.graphics.polygon('fill', x - 6, y, x, y - 6, x, y + 6)
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2 + 2))
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
+      end
+    end
+
+    if hoveredEvent and not hoveredEventCtx then
+      local event = hoveredEvent
+      local x, y = event.x * scale(), beatToY(event.beat, sh)
+      local width, height = event.width, event.height
+
+      --local tooltipX = math.min(x + width/2 - TOOLTIP_WIDTH/2, sw/2 - TOOLTIP_WIDTH - 40)
+      local tooltipX = math.min(mx - TOOLTIP_WIDTH/2, sw/2 - TOOLTIP_WIDTH - 40)
+      local arrSize = 10
+      local cx = clamp(mx, tooltipX + arrSize + 2, tooltipX + TOOLTIP_WIDTH - arrSize - 2)
+
+      local tooltipHeight = 2 + event.hoverText:getHeight() + 2 + event.hoverSummary:getHeight() + 2
+
+      local tooltipY = y + 20
+      local flipped = false
+      if tooltipY + tooltipHeight > (sh - 20) then
+        flipped = true
+        tooltipY = y - 20 - tooltipHeight
+      end
+
+      love.graphics.setLineWidth(1)
+      love.graphics.setColor(0, 0, 0, 1)
+      love.graphics.rectangle('fill', tooltipX, tooltipY, TOOLTIP_WIDTH, tooltipHeight, 2, 2)
+      love.graphics.setColor(0.3, 0.3, 0.3, 1)
+      love.graphics.rectangle('line', tooltipX, tooltipY, TOOLTIP_WIDTH, tooltipHeight, 2, 2)
+      if not flipped then
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.polygon('fill', cx - arrSize - 2, tooltipY + 2, cx, tooltipY - arrSize, cx + arrSize + 2, tooltipY + 2)
+        love.graphics.setColor(0.3, 0.3, 0.3, 1)
+        love.graphics.line(cx - arrSize, tooltipY, cx, tooltipY - arrSize, cx + arrSize, tooltipY)
+      else
+        love.graphics.setColor(0, 0, 0, 1)
+        love.graphics.polygon('fill', cx - arrSize - 2, tooltipY + tooltipHeight - 2, cx, tooltipY + tooltipHeight + arrSize, cx + arrSize + 2, tooltipY + tooltipHeight - 2)
+        love.graphics.setColor(0.3, 0.3, 0.3, 1)
+        love.graphics.line(cx - arrSize, tooltipY + tooltipHeight, cx, tooltipY + tooltipHeight + arrSize, cx + arrSize, tooltipY + tooltipHeight)
+      end
+
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.setFont(fonts.inter_16)
+      love.graphics.draw(event.hoverText, tooltipX + TOOLTIP_PAD, tooltipY + 2)
+      love.graphics.setColor(0.8, 0.8, 0.8, 1)
+      love.graphics.setFont(fonts.inter_12)
+      love.graphics.draw(event.hoverSummary, tooltipX + TOOLTIP_PAD, tooltipY + 2 + event.hoverText:getHeight() + 2)
+    end
+  end
+  love.graphics.setFont(fonts.inter_12)
+
+  if not noNotes then
+    for _, things in ipairs(edit.selection) do
+      if things.note then
+        local note = things.note
+        local x = getColumnX(note.column) * scale()
+        local y = beatToY(things.beat, sh)
+        local size = NOTE_WIDTH * scale()
+        love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
+        love.graphics.rectangle('fill', x - size/2, y - size/2, size, size)
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.rectangle('line', x - size/2, y - size/2, size, size)
+      end
+      if things.gearShift then
+        local gear = things.gearShift
+
+        local x = ((gear.lane == xdrv.XDRVLane.Left) and getLeft() or getMRight())
+        local y = beatToY(things.beat, sh)
+        local yEnd = beatToY(things.beat + gear.length, sh)
+
+        love.graphics.setColor(1, 1, 1, 0.3 + math.sin(love.timer.getTime() * 3) * 0.1)
+        love.graphics.rectangle('fill', x, y, NOTE_WIDTH * 3 * scale(), yEnd - y)
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.rectangle('line', x, y, NOTE_WIDTH * 3 * scale(), yEnd - y)
+      end
+    end
+  end
+
+  love.graphics.pop()
 
   if waveform.status then
     love.graphics.setColor(1, 1, 1, 0.8)
@@ -961,6 +990,43 @@ function self.draw()
     love.graphics.setColor(1, 1, 1, 0.5)
     love.graphics.rectangle('line', x1, y1, x2 - x1, y2 - y1)
   end
+end
+
+local cacheMiss = true
+function self.redraw()
+  cacheMiss = true
+end
+
+function self.ignoreCache()
+  return conductor.isPlaying() or config.config.debug.alwaysIgnoreCache
+end
+
+function self.shouldRedraw()
+  if self.ignoreCache() then return true end
+  if cacheMiss then
+    cacheMiss = false
+    return true
+  end
+  return false
+end
+
+self.drawProfile = 0
+
+function self.draw()
+  if self.shouldRedraw() then
+    love.graphics.setCanvas(cacheCanvas)
+    love.graphics.clear(0, 0, 0, 0)
+    love.graphics.setBlendMode('alpha')
+    local start = os.clock()
+    self.drawCanvas(not self.ignoreCache())
+    self.drawProfile = os.clock() - start
+    love.graphics.setCanvas()
+  end
+  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.setBlendMode('alpha', 'premultiplied')
+  love.graphics.draw(cacheCanvas)
+  love.graphics.setBlendMode('alpha')
+  self.drawPost()
 end
 
 -- globals bc lua module resolution sucks
@@ -1077,11 +1143,17 @@ end
 function self.wheelmoved(delta)
   if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
     zoom = zoom * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
+    events.redraw()
   else
     edit.setBeat(conductor.beat + sign(delta) * QUANTS[edit.quantIndex])
     edit.updateGhosts()
     conductor.initStates()
   end
+end
+
+function self.resize(w, h)
+  initCanvases()
+  self.redraw()
 end
 
 return self

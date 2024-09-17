@@ -38,6 +38,7 @@ self.config = {
   },
   debug = {
     undoHistory = false,
+    alwaysIgnoreCache = false,
   },
 }
 self.defaults = deepcopy(self.config)

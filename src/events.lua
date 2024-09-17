@@ -92,6 +92,7 @@ end
 function events.onChartEdit(thing)
   logs.logFile('event : onChartEdit')
 
+  events.redraw()
   conductor.initStates()
 end
 function events.onChartLoad()
@@ -102,5 +103,11 @@ function events.onChartLoad()
   conductor.loadFromChart({ chart = chart.chart, metadata = chart.metadata }, chart.chartDir)
   widgets.callEvent('chartUpdate')
   renderer.updateTimingEvents()
+  events.redraw()
   chart.insertHistory('Load chart')
+end
+
+-- hacky. oh well
+function events.redraw()
+  renderer.redraw()
 end

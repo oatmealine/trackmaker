@@ -62,6 +62,7 @@ function self.update()
     self.progress = nil
     collectgarbage('collect')
   end
+  events.redraw()
 end
 
 local function sampleToSeconds(idx)
