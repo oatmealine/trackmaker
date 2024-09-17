@@ -27,10 +27,15 @@ local MAX_HISTORY_LENGTH = 50
 ---@alias Memory { message: string?, chart: XDRVThing[] }
 ---@type Memory[]
 self.history = {}
+self.savedAtHistoryIndex = 1
 ---@type Memory[]
 self.future = {}
-function self.insertHistory(message)
+function self.clearHistory()
+  self.history = {}
+  self.savedAtHistoryIndex = 1
   self.future = {}
+end
+function self.insertHistory(message)
   table.insert(self.history, {
     message = message,
     chart = deepcopy(self.chart),
@@ -39,6 +44,19 @@ function self.insertHistory(message)
   if #self.history > MAX_HISTORY_LENGTH then
     table.remove(self.history, 1)
   end
+
+  if #self.future > 0 then
+    self.future = {}
+    if self.savedAtHistoryIndex >= #self.history then
+      -- invalidate, there's no way to get back to where we were again
+      -- since the save point was in the future, which we just wiped
+      self.savedAtHistoryIndex = -1
+    end
+  end
+end
+
+function self.isDirty()
+  return self.savedAtHistoryIndex == #self.history
 end
 
 ---@param memory Memory
@@ -81,7 +99,10 @@ function self.redo()
   return top
 end
 
-self.dirty = false
+function self.markDirty()
+  -- when metadata gets undoing, this should no longer be necessary
+  self.savedAtHistoryIndex = -1
+end
 
 function self.diffMark()
   return '[' .. xdrv.formatDifficultyShort(self.metadata.chartDifficulty) .. lpad(tostring(self.metadata.chartLevel), 2, '0') .. ']'
@@ -90,7 +111,7 @@ end
 local function updateTitle()
   if self.loaded then
     local dirtyMark = ''
-    if self.dirty then dirtyMark = ' ·' end
+    if self.isDirty() then dirtyMark = ' ·' end
     love.window.setTitle(
       self.metadata.musicTitle ..
       ' ' .. self.diffMark() ..
@@ -441,7 +462,7 @@ local function save(filepath, noBackup)
 
   logs.log('Saved chart to ' .. filepath)
   if not noBackup then
-    self.dirty = false
+    chart.savedAtHistoryIndex = #chart.history
     self.chartLocation = filepath
     config.appendRecent(filepath)
   end
@@ -481,7 +502,6 @@ function self.findThingOfType(beat, type)
 end
 
 function self.removeThing(i)
-  self.markDirty()
   local thing = self.chart[i]
   table.remove(self.chart, i)
   events.onThingRemove(thing)
@@ -489,7 +509,6 @@ end
 
 ---@param thing XDRVThing
 function self.placeThing(thing)
-  self.markDirty()
   for i, ev in ipairs(self.chart) do
     if beatCmp(ev.beat, thing.beat) and getThingType(ev) == getThingType(thing) then
       -- prevent collisions/overlap
@@ -546,16 +565,11 @@ function self.quickSave()
   end
 end
 
-function self.markDirty()
-  self.dirty = true
-  updateTitle()
-end
-
 local autosaveTimer = 0
 local AUTOSAVE_INTERVAL = 60 * 3
 --local AUTOSAVE_INTERVAL = 5
 function self.update(dt)
-  if not (self.dirty and self.chart and self.chartLocation) then
+  if not (self.isDirty() and self.chart and self.chartLocation) then
     autosaveTimer = 0
   else
     autosaveTimer = autosaveTimer + dt

@@ -292,7 +292,7 @@ function self.mirrorSelection(type)
     end
   end
   logs.log('Mirrored ' .. #self.selection .. ' notes ' .. mirrorStr(type))
-  chart.markDirty()
+  chart.insertHistory('Mirror notes')
 end
 
 function self.deleteSelection()
@@ -308,7 +308,7 @@ function self.deleteKey()
   self.deleteSelection()
   logs.log('Deleted ' .. #self.selection .. ' notes')
   self.clearSelection()
-  chart.markDirty()
+  chart.insertHistory('Delete selection')
 end
 
 function self.selectAll()
@@ -360,8 +360,6 @@ function self.copy()
 
   logs.log('Copied ' .. #self.selection .. ' things')
   self.clearSelection()
-
-  chart.markDirty()
 end
 function self.paste()
   if not chart.loaded then return end
@@ -386,8 +384,6 @@ function self.paste()
   end
 
   logs.log('Pasted ' .. #things .. ' notes')
-
-  chart.markDirty()
 end
 
 self.setBeat = setBeat

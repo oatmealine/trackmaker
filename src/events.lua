@@ -104,6 +104,7 @@ function events.onChartLoad()
   widgets.callEvent('chartUpdate')
   renderer.updateTimingEvents()
   events.redraw()
+  chart.clearHistory()
   chart.insertHistory('Load chart')
 end
 
