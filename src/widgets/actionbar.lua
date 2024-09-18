@@ -60,18 +60,20 @@ local items = {
       { 'Preview mode', function()
         config.config.previewMode = not config.config.previewMode
         config.save()
+        events.redraw()
       end, toggle = true, value = config.config.previewMode },
       { 'CMod', function()
         config.config.cmod = not config.config.cmod
         config.save()
+        events.redraw()
       end, toggle = true, value = config.config.cmod },
       { 'View...', hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
-          { 'Chart',       function() config.config.view.chart                = not config.config.view.chart;         config.save() end,
+          { 'Chart',       function() config.config.view.chart                = not config.config.view.chart;         config.save(); events.redraw() end,
           toggle = true, value = config.config.view.chart },
-          { 'Drifts',      function() config.config.view.drifts               = not config.config.view.drifts;        config.save() end,
+          { 'Drifts',      function() config.config.view.drifts               = not config.config.view.drifts;        config.save(); events.redraw() end,
           toggle = true, value = config.config.view.drifts },
-          { 'Checkpoints', function() config.config.view.checkpoints          = not config.config.view.checkpoints;   config.save() end,
+          { 'Checkpoints', function() config.config.view.checkpoints          = not config.config.view.checkpoints;   config.save(); events.redraw() end,
           toggle = true, value = config.config.view.checkpoints },
           { 'Unsupported events', function() config.config.view.invalidEvents = not config.config.view.invalidEvents; config.save(); events.onEventsModify() end,
           toggle = true, value = config.config.view.invalidEvents },

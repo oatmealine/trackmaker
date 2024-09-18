@@ -580,6 +580,10 @@ function self.drawCanvas(static)
     for _, ease in ipairs(laneActive) do
       ease:update(love.timer.getDelta())
     end
+  else
+    for _, ease in ipairs(laneActive) do
+      ease:reset(0)
+    end
   end
 
   cachedScrollSpeed = preview.getScrollSpeed(conductor.beat)
@@ -598,6 +602,7 @@ function self.drawCanvas(static)
     return
   end
 
+  local prevCanvas = love.graphics.getCanvas()
   if config.config.previewMode then
     love.graphics.setCanvas(canvas3d)
 
@@ -790,7 +795,7 @@ function self.drawCanvas(static)
 
   love.graphics.pop()
 
-  love.graphics.setCanvas()
+  love.graphics.setCanvas(prevCanvas)
 
   sw, sh, scx, scy = screenCoords()
 
@@ -806,6 +811,9 @@ function self.drawCanvas(static)
     local ratio = canvas3d:getWidth() / canvas3d:getHeight()
 
     love.graphics.setShader(vertShader)
+
+    -- WHY ?????????????????
+    local yMult = prevCanvas and -1 or 1
 
     local m = cpml.mat4()
 
@@ -823,6 +831,7 @@ function self.drawCanvas(static)
     v:rotate(v, math.rad(-(90 - 59)), cpml.vec3.unit_x)
 
     local p = cpml.mat4().from_perspective(100, love.graphics.getWidth() / love.graphics.getHeight(), 0.3, 1000.0)
+    p:scale(p, { x = 1, y = yMult, z = 1 })
 
     vertShader:send('modelMatrix', m:to_vec4s_cols())
     vertShader:send('viewMatrix', v:to_vec4s_cols())
@@ -1013,19 +1022,24 @@ end
 self.drawProfile = 0
 
 function self.draw()
-  if self.shouldRedraw() then
-    love.graphics.setCanvas(cacheCanvas)
-    love.graphics.clear(0, 0, 0, 0)
+  if self.ignoreCache() then
+    self.redraw()
+    self.drawCanvas(false)
+  else
+    if self.shouldRedraw() then
+      love.graphics.setCanvas(cacheCanvas)
+      love.graphics.clear(0, 0, 0, 0)
+      love.graphics.setBlendMode('alpha')
+      local start = os.clock()
+      self.drawCanvas(true)
+      self.drawProfile = os.clock() - start
+      love.graphics.setCanvas()
+    end
+    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setBlendMode('alpha', 'premultiplied')
+    love.graphics.draw(cacheCanvas)
     love.graphics.setBlendMode('alpha')
-    local start = os.clock()
-    self.drawCanvas(not self.ignoreCache())
-    self.drawProfile = os.clock() - start
-    love.graphics.setCanvas()
   end
-  love.graphics.setColor(1, 1, 1, 1)
-  love.graphics.setBlendMode('alpha', 'premultiplied')
-  love.graphics.draw(cacheCanvas)
-  love.graphics.setBlendMode('alpha')
   self.drawPost()
 end
 
