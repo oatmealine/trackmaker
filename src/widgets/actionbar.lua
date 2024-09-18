@@ -15,6 +15,8 @@ local AboutWidget = require 'src.widgets.about'
 local CatjamWidget = require 'src.widgets.catjam'
 local UITestWidget = require 'src.widgets.uitest'
 
+local glyphsList = require 'assets.sprites.controller'
+
 ---@class ActionBarWidget : Widget
 local ActionBarWidget = Widget:extend()
 
@@ -67,6 +69,28 @@ local items = {
         config.save()
         events.redraw()
       end, toggle = true, value = config.config.cmod },
+      { 'Controller glyphs...', hover = function(self, i)
+        local entries = {}
+        table.insert(entries, {
+          'None', function()
+            config.config.controllerGlyphs = ''
+            config.save()
+            events.redraw()
+          end,
+          toggle = true, value = config.config.controllerGlyphs == ''
+        })
+        for _, layout in ipairs(glyphsList) do
+          table.insert(entries, {
+            titleCase(layout), function()
+              config.config.controllerGlyphs = layout
+              config.save()
+              events.redraw()
+            end,
+            toggle = true, value = config.config.controllerGlyphs == layout
+          })
+        end
+        self:openChild(i, ContextWidget(0, 0, entries))
+      end, expandable = true },
       { 'View...', hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
           { 'Chart',       function() config.config.view.chart                = not config.config.view.chart;         config.save(); events.redraw() end,

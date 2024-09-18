@@ -276,3 +276,7 @@ function newWrapText(font, text, width, align)
   t:setf(text, width, align or 'center')
   return t
 end
+
+function titleCase(str)
+  return string.upper(string.sub(str, 1, 1)) .. string.lower(string.sub(str, 2))
+end

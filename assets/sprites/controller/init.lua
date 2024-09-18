@@ -1,0 +1,1 @@
+return { 'keyboard', 'playstation', 'xbox' }

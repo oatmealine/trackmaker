@@ -129,9 +129,10 @@ end
 local col = {}
 
 --- for use in actor:diffuse(col:unpack())
+---@param a number?
 ---@return number, number, number, number
-function col:unpack()
-  return self.r, self.g, self.b, self.a
+function col:unpack(a)
+  return self.r, self.g, self.b, a or self.a
 end
 
 -- conversions

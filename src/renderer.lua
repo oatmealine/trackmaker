@@ -431,6 +431,33 @@ vec4 position(mat4 transformProjection, vec4 vertexPosition) {
 }
 ]])
 
+local glyphsList = require 'assets.sprites.controller'
+local glyphs = {}
+local loadedGlyphs
+
+local function loadGlyphs(layout)
+  glyphs = {}
+
+  loadedGlyphs = layout
+  if layout == '' then return end
+  if not includes(glyphsList, layout) then
+    error('no such glyphs ' .. layout, 2)
+  end
+
+  for _, key in ipairs({
+    'key_1', 'key_2', 'key_3', 'key_4', 'key_5', 'key_6',
+    'key_gear_l', 'key_gear_r',
+    'key_gear_l_in', 'key_gear_l_out',
+    'key_gear_r_in', 'key_gear_r_out',
+  }) do
+    local path = 'assets/sprites/controller/' .. layout .. '/' .. key .. '.png'
+    if love.filesystem.getInfo(path, 'file') then
+      glyphs[key] = love.graphics.newImage(path)
+    end
+  end
+end
+loadGlyphs('keyboard')
+
 ---@type TimingEvent[]
 local timingEvents = {}
 
@@ -576,6 +603,10 @@ local hoveredEventCtx
 function self.drawCanvas(static)
   local sw, sh, scx, scy = screenCoords()
 
+  if loadedGlyphs ~= config.config.controllerGlyphs then
+    loadGlyphs(config.config.controllerGlyphs)
+  end
+
   if not static then
     for _, ease in ipairs(laneActive) do
       ease:update(love.timer.getDelta())
@@ -666,7 +697,7 @@ function self.drawCanvas(static)
   for o = -1, 1, 2 do
     for i = 1, 2 do
       local x = o * (GAP_WIDTH/2 + NOTE_WIDTH * i) * scale()
-      love.graphics.line(x, 0, x, sh)
+      love.graphics.line(x, 0, x, sh - padBottom)
     end
   end
 
@@ -718,6 +749,16 @@ function self.drawCanvas(static)
       local x = getColumnX(c)
       love.graphics.setColor(1, 1, 1, laneActive[c].eased * 0.45)
       love.graphics.draw(laneGradMesh, (x - NOTE_WIDTH/2) * scale(), 32, 0, NOTE_WIDTH * scale(), (sh - 32) - padBottom)
+    end
+  end
+
+  for c = 1, 6 do
+    local x = getColumnX(c)
+    love.graphics.setColor(getColumnColor(c):unpack(0.5 + laneActive[c].eased * 0.5))
+    if glyphs['key_' .. c] then
+      local spr = glyphs['key_' .. c]
+      local size = (NOTE_WIDTH * 0.92) / spr:getWidth()
+      love.graphics.draw(spr, x * scale(), sh - padBottom + NOTE_WIDTH * 0.08, 0, size * 0.8, size, spr:getWidth()/2, 0)
     end
   end
 

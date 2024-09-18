@@ -30,6 +30,7 @@ self.config = {
   waveformBrightness = 0.3,
   xdrvChartDev = false,
   previewMode = false,
+  controllerGlyphs = '',
   view = {
     chart = true,
     drifts = true,
