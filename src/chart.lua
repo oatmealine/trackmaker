@@ -13,6 +13,7 @@ local exxdriver      = require 'src.exxdriver'
 local sort           = require 'lib.sort'
 
 self.loaded = false
+self.loadedScript = false
 ---@type XDRVThing[]
 self.chart = nil
 ---@type XDRVMetadata
@@ -157,6 +158,29 @@ function self.ensureInitialBPM()
   table.insert(self.chart, 1, { beat = 0, bpm = self.metadata.chartBPM })
 end
 
+function self.tryLoadScript()
+  if not chart.metadata.modfilePath then return end
+  if not chart.chartDir then return end
+
+  local file, err = io.open(chart.chartDir .. chart.metadata.modfilePath, 'r')
+  if not file then
+    logs.log('Error loading script: ' .. err)
+    return
+  end
+
+  local content = file:read('*a')
+  file:close()
+
+  local loaded, err = load(content, chart.metadata.modfilePath, 't')
+  if not loaded then
+    logs.log('Error parsing script: ' .. err)
+    return
+  end
+
+  chart.loadedScript = loaded
+  return true
+end
+
 function self.openPath(filepath)
   local file, err = io.open(filepath, 'r')
   if not file then
@@ -172,6 +196,7 @@ function self.openPath(filepath)
   self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
+  self.tryLoadScript()
 
   self.loaded = true
   updateTitle()

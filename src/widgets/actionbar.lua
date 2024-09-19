@@ -257,6 +257,8 @@ local items = {
           { 'Use the options here at your own risk', disabled = true },
           { 'Undo history', function() config.config.debug.undoHistory = not config.config.debug.undoHistory; config.save() end,
           toggle = true, value = config.config.debug.undoHistory },
+          { 'Mods display', function() config.config.debug.modsDisplay = not config.config.debug.modsDisplay; config.save() end,
+          toggle = true, value = config.config.debug.modsDisplay },
           { 'Ignore draw cache', function() config.config.debug.alwaysIgnoreCache = not config.config.debug.alwaysIgnoreCache; config.save() end,
           toggle = true, value = config.config.debug.alwaysIgnoreCache },
         }))

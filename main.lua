@@ -33,6 +33,7 @@ local threads    = require 'src.threads'
 local colors     = require 'src.colors'
 local waveform   = require 'src.waveform'
 local xdrvColors = require 'src.xdrvcolors'
+local preview    = require 'src.preview'
 require 'src.events'
 
 function love.load(args)
@@ -152,8 +153,8 @@ function love.draw()
     , 0, sh - fonts.inter_12:getHeight() * 2)
   end
 
+  local y = 24
   if config.config.debug.undoHistory then
-    local y = 24
     for i, v in ipairs(chart.history) do
       love.graphics.print(tostring(i), 0, y)
       love.graphics.print((v.message or 'Action') .. (i == #chart.history and ' <-' or ''), 16, y)
@@ -165,6 +166,13 @@ function love.draw()
       y = y + 14
     end
     love.graphics.print('saved at ' .. chart.savedAtHistoryIndex .. ', #history: ' .. #chart.history .. ', #future: ' .. #chart.future, 16, y)
+  end
+  if config.config.debug.modsDisplay then
+    for mod in pairs(preview.getKnownModNames()) do
+      love.graphics.print(mod .. ':', 0, y)
+      love.graphics.print(string.format('%.2f', preview.getEasedValue(mod)), 150, y)
+      y = y + 14
+    end
   end
 end
 

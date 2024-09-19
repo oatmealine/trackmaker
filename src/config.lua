@@ -41,6 +41,7 @@ self.config = {
   debug = {
     undoHistory = false,
     alwaysIgnoreCache = false,
+    modsDisplay = false,
   },
 }
 self.defaults = deepcopy(self.config)

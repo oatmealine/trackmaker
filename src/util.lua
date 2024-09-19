@@ -292,3 +292,23 @@ function findIndex(tab, v)
     end
   end
 end
+
+---@generic A table<any>
+---@generic B table<any>
+---@param tab1 A
+---@param tab2 B
+---@return B
+function merge(tab1, tab2)
+  local tab = {}
+  for k, v in pairs(tab1) do
+    tab[k] = v
+  end
+  for k, v in pairs(tab2) do
+    if type(v) == 'table' and type(tab[k]) == 'table' then
+      tab[k] = merge(tab[k], v)
+    elseif v ~= nil then
+      tab[k] = v
+    end
+  end
+  return tab
+end
