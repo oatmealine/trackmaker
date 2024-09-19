@@ -42,17 +42,23 @@ local items = {
         end
         self:openChild(i, ContextWidget(0, 0, entries))
       end, expandable = true },
-      { 'Close',       function() chart.loaded = false; chart.chart = nil; chart.metadata = nil end },
+      { 'Close',       function() chart.loaded = false; chart.chart = nil; chart.metadata = nil end, disabled = not chart.loaded },
       {},
-      { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave },
-      { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save },
+      { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave, disabled = not chart.loaded },
+      { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save,      disabled = not chart.loaded },
+      { 'Open in file browser', function() love.system.openURL('file://' .. chart.chartDir) end, disabled = not chart.chartDir },
+      { 'Reload', function()
+        local b = conductor.beat
+        chart.openPath(chart.chartLocation)
+        conductor.seekBeats(b)
+      end, disabled = not chart.chartLocation },
       { 'Import',   hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
           { '.SM/.SSC file', function() chart.importMenu('sm,ssc') end },
         }))
       end, expandable = true },
       {},
-      { 'Metadata...', function() openWidget(MetadataWidget(), true) end },
+      { 'Metadata...', function() openWidget(MetadataWidget(), true) end, disabled = not chart.loaded },
       {},
       { 'Exit',        function() love.event.quit(0) end}
     }
@@ -107,12 +113,12 @@ local items = {
   end },
   { 'Edit', function()
     return {
-      { 'Undo',  function() edit.undo()  end, bind = keybinds.binds.undo },
-      { 'Redo',  function() edit.redo()  end, bind = keybinds.binds.redo },
+      { 'Undo',  function() edit.undo()  end, bind = keybinds.binds.undo, disabled = #chart.history <= 1 },
+      { 'Redo',  function() edit.redo()  end, bind = keybinds.binds.redo, disabled = #chart.future == 0 },
       {},
       { 'Cut',   function() edit.cut()   end, bind = keybinds.binds.cut },
       { 'Copy',  function() edit.copy()  end, bind = keybinds.binds.copy },
-      { 'Paste', function() edit.paste() end, bind = keybinds.binds.paste },
+      { 'Paste', function() edit.paste() end, bind = keybinds.binds.paste, disabled = not edit.hasSomethingToPaste() },
       {},
       { 'Mirror',   hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
@@ -123,7 +129,7 @@ local items = {
       end, expandable = true },
       {},
       { 'Select All', function() edit.selectAll() end, bind = keybinds.binds.selectAll },
-      { 'Delete',     function() edit.deleteKey() end, bind = keybinds.binds.delete },
+      { 'Delete',     function() edit.deleteKey() end, bind = keybinds.binds.delete, disabled = #edit.selection == 0 },
     }
   end},
   { 'Options', function()

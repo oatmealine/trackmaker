@@ -142,7 +142,7 @@ function ContextWidget:click(x, y, button)
 
   if not entry then return end
 
-  if entry[2] and not entry.slider then
+  if entry[2] and not entry.disabled and not entry.slider then
     local res = entry[2](self)
     if not res then
       self:close()
@@ -212,6 +212,9 @@ function ContextWidget:draw()
         love.graphics.setColor(colors.text:unpack())
         if hovered then
           love.graphics.setColor((colors.hoverText or colors.text):unpack())
+        end
+        if entry.disabled then
+          love.graphics.setColor(colors.textSecondary:unpack())
         end
         love.graphics.draw(text, MARGIN + LEFT_PAD, round(y + HEIGHT/2 - text:getHeight()/2))
       end

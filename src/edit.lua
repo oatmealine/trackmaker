@@ -365,6 +365,10 @@ function self.copy()
   logs.log('Copied ' .. #self.selection .. ' things')
   self.clearSelection()
 end
+function self.hasSomethingToPaste()
+  local clip = love.system.getClipboardText()
+  return clipboard.decode(clip) ~= nil
+end
 function self.paste()
   if not chart.loaded then return end
 
