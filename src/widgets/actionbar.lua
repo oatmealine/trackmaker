@@ -127,7 +127,7 @@ local items = {
     }
   end},
   { 'Options', function()
-    local width, height, flags = love.window.getMode()
+    local vsync = love.window.getVSync()
     return {
       { 'Beat tick', function()
         config.config.beatTick = not config.config.beatTick
@@ -139,11 +139,12 @@ local items = {
       end, toggle = true, value = config.config.noteTick, bind = keybinds.binds.noteTick },
       {},
       { 'VSync', function()
-        flags.vsync = 1 - flags.vsync
-        logs.log('VSync: ' .. ((flags.vsync == 1) and 'ON' or 'OFF'))
-        ---@diagnostic disable-next-line: param-type-mismatch
-        love.window.setMode(width, height, flags)
-      end, toggle = true, value = flags.vsync == 1 },
+        local newVsync = 1 - vsync
+        logs.log('VSync: ' .. ((newVsync == 1) and 'ON' or 'OFF'))
+        love.window.setVSync(newVsync)
+        config.config.vsync = newVsync == 1
+        config.save()
+      end, toggle = true, value = vsync == 1 },
       { 'Disable multithreading', function()
         config.config.noMultithreading = not config.config.noMultithreading
         logs.log('Multithreading: ' .. (config.config.noMultithreading and 'OFF' or 'ON'))

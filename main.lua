@@ -46,6 +46,8 @@ function love.load(args)
     DEV = true
   end
 
+  love.window.setVSync(config.config.vsync and 1 or 0)
+
   local loadedFile
   local loadedFileBeat
   local loadedFileCheckpoint
@@ -162,6 +164,7 @@ function love.draw()
       love.graphics.print((v.message or 'Action'), 16, y)
       y = y + 14
     end
+    love.graphics.print('saved at ' .. chart.savedAtHistoryIndex .. ', #history: ' .. #chart.history .. ', #future: ' .. #chart.future, 16, y)
   end
 end
 

@@ -22,6 +22,20 @@ self.chartDir = nil
 ---@type string
 self.chartLocation = nil
 
+local function updateTitle()
+  if self.loaded then
+    local dirtyMark = ''
+    if self.isDirty() then dirtyMark = ' ·' end
+    love.window.setTitle(
+      self.metadata.musicTitle ..
+      ' ' .. self.diffMark() ..
+      ' - trackmaker' .. dirtyMark
+    )
+  else
+    love.window.setTitle('trackmaker')
+  end
+end
+
 local MAX_HISTORY_LENGTH = 50
 
 ---@alias Memory { message: string?, chart: XDRVThing[] }
@@ -53,10 +67,12 @@ function self.insertHistory(message)
       self.savedAtHistoryIndex = -1
     end
   end
+
+  updateTitle()
 end
 
 function self.isDirty()
-  return self.savedAtHistoryIndex == #self.history
+  return self.savedAtHistoryIndex ~= #self.history or (#self.history == #self.future == 0)
 end
 
 ---@param memory Memory
@@ -78,6 +94,7 @@ function self.undo()
   end
 
   events.onChartEdit()
+  updateTitle()
 
   return top
 end
@@ -95,6 +112,7 @@ function self.redo()
   end
 
   events.onChartEdit()
+  updateTitle()
 
   return top
 end
@@ -102,24 +120,11 @@ end
 function self.markDirty()
   -- when metadata gets undoing, this should no longer be necessary
   self.savedAtHistoryIndex = -1
+  updateTitle()
 end
 
 function self.diffMark()
   return '[' .. xdrv.formatDifficultyShort(self.metadata.chartDifficulty) .. lpad(tostring(self.metadata.chartLevel), 2, '0') .. ']'
-end
-
-local function updateTitle()
-  if self.loaded then
-    local dirtyMark = ''
-    if self.isDirty() then dirtyMark = ' ·' end
-    love.window.setTitle(
-      self.metadata.musicTitle ..
-      ' ' .. self.diffMark() ..
-      ' - trackmaker' .. dirtyMark
-    )
-  else
-    love.window.setTitle('trackmaker')
-  end
 end
 
 function self.sort()

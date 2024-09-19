@@ -9,6 +9,7 @@ self.config = {
   musicRate = 1.0,
   beatTick = false,
   noteTick = false,
+  vsync = true,
   noMultithreading = false,
   theme = 'catppuccin_macchiato',
   xdrvColors = 'Default',
