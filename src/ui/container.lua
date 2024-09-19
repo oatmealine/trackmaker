@@ -1,4 +1,5 @@
 local Node = require 'src.ui.node'
+local Checkmark = require 'src.ui.checkmark'
 
 ---@class Container : Node
 local Container = Node:extend()
@@ -119,7 +120,11 @@ function Container.placeFormLike(rows, width)
       local width = remainder / #row[2] - GAP
       child.x = remainderX + x
       child.y = y + Y_GAP/2 - child.height/2
-      child.width = width
+      if not child:is(Checkmark) then
+        child.width = width
+      else
+        child.x = child.x + width/2 - child.width/2
+      end
       x = x + width
       table.insert(nodes, child)
     end

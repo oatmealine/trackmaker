@@ -2,6 +2,7 @@ local conductor = require 'src.conductor'
 local renderer  = require 'src.renderer'
 local widgets   = require 'src.widgets'
 local logs      = require 'src.logs'
+local preview   = require 'src.preview'
 
 -- globaled to avoid dependency hell issues
 events = {}
@@ -94,6 +95,7 @@ function events.onChartEdit(thing)
 
   events.redraw()
   conductor.initStates()
+  preview.bakeEases()
 end
 function events.onChartLoad()
   logs.logFile('event : onChartLoad')
@@ -104,6 +106,7 @@ function events.onChartLoad()
   widgets.callEvent('chartUpdate')
   renderer.updateTimingEvents()
   events.redraw()
+  preview.bakeEases()
   chart.clearHistory()
   chart.insertHistory('Load chart')
 end

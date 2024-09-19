@@ -204,7 +204,7 @@ local function drawCheckpoint(thing, sh)
   end
 end
 
-local gradMesh = love.graphics.newMesh({
+local gearshiftMesh = love.graphics.newMesh({
   { 0,    0, 0, 0, 1, 1, 1, 1 },
   { 0,    1, 0, 0, 1, 1, 1, 1 },
   { 0.2,  0, 0, 0, 1, 1, 1, 0 },
@@ -242,7 +242,7 @@ local function drawGearShift(thing, sh)
   local width = NOTE_WIDTH * 3 * offset * scale()
 
   love.graphics.setColor(color:alpha(0.3):unpack())
-  love.graphics.draw(gradMesh, x, yEnd, 0, width, y - yEnd)
+  love.graphics.draw(gearshiftMesh, x, yEnd, 0, width, y - yEnd)
   love.graphics.setColor(color:alpha(0.05):unpack())
   love.graphics.rectangle('fill', x, yEnd, width, y - yEnd)
 end
@@ -633,6 +633,19 @@ function self.drawCanvas(static)
     return
   end
 
+  if config.config.previewMode then
+    love.graphics.setColor(getLaneColor(xdrv.XDRVLane.Left):unpack(preview.getPathAlpha(xdrv.XDRVLane.Left)))
+    love.graphics.draw(laneGradMesh, 0, 0, 0, scx - 100, sh)
+    love.graphics.setColor(getLaneColor(xdrv.XDRVLane.Right):unpack(preview.getPathAlpha(xdrv.XDRVLane.Right)))
+    love.graphics.draw(laneGradMesh, scx + 100, 0, 0, scx - 100, sh)
+    love.graphics.setBlendMode('add')
+    love.graphics.setColor(1, 1, 1, preview.getPathBloom(xdrv.XDRVLane.Left))
+    love.graphics.draw(laneGradMesh, 0, 0, 0, scx - 100, sh)
+    love.graphics.setColor(1, 1, 1, preview.getPathBloom(xdrv.XDRVLane.Right))
+    love.graphics.draw(laneGradMesh, scx + 100, 0, 0, scx - 100, sh)
+    love.graphics.setBlendMode('alpha')
+  end
+
   local prevCanvas = love.graphics.getCanvas()
   if config.config.previewMode then
     love.graphics.setCanvas(canvas3d)
@@ -889,6 +902,8 @@ end
 
 -- Cannot be static; for animated / frequently updating anims
 function self.drawPost()
+  if not chart.loaded then return end
+
   local sw, sh, scx, scy = screenCoords()
 
   love.graphics.push()
@@ -1093,6 +1108,7 @@ function laneRelease(i)
 end
 
 function self.mousepressed(x, y, button)
+  if not chart.loaded then return end
   if hoveredEventCtx then
     hoveredEventCtx.delete = true
     hoveredEventCtx = nil
@@ -1135,6 +1151,7 @@ function self.mousepressed(x, y, button)
   end
 end
 function self.mousereleased(x, y, button)
+  if not chart.loaded then return end
   if button == 1 and selectionX and selectionY then
     local x1, y1, x2, y2 = math.min(selectionX, x), math.min(selectionY, y), math.max(selectionX, x), math.max(selectionY, y)
     selectionX, selectionY = nil, nil
@@ -1196,6 +1213,7 @@ function self.mousereleased(x, y, button)
 end
 
 function self.wheelmoved(delta)
+  if not chart.loaded then return end
   if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
     zoom = zoom * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
     events.redraw()

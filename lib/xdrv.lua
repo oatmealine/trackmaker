@@ -60,6 +60,11 @@ M.XDRVDifficulty = {
   Extreme = 3,
 }
 
+M.STAGE_BACKGROUNDS = {
+  'tunnel',
+  'city'
+}
+
 ---@class XDRVMetadata @ https://github.com/tari-cat/XDRV/blob/main/Assets/Scripts/XDRVEditorScripts/XDRV.cs#L631
 ---@field musicTitle string @ MUSIC_TITLE
 ---@field alternateTitle string @ ALTERNATE_TITLE

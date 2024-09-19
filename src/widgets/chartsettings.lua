@@ -3,15 +3,17 @@ local Button    = require 'src.ui.button'
 local Checkmark = require 'src.ui.checkmark'
 local Label     = require 'src.ui.label'
 local Textfield = require 'src.ui.textfield'
+local Select    = require 'src.ui.select'
 local UIWidget  = require 'src.widgets.ui'
+local xdrv      = require 'lib.xdrv'
 
 local logs      = require 'src.logs'
 
 ---@class ChartSettingsWidget : UIWidget
 local ChartSettingsWidget = UIWidget:extend()
 
-local WIDTH = 170
-local HEIGHT = 190
+local WIDTH = 220
+local HEIGHT = 220
 
 function ChartSettingsWidget:new(x, y)
   ChartSettingsWidget.super.new(self, x, y, self:getContainer())
@@ -54,6 +56,15 @@ function ChartSettingsWidget:getContainer()
       chart.metadata.isFlashTrack = value
       chart.markDirty()
     end, metadata.isFlashTrack ) } },
+    {
+      Label(0, 0, 'Stage Background'),
+      {
+        Select(0, 0, xdrv.STAGE_BACKGROUNDS, function(value)
+          chart.metadata.stageBackground = xdrv.STAGE_BACKGROUNDS[value]
+          chart.markDirty()
+        end, findIndex(xdrv.STAGE_BACKGROUNDS, chart.metadata.stageBackground)),
+      }
+    }
   }, WIDTH)
 
   if not chart.loaded then

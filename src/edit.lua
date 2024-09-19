@@ -102,6 +102,8 @@ end
 
 ---@param column XDRVNoteColumn
 function self.beginNote(column)
+  self.clearSelection()
+
   local beat = getBeat()
 
   if mode == self.Mode.Insert or mode == self.Mode.Append then
@@ -141,6 +143,8 @@ function self.beginNote(column)
 end
 ---@param lane XDRVLane
 function self.beginGearShift(lane)
+  self.clearSelection()
+
   local beat = getBeat()
   local thing = { beat = beat, gearShift = { lane = lane } }
 

@@ -280,3 +280,15 @@ end
 function titleCase(str)
   return string.upper(string.sub(str, 1, 1)) .. string.lower(string.sub(str, 2))
 end
+
+---@generic K, V
+---@param tab table<V, K>
+---@param v V
+---@return K?
+function findIndex(tab, v)
+  for k, v2 in pairs(tab) do
+    if v2 == v then
+      return k
+    end
+  end
+end
