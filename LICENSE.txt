@@ -37,6 +37,10 @@ This project contains code, assets and binaries from the following projects
   License: SIL Open Font License 1.1
   Copyright © 2016 The Inter Project Authors
 
+- Input Prompts
+  License: CC0 1.0
+  Copyright © 2010-2024 Kenney
+
 - EX-XDRiVER
   License: All rights reserved, used with permission
   Copyright © 2024 Team XDRV

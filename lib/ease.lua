@@ -1,4 +1,5 @@
 -- https://github.com/EX-XDRiVER/Chart-Documentation/blob/main/mods.md
+-- https://gist.github.com/Kryzarel/bba64622057f21a1d6d44879f9cd7bd4
 
 local sin, cos, pow, sqrt, abs, pi = math.sin, math.cos, math.pow, math.sqrt, math.abs, math.pi
 
