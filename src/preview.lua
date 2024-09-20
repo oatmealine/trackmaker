@@ -94,6 +94,16 @@ local defaultValues = {
   mod_lane_color_alpha = 1,
 }
 
+local aliases = {
+  mod_camera_move_x = 'mod_camera_position_x',
+  mod_camera_move_y = 'mod_camera_position_y',
+  mod_camera_move_z = 'mod_camera_position_z',
+  mod_camera_rotate_x = 'mod_camera_rotation_x',
+  mod_camera_rotate_y = 'mod_camera_rotation_y',
+  mod_camera_rotate_z = 'mod_camera_rotation_z',
+  mod_camera_field_of_vision = 'mod_camera_fov',
+}
+
 ---@param type string
 ---@param beat number?
 function self.getEasedValue(type, beat)
@@ -109,7 +119,8 @@ function self.getEasedValue(type, beat)
   for _, ease in ipairs(eases) do
     if (ease.beat and ease.beat > beat) or (ease.time and ease.time > time) then break end
 
-    if ease.ease.target == type then
+    local target = aliases[ease.ease.target] or ease.ease.target
+    if target == type then
       local a = ((ease.time and time or beat) - (ease.time and ease.time or ease.beat)) / ease.ease.dur
       value = mix(ease.ease.startValue or value, ease.ease.value, ease.ease.ease(clamp(a, 0, 1)))
     end
@@ -302,7 +313,7 @@ function fauxXDRV:__index(idx)
 end
 
 local safeEnv = {
-  coroutine = copy(coroutine),
+  coroutine = deepcopy(coroutine),
   assert = assert,
   tostring = tostring,
   tonumber = tonumber,
@@ -317,12 +328,12 @@ local safeEnv = {
   loadstring = loadstring,
   rawset = rawset,
   unpack = unpack,
-  table = copy(table),
+  table = deepcopy(table),
   next = next,
-  math = copy(math),
+  math = deepcopy(math),
   load = load,
   select = select,
-  string = copy(string),
+  string = deepcopy(string),
   type = type,
   getmetatable = getmetatable,
   setmetatable = setmetatable
@@ -376,7 +387,8 @@ function self.bakeEases()
 
   knownModNames = {}
   for _, ease in ipairs(eases) do
-    knownModNames[ease.ease.target] = true
+    local target = aliases[ease.ease.target] or ease.ease.target
+    knownModNames[target] = true
   end
 end
 

@@ -42,7 +42,7 @@ local items = {
         end
         self:openChild(i, ContextWidget(0, 0, entries))
       end, expandable = true },
-      { 'Close',       function() chart.loaded = false; chart.chart = nil; chart.metadata = nil end, disabled = not chart.loaded },
+      { 'Close',       function() chart.loaded = false; chart.chart = nil; chart.metadata = nil; chart.loadedScript = nil; end, disabled = not chart.loaded },
       {},
       { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave, disabled = not chart.loaded },
       { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save,      disabled = not chart.loaded },

@@ -159,8 +159,14 @@ function self.ensureInitialBPM()
 end
 
 function self.tryLoadScript()
-  if not chart.metadata.modfilePath then return end
-  if not chart.chartDir then return end
+  if not chart.metadata.modfilePath then
+    logs.logFile('No modfile to load')
+    return
+  end
+  if not chart.chartDir then
+    logs.logFile('No chartDir to base navigation off of for modfile loading')
+    return
+  end
 
   local file, err = io.open(chart.chartDir .. chart.metadata.modfilePath, 'r')
   if not file then
@@ -170,6 +176,22 @@ function self.tryLoadScript()
 
   local content = file:read('*a')
   file:close()
+
+  -- moonscript / luajit syntax inconsistency fix
+  -- VERY HACKY and AWFUL and etc etc
+  if string.find(content, '%)%s*\n%s*%(') then
+    logs.log('Script uses ambiguous syntax (function call x new statement) supported by MoonScript but unsupported by LuaJIT.')
+    logs.log('I will try my best to transform the script into something functional.')
+    logs.log('The result will be logged to the console and log file')
+
+    -- strip comments
+    content = string.gsub(content, '\n%s*%-%-.-\n', '\n')
+    content = string.gsub(content, '%-%-%[%[.-%]%]%-%-', '\n') -- this doesn't handle --[=[ ]=] syntax, but Oh Fucking Well
+    -- strip ambigious syntax
+    content = string.gsub(content, '%)%s*\n+%s*%(', ')(')
+
+    logs.logStdout(content)
+  end
 
   local loaded, err = load(content, chart.metadata.modfilePath, 't')
   if not loaded then
@@ -196,6 +218,7 @@ function self.openPath(filepath)
   self.chartLocation = filepath
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
+  self.loadedScript = nil
   self.tryLoadScript()
 
   self.loaded = true

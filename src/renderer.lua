@@ -872,8 +872,7 @@ function self.drawCanvas(static)
     love.graphics.setShader(vertShader)
 
     -- WHY ?????????????????
-    --local yMult = prevCanvas and -1 or 1
-    local yMult = -1
+    local yMult = prevCanvas and -1 or 1
 
     local m = cpml.mat4()
 
@@ -887,10 +886,9 @@ function self.drawCanvas(static)
     m:scale(m, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
 
     local v = cpml.mat4().from_direction(cpml.vec3(0, 0, -1), cpml.vec3(0, 1, 0))
-    v:scale(v, { x = 1, y = yMult, z = 1 })
     v:translate(m,
       cpml.vec3(0, 3.1, -4)
-      + cpml.vec3(preview.getModValue('camera_position_x'), preview.getModValue('camera_position_y'), preview.getModValue('camera_position_z'))
+      + cpml.vec3(preview.getModValue('camera_position_x'), -preview.getModValue('camera_position_y'), -preview.getModValue('camera_position_z'))
     )
 
     --v:rotate(v, math.rad(-(90 - 59)), cpml.vec3.unit_x)
@@ -903,6 +901,7 @@ function self.drawCanvas(static)
     v = cpml.mat4.from_quaternion(quat) * v
 
     local p = cpml.mat4().from_perspective(clamp(preview.getModValue('camera_fov'), 1, 179), love.graphics.getWidth() / love.graphics.getHeight(), 0.3, 1000.0)
+    p:scale(p, { x = 1, y = yMult, z = 1 })
 
     vertShader:send('modelMatrix', m:to_vec4s_cols())
     vertShader:send('viewMatrix', v:to_vec4s_cols())
