@@ -396,11 +396,20 @@ local QUANT_COLORS = {
   nil,
 }
 
+--  x  y  z  ?  r  g  b  a
 local laneGradMesh = love.graphics.newMesh({
-  { 0,    0, 0, 0, 1, 1, 1, 0 },
-  { 1,    0, 0, 0, 1, 1, 1, 0 },
-  { 0,    1, 0, 0, 1, 1, 1, 1 },
-  { 1,    1, 0, 0, 1, 1, 1, 1 },
+  { 0, 0, 0, 0, 1, 1, 1, 0 },
+  { 1, 0, 0, 0, 1, 1, 1, 0 },
+  { 0, 1, 0, 0, 1, 1, 1, 1 },
+  { 1, 1, 0, 0, 1, 1, 1, 1 },
+}, 'strip', 'static')
+
+--  x  y  z  ?  r  g  b  a
+local lightsGradMesh = love.graphics.newMesh({
+  { 0, 0, 0, 0, 1, 1, 1, 1 },
+  { 1, 0, 0, 0, 1, 1, 1, 0 },
+  { 0, 1, 0, 0, 1, 1, 1, 1 },
+  { 1, 1, 0, 0, 1, 1, 1, 0 },
 }, 'strip', 'static')
 
 ---@type easable[]
@@ -634,15 +643,15 @@ function self.drawCanvas(static)
   end
 
   if config.config.previewMode then
-    love.graphics.setColor(getLaneColor(xdrv.XDRVLane.Left):unpack(preview.getPathAlpha(xdrv.XDRVLane.Left)))
-    love.graphics.draw(laneGradMesh, 0, 0, 0, scx - 100, sh)
-    love.graphics.setColor(getLaneColor(xdrv.XDRVLane.Right):unpack(preview.getPathAlpha(xdrv.XDRVLane.Right)))
-    love.graphics.draw(laneGradMesh, scx + 100, 0, 0, scx - 100, sh)
     love.graphics.setBlendMode('add')
+    love.graphics.setColor(getLaneColor(xdrv.XDRVLane.Left):unpack(preview.getPathAlpha(xdrv.XDRVLane.Left)))
+    love.graphics.draw(lightsGradMesh, 0, 0, 0, sw * 0.5, sh)
+    love.graphics.setColor(getLaneColor(xdrv.XDRVLane.Right):unpack(preview.getPathAlpha(xdrv.XDRVLane.Right)))
+    love.graphics.draw(lightsGradMesh, sw, 0, 0, -(sw * 0.5), sh)
     love.graphics.setColor(1, 1, 1, preview.getPathBloom(xdrv.XDRVLane.Left))
-    love.graphics.draw(laneGradMesh, 0, 0, 0, scx - 100, sh)
+    love.graphics.draw(lightsGradMesh, 0, 0, 0, sw * 0.6, sh)
     love.graphics.setColor(1, 1, 1, preview.getPathBloom(xdrv.XDRVLane.Right))
-    love.graphics.draw(laneGradMesh, scx + 100, 0, 0, scx - 100, sh)
+    love.graphics.draw(lightsGradMesh, sw, 0, 0, -(sw * 0.6), sh)
     love.graphics.setBlendMode('alpha')
   end
 
