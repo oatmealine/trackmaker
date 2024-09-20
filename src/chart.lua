@@ -159,16 +159,16 @@ function self.ensureInitialBPM()
 end
 
 function self.tryLoadScript()
-  if not chart.metadata.modfilePath then
+  if not self.metadata.modfilePath then
     logs.logFile('No modfile to load')
     return
   end
-  if not chart.chartDir then
+  if not self.chartDir then
     logs.logFile('No chartDir to base navigation off of for modfile loading')
     return
   end
 
-  local file, err = io.open(chart.chartDir .. chart.metadata.modfilePath, 'r')
+  local file, err = io.open(self.chartDir .. self.metadata.modfilePath, 'r')
   if not file then
     logs.warn('Error loading script: ' .. err)
     return
@@ -176,6 +176,11 @@ function self.tryLoadScript()
 
   local content = file:read('*a')
   file:close()
+
+  if not content then
+    logs.warn('Error loading script: empty')
+    return
+  end
 
   -- moonscript / luajit syntax inconsistency fix
   -- VERY HACKY and AWFUL and etc etc
@@ -193,13 +198,13 @@ function self.tryLoadScript()
     logs.logStdout(content)
   end
 
-  local loaded, err = load(content, chart.metadata.modfilePath, 't')
+  local loaded, err = load(content, self.metadata.modfilePath, 't')
   if not loaded then
     logs.warn('Error parsing script: ' .. err)
     return
   end
 
-  chart.loadedScript = loaded
+  self.loadedScript = loaded
   return true
 end
 
@@ -219,7 +224,9 @@ function self.openPath(filepath)
   self.metadata = loaded.metadata
   self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
   self.loadedScript = nil
-  self.tryLoadScript()
+  if self.tryLoadScript() then
+    logs.log('Loaded script ' .. self.metadata.modfilePath)
+  end
 
   self.loaded = true
   updateTitle()

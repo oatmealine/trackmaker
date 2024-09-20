@@ -895,9 +895,10 @@ function self.drawCanvas(static)
     m:scale(m, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
 
     local v = cpml.mat4().from_direction(cpml.vec3(0, 0, -1), cpml.vec3(0, 1, 0))
-    v:translate(m,
+    v:scale(v, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
+
+    v:translate(v,
       cpml.vec3(0, 3.1, -4)
-      + cpml.vec3(preview.getModValue('camera_position_x'), -preview.getModValue('camera_position_y'), -preview.getModValue('camera_position_z'))
     )
 
     --v:rotate(v, math.rad(-(90 - 59)), cpml.vec3.unit_x)
@@ -908,6 +909,10 @@ function self.drawCanvas(static)
 
     local quat = eulerToQuaternion(euler:unpack())
     v = cpml.mat4.from_quaternion(quat) * v
+
+    v:translate(v,
+      cpml.vec3(preview.getModValue('camera_position_x'), -preview.getModValue('camera_position_y'), preview.getModValue('camera_position_z'))
+    )
 
     local p = cpml.mat4().from_perspective(clamp(preview.getModValue('camera_fov'), 1, 179), love.graphics.getWidth() / love.graphics.getHeight(), 0.3, 1000.0)
     p:scale(p, { x = 1, y = yMult, z = 1 })
