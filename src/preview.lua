@@ -85,12 +85,22 @@ local defaultValues = {
   BloomIntensity = 1,
   BloomDiffusion = 1,
 
+  -- https://github.com/tari-cat/XDRV/blob/main/Assets/Scripts/XDRVEditorScripts/Mods.cs#L692
   mod_speed = 1,
+  mod_camera_fov = 100,
+  mod_lane_color_red = 0.075,
+  mod_lane_color_green = 0.075,
+  mod_lane_color_blue = 0.075,
+  mod_lane_color_alpha = 1,
 }
 
 ---@param type string
 ---@param beat number?
 function self.getEasedValue(type, beat)
+  if not config.config.previewMode then
+    return defaultValues[type] or 0
+  end
+
   beat = beat or conductor.beat
   local time = conductor.timeAtBeat(beat)
 

@@ -1,4 +1,5 @@
 local utf8 = require 'utf8'
+local cpml = require 'lib.cpml'
 
 ---@generic T
 ---@param a T
@@ -311,4 +312,27 @@ function merge(tab1, tab2)
     end
   end
   return tab
+end
+
+function eulerToQuaternion(yaw, pitch, roll)
+  -- https://gist.github.com/HelloKitty/91b7af87aac6796c3da9#file-quaternion-cs-L644
+  -- bless you github user HelloKitty
+  -- trying to mimic Unity's Quaternion.Euler()
+
+  local rollOver2 = roll * 0.5;
+  local sinRollOver2 = math.sin(rollOver2)
+  local cosRollOver2 = math.cos(rollOver2)
+  local pitchOver2 = pitch * 0.5
+  local sinPitchOver2 = math.sin(pitchOver2)
+  local cosPitchOver2 = math.cos(pitchOver2)
+  local yawOver2 = yaw * 0.5
+  local sinYawOver2 = math.sin(yawOver2)
+  local cosYawOver2 = math.cos(yawOver2)
+
+  return cpml.quat.new(
+    cosYawOver2 * cosPitchOver2 * cosRollOver2 + sinYawOver2 * sinPitchOver2 * sinRollOver2,
+    cosYawOver2 * cosPitchOver2 * sinRollOver2 - sinYawOver2 * sinPitchOver2 * cosRollOver2,
+    cosYawOver2 * sinPitchOver2 * cosRollOver2 + sinYawOver2 * cosPitchOver2 * sinRollOver2,
+    sinYawOver2 * cosPitchOver2 * cosRollOver2 - cosYawOver2 * sinPitchOver2 * sinRollOver2
+  )
 end
