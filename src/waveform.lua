@@ -32,7 +32,7 @@ function self.init(data)
   self.decoder = love.sound.newDecoder(data, BUFFER_SIZE)
 
   if self.decoder:getDuration() == -1 then
-    logs.log('waveform: couldn\'t figure out song duration')
+    logs.warn('waveform: couldn\'t figure out song duration')
     self.decoder = nil
     return
   end

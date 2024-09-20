@@ -50,7 +50,7 @@ function M.loadSong(songPath)
     end
     file:close()
   else
-    logs.log(err)
+    logs.warn(err)
   end
 end
 

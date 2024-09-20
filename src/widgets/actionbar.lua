@@ -193,7 +193,7 @@ local items = {
             if not path then return end
             local file, err = io.open(path, 'r')
             if not file then
-              logs.log(err)
+              logs.warn(err)
               return
             end
             local raw = file:read('*a')

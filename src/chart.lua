@@ -170,7 +170,7 @@ function self.tryLoadScript()
 
   local file, err = io.open(chart.chartDir .. chart.metadata.modfilePath, 'r')
   if not file then
-    logs.log('Error loading script: ' .. err)
+    logs.warn('Error loading script: ' .. err)
     return
   end
 
@@ -180,9 +180,9 @@ function self.tryLoadScript()
   -- moonscript / luajit syntax inconsistency fix
   -- VERY HACKY and AWFUL and etc etc
   if string.find(content, '%)%s*\n%s*%(') then
-    logs.log('Script uses ambiguous syntax (function call x new statement) supported by MoonScript but unsupported by LuaJIT.')
-    logs.log('I will try my best to transform the script into something functional.')
-    logs.log('The result will be logged to the console and log file')
+    logs.warn('Script uses ambiguous syntax (function call x new statement) supported by MoonScript but unsupported by LuaJIT.')
+    logs.warn('I will try my best to transform the script into something functional.')
+    logs.warn('The result will be logged to the console and log file')
 
     -- strip comments
     content = string.gsub(content, '\n%s*%-%-.-\n', '\n')
@@ -195,7 +195,7 @@ function self.tryLoadScript()
 
   local loaded, err = load(content, chart.metadata.modfilePath, 't')
   if not loaded then
-    logs.log('Error parsing script: ' .. err)
+    logs.warn('Error parsing script: ' .. err)
     return
   end
 
@@ -206,7 +206,7 @@ end
 function self.openPath(filepath)
   local file, err = io.open(filepath, 'r')
   if not file then
-    logs.log(err)
+    logs.warn(err)
     return
   end
   local data = file:read('*a')
@@ -252,7 +252,7 @@ function self.importPath(filepath, filetype)
     local file, err = io.open(filepath, 'r')
     if not file then
       print(err)
-      logs.log(err)
+      logs.warn(err)
       return
     end
     local data = file:read('*a')
@@ -490,7 +490,7 @@ local function save(filepath, noBackup)
       oldFile:close()
       local backupFile, err = io.open(oldFilepath, 'w')
       if not backupFile then
-        logs.log(err)
+        logs.warn(err)
         return
       end
       backupFile:write(oldContents)
@@ -507,7 +507,7 @@ local function save(filepath, noBackup)
 
   local file, err = io.open(filepath, 'w')
   if not file then
-    logs.log(err)
+    logs.warn(err)
     return
   end
   file:write(contents)

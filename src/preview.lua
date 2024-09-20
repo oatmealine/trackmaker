@@ -177,7 +177,7 @@ function fauxXDRV.__checkArg(value, index, typee)
 end
 function fauxXDRV.__warn(msg)
   local info = debug.getinfo(3, 'lS')
-  logs.log('Warning: ' .. info.short_src .. ':' .. info.currentline .. ': ' .. msg)
+  logs.warn('Warning: ' .. info.short_src .. ':' .. info.currentline .. ': ' .. msg)
 end
 
 function fauxXDRV.RunEvent(eventName, beatOrTime, timingValue, ...)
@@ -363,7 +363,7 @@ function self.bakeEases()
 
     local success, res = pcall(chart.loadedScript)
     if not success then
-      logs.log('Error evaluating script: ' .. res)
+      logs.warn('Error evaluating script: ' .. res)
       -- reset to prevent stupid things from happening
       eases = {}
     end

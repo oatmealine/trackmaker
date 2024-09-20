@@ -142,7 +142,7 @@ function MetadataWidget:updateJacket()
     local path = chart.chartDir .. chart.metadata.jacketImage
     local file, err = io.open(path, 'rb')
     if not file then
-      logs.log(err)
+      logs.warn(err)
       return
     end
     local data = file:read('*a')
