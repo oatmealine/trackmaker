@@ -489,8 +489,10 @@ function self.keypressed(key, code, isRepeat)
     conductor.initStates()
   elseif key == 'left' then
     self.quantIndex = math.max(self.quantIndex - 1, 1)
+    events.redraw()
   elseif key == 'right' then
     self.quantIndex = math.min(self.quantIndex + 1, #QUANTS)
+    events.redraw()
   end
 
   if isRepeat then return end
