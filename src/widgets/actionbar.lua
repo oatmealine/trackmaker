@@ -48,10 +48,8 @@ local items = {
       { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save,      disabled = not chart.loaded },
       { 'Open in file browser', function() love.system.openURL('file://' .. chart.chartDir) end, disabled = not chart.chartDir },
       { 'Reload', function()
-        local b = conductor.beat
-        chart.openPath(chart.chartLocation)
-        conductor.seekBeats(b)
-      end, disabled = not chart.chartLocation },
+        chart.reload()
+      end, disabled = not chart.chartLocation, bind = keybinds.binds.reload },
       { 'Import',   hover = function(self, i)
         self:openChild(i, ContextWidget(0, 0, {
           { '.SM/.SSC file', function() chart.importMenu('sm,ssc') end },

@@ -92,6 +92,14 @@ self.binds = {
       edit.viewBinds = not edit.viewBinds
     end
   },
+  reload = {
+    name = 'Reload',
+    ctrl = true,
+    keys = { 'r' },
+    trigger = function()
+      chart.reload()
+    end
+  },
   dumpChart = {
     name = 'Dump chart to log',
     ctrl = true,

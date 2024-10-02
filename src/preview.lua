@@ -50,7 +50,7 @@ local function genericEase(target)
     target = target,
     value = alpha,
     dur = dur,
-    time = time or false,
+    time = time == 'time',
     ease = easeFunctionsLower[string.lower(ease or 'Linear')],
   } end
 end
@@ -133,7 +133,9 @@ function self.getModValue(type)
 end
 
 local function addEvent(beat, time, name, args)
-  local ease = easeConverters[name](unpack(args))
+  local conv = easeConverters[name]
+  if not conv then return end
+  local ease = conv(unpack(args))
 
   if ease.time and not time then
     time = conductor.timeAtBeat(beat)
@@ -166,6 +168,7 @@ function self.getPathBloom(lane)
     -- since we're faking bloom (for now), just multiply both of them, fuck it
     * self.getEasedValue('BloomIntensity')
     * self.getEasedValue('BloomDiffusion')
+    * self.getPathAlpha(lane)
 end
 
 local fauxXDRV = {}
@@ -193,7 +196,7 @@ function fauxXDRV.RunEvent(eventName, beatOrTime, timingValue, ...)
     (not time) and timingValue or nil,
     time and timingValue or nil,
     eventName,
-    ...
+    {...}
   )
 end
 fauxXDRV.run_event = fauxXDRV.RunEvent

@@ -893,26 +893,28 @@ function self.drawCanvas(static)
     --local modelScale = 2
 
     m:scale(m, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
+    m:translate(m,
+      cpml.vec3(preview.getModValue('track_move_x') / modelScale, preview.getModValue('track_move_z') / modelScale, -preview.getModValue('track_move_y') / modelScale)
+    )
 
-    local v = cpml.mat4().from_direction(cpml.vec3(0, 0, -1), cpml.vec3(0, 1, 0))
+    local v = cpml.mat4().from_direction(cpml.vec3(0, 0, 1), cpml.vec3(0, 1, 0))
     v:scale(v, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
 
-    v:translate(v,
-      cpml.vec3(0, 3.1, -4)
-    )
+    local originalPosition = cpml.vec3(0, 3.1, -4)
+    -- why is the y and z swapped and mirrored?
+    -- good question!
+    local camPos = cpml.vec3(preview.getModValue('camera_position_x'), -preview.getModValue('camera_position_z'), -preview.getModValue('camera_position_y'))
+    local originalRotation = cpml.vec3(math.rad(59), 0, 0)
+    local camRot = cpml.vec3(math.rad(preview.getModValue('camera_rotation_x')), math.rad(preview.getModValue('camera_rotation_y')), math.rad(preview.getModValue('camera_rotation_z')))
 
-    --v:rotate(v, math.rad(-(90 - 59)), cpml.vec3.unit_x)
+    local translate = originalPosition + camPos
+    -- unsure of why i have to mess with the rotations here, but...
+    local rotation = eulerToQuaternion((cpml.vec3(math.pi/2, 0, 0) - (originalRotation + camRot)):unpack())
 
-    local euler =
-      cpml.vec3(math.rad(180 + (90 - 59)), 0, 0)
-      - cpml.vec3(math.rad(preview.getModValue('camera_rotation_x')), math.rad(preview.getModValue('camera_rotation_y')), math.rad(preview.getModValue('camera_rotation_z')))
+    v:translate(v, translate)
+    v = cpml.mat4.from_quaternion(rotation) * v
 
-    local quat = eulerToQuaternion(euler:unpack())
-    v = cpml.mat4.from_quaternion(quat) * v
-
-    v:translate(v,
-      cpml.vec3(preview.getModValue('camera_position_x'), -preview.getModValue('camera_position_y'), preview.getModValue('camera_position_z'))
-    )
+    v:scale(v, {x = -1, y = -1, z = -1})
 
     local p = cpml.mat4().from_perspective(clamp(preview.getModValue('camera_fov'), 1, 179), love.graphics.getWidth() / love.graphics.getHeight(), 0.3, 1000.0)
     p:scale(p, { x = 1, y = yMult, z = 1 })

@@ -271,6 +271,12 @@ function self.importPath(filepath, filetype)
   end
 end
 
+function self.reload()
+  local b = conductor.beat
+  chart.openPath(chart.chartLocation)
+  conductor.seekBeats(b)
+end
+
 local styleMappings = {
   -- Lasdl;"R<>
   [1] = {
