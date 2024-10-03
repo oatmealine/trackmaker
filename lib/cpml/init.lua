@@ -34,6 +34,9 @@
 --]]
 local modules = (...) and (...):gsub('%.init$', '') .. ".modules." or ""
 
+---@class cpml
+---@field vec3 cpml.vec3
+---@field mat4 cpml.mat4
 local cpml = {
 	_LICENSE = "CPML is distributed under the terms of the MIT license. See LICENSE.md.",
 	_URL = "https://github.com/excessive/cpml",

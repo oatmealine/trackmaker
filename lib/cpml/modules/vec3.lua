@@ -7,6 +7,7 @@ local private = require(modules .. "_private_utils")
 local sqrt    = math.sqrt
 local cos     = math.cos
 local sin     = math.sin
+---@class cpml.vec3
 local vec3    = {}
 local vec3_mt = {}
 

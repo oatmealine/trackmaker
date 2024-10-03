@@ -886,8 +886,6 @@ function self.drawCanvas(static)
     -- WHY ?????????????????
     local yMult = prevCanvas and -1 or 1
 
-    local m = cpml.mat4()
-
     -- U = unity units
     local playfieldWidthU = (NOTE_WIDTH * 6 + GAP_WIDTH) / BASE_SCALE
     local canvasWidthU = playfieldWidthU - (CANVAS_PAD * 2) / BASE_SCALE
@@ -895,12 +893,7 @@ function self.drawCanvas(static)
     local modelScale = canvasWidthU/2
     --local modelScale = 2
 
-    m:scale(m, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
-    m:translate(m,
-      cpml.vec3(preview.getModValue('track_move_x') / modelScale, preview.getModValue('track_move_z') / modelScale, -preview.getModValue('track_move_y') / modelScale)
-    )
-
-    local v = cpml.mat4().from_direction(cpml.vec3(0, 0, 1), cpml.vec3(0, 1, 0))
+    local v = cpml.mat4.new().from_direction(cpml.vec3(0, 0, 1), cpml.vec3(0, 1, 0))
     v:scale(v, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
 
     local originalPosition = cpml.vec3(0, 3.1, -4)
@@ -922,9 +915,17 @@ function self.drawCanvas(static)
     local p = cpml.mat4().from_perspective(clamp(preview.getModValue('camera_fov'), 1, 179), love.graphics.getWidth() / love.graphics.getHeight(), 0.3, 1000.0)
     p:scale(p, { x = 1, y = yMult, z = 1 })
 
-    vertShader:send('modelMatrix', m:to_vec4s_cols())
     vertShader:send('viewMatrix', v:to_vec4s_cols())
     vertShader:send('projectionMatrix', p:to_vec4s_cols())
+
+    local m = cpml.mat4()
+
+    m:scale(m, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
+    m:translate(m,
+      cpml.vec3(preview.getModValue('track_move_x') / modelScale, preview.getModValue('track_move_z') / modelScale, -preview.getModValue('track_move_y') / modelScale)
+    )
+
+    vertShader:send('modelMatrix', m:to_vec4s_cols())
     love.graphics.draw(mesh3d)
     love.graphics.setShader()
 

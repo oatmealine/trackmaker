@@ -13,6 +13,7 @@ local cos       = math.cos
 local sin       = math.sin
 local tan       = math.tan
 local rad       = math.rad
+---@class cpml.mat4
 local mat4      = {}
 local mat4_mt   = {}
 
@@ -58,7 +59,7 @@ local tv4 = { 0, 0, 0, 0 }
 -- table Length 9 (3x3 matrix)
 -- table Length 4 (4 vec4s)
 -- nil
--- @treturn mat4 out
+---@return cpml.mat4
 function mat4.new(a)
 	local out = new()
 
@@ -133,9 +134,9 @@ function mat4.from_quaternion(q)
 end
 
 --- Create a matrix from a direction/up pair.
--- @tparam vec3 direction Vector direction
--- @tparam vec3 up Up direction
--- @treturn mat4 out
+---@param direction cpml.vec3
+---@param up cpml.vec3
+---@return cpml.mat4
 function mat4.from_direction(direction, up)
 	local forward = vec3.normalize(direction)
 	local side = vec3.cross(forward, up):normalize()
