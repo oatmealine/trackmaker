@@ -20,6 +20,7 @@ M.timeSignatures = {}
 M.fileData = nil
 M.measures = {}
 
+M.beat = 0
 M.time = 0
 M.playing = false
 

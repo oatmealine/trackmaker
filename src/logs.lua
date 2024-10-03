@@ -33,6 +33,9 @@ function self.draw()
   for _, log in ipairs(logs) do
     local lifetime = t - log.t
     local alpha = math.min(1, LOG_LIFETIME - lifetime)
+    local width = love.graphics.getFont():getWidth(log[1])
+    love.graphics.setColor(0, 0, 0, alpha * 0.6)
+    love.graphics.rectangle('fill', love.graphics.getWidth() - 24 - width - 4, y, width + 4 + 4, 16 * alpha)
     love.graphics.setColor(0, 0, 0, alpha * alpha * 0.4)
     love.graphics.printf(log[1], 2, y + 2, love.graphics.getWidth() - 24, 'right')
     love.graphics.setColor(1, 1, 1, alpha)
@@ -61,7 +64,7 @@ function self.log(text)
 end
 function self.warn(text)
   self.logFile('WARN: ' .. text)
-  table.insert(logs, { text, t = t + 5, warning = true })
+  table.insert(logs, { text, t = t + 8, warning = true })
 end
 
 love.filesystem.write('trackmaker.log', '')
