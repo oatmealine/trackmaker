@@ -19,6 +19,27 @@ function self.getScrollSpeed(beat)
   return speed
 end
 
+---@param value any @ value given
+---@param index number @ argument index
+---@param typee string @ expected type
+---@param nillable boolean? @ if nil is ok to pass
+---@param layer number? @ added to the error() call
+local function checkArg(value, index, typee, nillable, layer)
+  if value == nil and nillable then
+    return
+  end
+  if type(value) ~= typee then
+    error('expected arg #' .. index .. ' to be ' .. typee .. ', got ' .. type(value), layer or 3)
+  end
+end
+local function warn(msg, source)
+  if not source then
+    local info = debug.getinfo(3, 'lS')
+    source = info.short_src .. ':' .. info.currentline
+  end
+  logs.warn('Warning: ' .. source .. ': ' .. msg)
+end
+
 ---@alias Ease { target: string, startValue: number?, value: number, dur: number, time: boolean, ease: fun(a: number): number }
 ---@alias TimedEase { beat: number?, time: number?, ease: Ease }
 
@@ -37,22 +58,32 @@ local function genericSetConst(target, value)
 end
 
 local function genericSet(target)
-  return function(alpha) return {
-    target = target,
-    value = alpha,
-    dur = 0,
-    time = false,
-    ease = easeFunctions.Instant,
-  } end
+  return function(alpha)
+    checkArg(alpha, 1, 'number', false, 0)
+    return {
+      target = target,
+      value = alpha,
+      dur = 0,
+      time = false,
+      ease = easeFunctions.Instant,
+    }
+  end
 end
 local function genericEase(target)
-  return function(alpha, dur, time, ease) return {
-    target = target,
-    value = alpha,
-    dur = dur,
-    time = time == 'time',
-    ease = easeFunctionsLower[string.lower(ease or 'Linear')],
-  } end
+  return function(alpha, dur, time, ease)
+    checkArg(alpha, 1, 'number', false, 0)
+    checkArg(dur, 2, 'number', false, 0)
+    checkArg(time, 3, 'boolean', true, 0)
+    checkArg(ease, 4, 'string', true, 0)
+    local easeFunction = easeFunctionsLower[string.lower(ease or 'Linear')]
+    return {
+      target = target,
+      value = alpha,
+      dur = dur,
+      time = time or false,
+      ease = easeFunction,
+    }
+  end
 end
 
 -- https://github.com/EX-XDRiVER/Chart-Documentation/blob/main/backgrounds/global.md
@@ -92,6 +123,27 @@ local defaultValues = {
   mod_lane_color_green = 0.075,
   mod_lane_color_blue = 0.075,
   mod_lane_color_alpha = 1,
+  mod_note_scale_x = 1,
+  mod_note1_scale_x = 1,
+  mod_note2_scale_x = 1,
+  mod_note3_scale_x = 1,
+  mod_note4_scale_x = 1,
+  mod_note5_scale_x = 1,
+  mod_note6_scale_x = 1,
+  mod_note_scale_y = 1,
+  mod_note1_scale_y = 1,
+  mod_note2_scale_y = 1,
+  mod_note3_scale_y = 1,
+  mod_note4_scale_y = 1,
+  mod_note5_scale_y = 1,
+  mod_note6_scale_y = 1,
+  mod_note_scale_z = 1,
+  mod_note1_scale_z = 1,
+  mod_note2_scale_z = 1,
+  mod_note3_scale_z = 1,
+  mod_note4_scale_z = 1,
+  mod_note5_scale_z = 1,
+  mod_note6_scale_z = 1,
 }
 
 local aliases = {
@@ -132,6 +184,7 @@ function self.getModValue(type)
   return self.getEasedValue('mod_' .. type)
 end
 
+-- !! WILL ERROR IN YOUR FACE !!
 local function addEvent(beat, time, name, args)
   local conv = easeConverters[name]
   if not conv then return end
@@ -171,33 +224,44 @@ function self.getPathBloom(lane)
     * self.getPathAlpha(lane)
 end
 
+local function getNotePosAxis(column, axis)
+  return self.getModValue('note' .. column .. '_move_' .. axis) + self.getModValue('note' .. '_move_' .. axis)
+end
+---@param column number
+function self.getNotePos(column)
+  local str = column and tostring(column) or ''
+  return getNotePosAxis(str, 'x'), getNotePosAxis(str, 'y'), getNotePosAxis(str, 'z')
+end
+local function getNoteScaleAxis(column, axis)
+  return self.getModValue('note' .. column .. '_scale_' .. axis) * self.getModValue('note' .. '_scale_' .. axis)
+end
+---@param column number
+function self.getNoteScale(column)
+  local str = column and tostring(column) or ''
+  return getNoteScaleAxis(str, 'x'), getNoteScaleAxis(str, 'y'), getNoteScaleAxis(str, 'z')
+end
+
 local fauxXDRV = {}
 
-function fauxXDRV.__checkArg(value, index, typee)
-  if type(value) ~= typee then
-    error('expected arg #' .. index .. ' to be ' .. typee .. ', got ' .. type(value), 3)
-  end
-end
-function fauxXDRV.__warn(msg)
-  local info = debug.getinfo(3, 'lS')
-  logs.warn('Warning: ' .. info.short_src .. ':' .. info.currentline .. ': ' .. msg)
-end
-
 function fauxXDRV.RunEvent(eventName, beatOrTime, timingValue, ...)
-  fauxXDRV.__checkArg(eventName, 1, 'string')
+  checkArg(eventName, 1, 'string')
   if not (beatOrTime == 'beat' or beatOrTime == 'time') then
-    fauxXDRV.__warn('beatOrTime arg is neither \'beat\' nor \'time\'')
+    warn('beatOrTime arg is neither \'beat\' nor \'time\'')
   end
-  fauxXDRV.__checkArg(timingValue, 3, 'number')
+  checkArg(timingValue, 3, 'number')
 
   local time = beatOrTime == 'time'
 
-  addEvent(
+  local ok, res = pcall(addEvent,
     (not time) and timingValue or nil,
     time and timingValue or nil,
     eventName,
     {...}
   )
+
+  if not ok then
+    error('Error adding event: ' .. res, 2)
+  end
 end
 fauxXDRV.run_event = fauxXDRV.RunEvent
 
@@ -239,12 +303,12 @@ end
 fauxXDRV.get_player_scroll_speed = fauxXDRV.GetPlayerScrollSpeed
 
 function fauxXDRV.Set(modName, value, beatOrTime, timingValue)
-  fauxXDRV.__checkArg(modName, 1, 'string')
-  fauxXDRV.__checkArg(value, 2, 'number')
+  checkArg(modName, 1, 'string')
+  checkArg(value, 2, 'number')
   if not (beatOrTime == 'beat' or beatOrTime == 'time') then
-    fauxXDRV.__warn('beatOrTime arg is neither \'beat\' nor \'time\'')
+    warn('beatOrTime arg is neither \'beat\' nor \'time\'')
   end
-  fauxXDRV.__checkArg(timingValue, 4, 'number')
+  checkArg(timingValue, 4, 'number')
 
   local time = beatOrTime == 'time'
 
@@ -265,30 +329,30 @@ fauxXDRV.Mod = fauxXDRV.Set
 fauxXDRV.mod = fauxXDRV.Mod
 
 function fauxXDRV.Ease(modName, startValue, endValue, beatOrTime, startTime, lenOrEnd, endTime, easeName)
-  fauxXDRV.__checkArg(modName, 1, 'string')
-  fauxXDRV.__checkArg(startValue, 2, 'number')
-  fauxXDRV.__checkArg(endValue, 3, 'number')
+  checkArg(modName, 1, 'string')
+  checkArg(startValue, 2, 'number')
+  checkArg(endValue, 3, 'number')
   if not (beatOrTime == 'beat' or beatOrTime == 'time') then
-    fauxXDRV.__warn('beatOrTime arg is neither \'beat\' nor \'time\'')
+    warn('beatOrTime arg is neither \'beat\' nor \'time\'')
   end
-  fauxXDRV.__checkArg(startTime, 5, 'number')
+  checkArg(startTime, 5, 'number')
   if not (lenOrEnd == 'len' or lenOrEnd == 'end') then
-    fauxXDRV.__warn('lenOrEnd arg is neither \'len\' nor \'end\'')
+    warn('lenOrEnd arg is neither \'len\' nor \'end\'')
   end
-  fauxXDRV.__checkArg(endTime, 7, 'number')
-  fauxXDRV.__checkArg(easeName, 8, 'string')
+  checkArg(endTime, 7, 'number')
+  checkArg(easeName, 8, 'string')
 
   local time = beatOrTime == 'time'
   local ends = lenOrEnd == 'end'
 
   if ends and endTime < startTime then
-    fauxXDRV.__warn('ease ends before it starts (' .. endTime .. ' < ' .. startTime .. ')')
+    warn('ease ends before it starts (' .. endTime .. ' < ' .. startTime .. ')')
     return
   end
 
   local ease = easeFunctionsLower[string.lower(easeName)]
   if not ease then
-    fauxXDRV.__warn('no such ease ' .. easeName)
+    warn('no such ease ' .. easeName)
   end
 
   table.insert(eases, {
@@ -310,7 +374,7 @@ fauxXDRV.ease = fauxXDRV.Ease
 
 function fauxXDRV:__index(idx)
   return rawget(self, idx) or function()
-    fauxXDRV.__warn(idx .. ': Unimplemented')
+    warn(idx .. ': Unimplemented')
     return 0
   end
 end
@@ -373,7 +437,10 @@ function self.bakeEases()
   end
   for _, thing in ipairs(chart.chart) do
     if thing.event and easeConverters[thing.event.name] then
-      addEvent(thing.beat, nil, thing.event.name, thing.event.args)
+      local ok, res = pcall(addEvent, thing.beat, nil, thing.event.name, thing.event.args)
+      if not ok then
+        warn('Error adding event: ' .. res, 'Beat ' .. thing.beat)
+      end
     end
   end
   sort.stable_sort(eases, function(a, b)

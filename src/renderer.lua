@@ -128,16 +128,22 @@ local function drawNote(thing, sh)
   if config.config.previewMode and thing.beat < conductor.beat then return end
 
   local note = thing.note
-  local x = getColumnX(note.column) * scale()
-  local y = beatToY(thing.beat, sh)
+  -- uncomment when the mods system is actually even remotely performant
+  --local mx, my, mz = preview.getNotePos(note.column)
+  --local sx, sy, sz = preview.getNoteScale(note.column)
+  local mx, my, mz = 0, 0, 0
+  local sx, sy, sz = 1, 1, 1
+  local x = getColumnX(note.column) * scale() + mx * NOTE_WIDTH
+  local y = beatToY(thing.beat, sh) + my * NOTE_WIDTH
 
-  local width = NOTE_WIDTH * scale() * 0.95
+  local width = NOTE_WIDTH * scale() * 0.95 * sx
+  local height = NOTE_HEIGHT * sy
 
   if y < -NOTE_HEIGHT then return -1 end
   if y > (sh + NOTE_HEIGHT) then return end
 
   love.graphics.setColor(getColumnColor(note.column):unpack())
-  love.graphics.rectangle('fill', x - width/2, y - (NOTE_HEIGHT/2) * scale(), width, NOTE_HEIGHT * scale(), 1, 1)
+  love.graphics.rectangle('fill', x - width/2, y - (height/2) * scale(), width, height * scale(), 1, 1)
 end
 local function drawHoldTail(thing, sh)
   local note = thing.note
