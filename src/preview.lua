@@ -19,6 +19,100 @@ function self.getScrollSpeed(beat)
   return speed
 end
 
+---@class ArgSet
+local ArgSet = {}
+
+function ArgSet:push(...)
+  for _, v in ipairs({...}) do
+    table.insert(self, v)
+  end
+end
+
+function ArgSet:getValue(idx, expect, nillable)
+  local value = rawget(self, idx)
+  if value == nil and nillable then
+    return nil
+  end
+  local got = type(value)
+  if got ~= expect then
+    error('expected arg #' .. idx .. ' to be ' .. expect .. ', got ' .. got, 0)
+  end
+  return value
+end
+
+function ArgSet:getNumber(idx, nillable)
+  return self:getValue(idx, 'number', nillable)
+end
+function ArgSet:getString(idx, nillable)
+  return self:getValue(idx, 'string', nillable)
+end
+function ArgSet:getBoolean(idx, nillable)
+  return self:getValue(idx, 'boolean', nillable)
+end
+
+ArgSet.__index = ArgSet
+
+function ArgSet.new()
+  return setmetatable({}, ArgSet)
+end
+
+---@class StringArgSet : ArgSet
+local StringArgSet = {}
+
+function StringArgSet:push(...)
+  for _, v in ipairs({...}) do
+    if type(v) ~= 'string' then
+      error('expected string but passed a ' .. type(v), 2)
+    end
+    table.insert(self, v)
+  end
+end
+
+function StringArgSet:getValue(idx, expect, nillable)
+  error('not implemented', 2)
+end
+
+function StringArgSet:getNumber(idx, nillable)
+  local value = rawget(self, idx)
+  if value == nil then
+    if not nillable then error('expected arg #' .. idx .. ' to be number, got nil', 0) end
+    return nil
+  end
+  local num = tonumber(value)
+  if num == nil then
+    error('expected arg #' .. idx .. ' to be number, got `' .. value .. '`' , 0)
+  end
+  return num
+end
+function StringArgSet:getString(idx, nillable)
+  local value = rawget(self, idx)
+  if value == nil then
+    if not nillable then error('expected arg #' .. idx .. ' to be string, got nil', 0) end
+    return nil
+  end
+  return value
+end
+function StringArgSet:getBoolean(idx, nillable)
+  local value = rawget(self, idx)
+  if value == nil then
+    if not nillable then error('expected arg #' .. idx .. ' to be boolean, got nil', 0) end
+    return nil
+  end
+  if value == 'true' then
+    return true
+  end
+  if value == 'false' then
+    return false
+  end
+  error('expected arg #' .. idx .. ' to be boolean, got `' .. value .. '`' , 0)
+end
+
+StringArgSet.__index = StringArgSet
+
+function StringArgSet.new()
+  return setmetatable({}, StringArgSet)
+end
+
 ---@param value any @ value given
 ---@param index number @ argument index
 ---@param typee string @ expected type
@@ -45,7 +139,23 @@ end
 
 ---@type TimedEase[]
 local eases = {}
+---@type TimedEase[]
+local activeEases = {}
+---@type TimedEase[]
+local inactiveEases = {}
 local knownModNames = {}
+
+local function easeSort(a, b)
+  if a.beat and b.beat then return a.beat < b.beat end
+  if a.time and b.time then return a.time < b.time end
+  if a.beat then
+    return a.beat < conductor.beatAtTime(b.time)
+  end
+  if a.time then
+    return conductor.beatAtTime(a.time) < b.beat
+  end
+  error('What? huh? is anyone there?')
+end
 
 local function genericSetConst(target, value)
   return function() return {
@@ -58,8 +168,9 @@ local function genericSetConst(target, value)
 end
 
 local function genericSet(target)
-  return function(alpha)
-    checkArg(alpha, 1, 'number', false, 0)
+  ---@param args ArgSet
+  return function(args)
+    local alpha = args:getNumber(1)
     return {
       target = target,
       value = alpha,
@@ -70,12 +181,13 @@ local function genericSet(target)
   end
 end
 local function genericEase(target)
-  return function(alpha, dur, time, ease)
-    checkArg(alpha, 1, 'number', false, 0)
-    checkArg(dur, 2, 'number', false, 0)
-    checkArg(time, 3, 'boolean', true, 0)
-    checkArg(ease, 4, 'string', true, 0)
-    local easeFunction = easeFunctionsLower[string.lower(ease or 'Linear')]
+  ---@param args ArgSet
+  return function(args)
+    local alpha = args:getNumber(1)
+    local dur = args:getNumber(2)
+    local time = args:getBoolean(3, true)
+    local ease = args:getString(4, true)
+    local easeFunction = easeFunctionsLower[string.lower(ease or 'InOutSine')]
     return {
       target = target,
       value = alpha,
@@ -89,7 +201,7 @@ end
 -- https://github.com/EX-XDRiVER/Chart-Documentation/blob/main/backgrounds/global.md
 -- https://github.com/EX-XDRiVER/Chart-Documentation/blob/main/backgrounds/tunnel.md
 -- https://github.com/EX-XDRiVER/Chart-Documentation/blob/main/backgrounds/city.md
----@type table<string, fun(...): Ease>
+---@type table<string, fun(args: ArgSet): Ease>
 local easeConverters = {
   EnableBloomBeat = genericSetConst('BloomBeat', 1),
   DisableBloomBeat = genericSetConst('BloomBeat', 0),
@@ -156,8 +268,13 @@ local aliases = {
   mod_camera_field_of_vision = 'mod_camera_fov',
 }
 
+local lastBeat = 9e9
+local valuesBuffer = {}
+local easedValuesBuffer = {}
+
 ---@param type string
 ---@param beat number?
+---@return number
 function self.getEasedValue(type, beat)
   if not config.config.previewMode then
     return defaultValues[type] or 0
@@ -166,29 +283,64 @@ function self.getEasedValue(type, beat)
   beat = beat or conductor.beat
   local time = conductor.timeAtBeat(beat)
 
-  local value = defaultValues[type] or 0
+  if beat < lastBeat then
+    -- reset
+    inactiveEases = {}
+    activeEases = {}
+    for _, ease in ipairs(eases) do
+      table.insert(activeEases, ease)
+    end
+    valuesBuffer = {}
+    easedValuesBuffer = {}
+  elseif beat == lastBeat then
+    -- just return the cached values
+    return easedValuesBuffer[type] or valuesBuffer[type] or defaultValues[type] or 0
+  end
 
-  for _, ease in ipairs(eases) do
+  lastBeat = beat
+
+  local removeIndices = {}
+  for i = 1, #activeEases do
+    local ease = activeEases[i]
+    --print(i, ease.beat, ease.ease.target, ease.ease.value)
     if (ease.beat and ease.beat > beat) or (ease.time and ease.time > time) then break end
 
     local target = aliases[ease.ease.target] or ease.ease.target
-    if target == type then
-      local a = ((ease.time and time or beat) - (ease.time and ease.time or ease.beat)) / ease.ease.dur
-      value = mix(ease.ease.startValue or value, ease.ease.value, ease.ease.ease(clamp(a, 0, 1)))
+
+    local a = 1
+    if ease.ease.dur > 0 then
+      a = ((ease.time and time or beat) - (ease.time and ease.time or ease.beat)) / ease.ease.dur
+    end
+
+    local easeValue = mix(ease.ease.startValue or valuesBuffer[target] or defaultValues[target] or 0, ease.ease.value, ease.ease.ease(clamp(a, 0, 1)))
+    easedValuesBuffer[target] = easeValue
+
+    if beat >= (ease.beat + ease.ease.dur) then
+      valuesBuffer[ease.ease.target] = ease.ease.value
+      table.insert(removeIndices, i)
+      table.insert(inactiveEases, ease)
     end
   end
+  for i = #removeIndices, 1, -1 do
+    local index = removeIndices[i]
+    table.remove(activeEases, index)
+  end
 
-  return value
+  return easedValuesBuffer[type] or valuesBuffer[type] or defaultValues[type] or 0
 end
 function self.getModValue(type)
   return self.getEasedValue('mod_' .. type)
 end
 
 -- !! WILL ERROR IN YOUR FACE !!
+---@param beat number?
+---@param time number?
+---@param name string
+---@param args ArgSet
 local function addEvent(beat, time, name, args)
   local conv = easeConverters[name]
   if not conv then return end
-  local ease = conv(unpack(args))
+  local ease = conv(args)
 
   if ease.time and not time then
     time = conductor.timeAtBeat(beat)
@@ -252,11 +404,14 @@ function fauxXDRV.RunEvent(eventName, beatOrTime, timingValue, ...)
 
   local time = beatOrTime == 'time'
 
+  local args = ArgSet.new()
+  args:push(...)
+
   local ok, res = pcall(addEvent,
     (not time) and timingValue or nil,
     time and timingValue or nil,
     eventName,
-    {...}
+    args
   )
 
   if not ok then
@@ -408,6 +563,10 @@ local safeEnv = {
 
 function self.bakeEases()
   eases = {}
+  activeEases = {}
+  inactiveEases = {}
+  valuesBuffer = {}
+  lastBeat = 9e9
   if chart.loadedScript then
     local xdrv = deepcopy(fauxXDRV)
 
@@ -437,23 +596,16 @@ function self.bakeEases()
   end
   for _, thing in ipairs(chart.chart) do
     if thing.event and easeConverters[thing.event.name] then
-      local ok, res = pcall(addEvent, thing.beat, nil, thing.event.name, thing.event.args)
+      local args = StringArgSet.new()
+      args:push(unpack(thing.event.args))
+      local ok, res = pcall(addEvent, thing.beat, nil, thing.event.name, args)
       if not ok then
         warn('Error adding event: ' .. res, 'Beat ' .. thing.beat)
+        logs.logFile(pretty(thing[getThingType(thing)]))
       end
     end
   end
-  sort.stable_sort(eases, function(a, b)
-    if a.beat and b.beat then return a.beat < b.beat end
-    if a.time and b.time then return a.time < b.time end
-    if a.beat then
-      return a.beat < conductor.beatAtTime(b.time)
-    end
-    if a.time then
-      return conductor.beatAtTime(a.time) < b.beat
-    end
-    error('What? huh? is anyone there?')
-  end)
+  sort.stable_sort(eases, easeSort)
 
   knownModNames = {}
   for _, ease in ipairs(eases) do

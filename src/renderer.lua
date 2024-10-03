@@ -128,11 +128,8 @@ local function drawNote(thing, sh)
   if config.config.previewMode and thing.beat < conductor.beat then return end
 
   local note = thing.note
-  -- uncomment when the mods system is actually even remotely performant
-  --local mx, my, mz = preview.getNotePos(note.column)
-  --local sx, sy, sz = preview.getNoteScale(note.column)
-  local mx, my, mz = 0, 0, 0
-  local sx, sy, sz = 1, 1, 1
+  local mx, my, mz = preview.getNotePos(note.column)
+  local sx, sy, sz = preview.getNoteScale(note.column)
   local x = getColumnX(note.column) * scale() + mx * NOTE_WIDTH
   local y = beatToY(thing.beat, sh) + my * NOTE_WIDTH
 
