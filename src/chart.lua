@@ -159,7 +159,7 @@ function self.ensureInitialBPM()
 end
 
 function self.tryLoadScript()
-  if not self.metadata.modfilePath then
+  if not self.metadata.modfilePath or self.metadata.modfilePath == '' then
     logs.logFile('No modfile to load')
     return
   end

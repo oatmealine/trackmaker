@@ -103,13 +103,13 @@ function MinimapWidget:draw()
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.draw(self.canvas, 0, 0, 0, self.width / self.canvas:getWidth(), self.height / self.canvas:getHeight())
 
-  local beatS, beatE = renderer.yToBeat(love.graphics.getHeight()), renderer.yToBeat(0)
+  local beatS, beatE = conductor.beat, conductor.beat + 8
   local timeS, timeE = conductor.timeAtBeat(beatS), conductor.timeAtBeat(beatE)
 
   local height = math.abs(timeE - timeS) / chartDur * self.height
 
   love.graphics.setColor(1, 1, 1, self.hovered and 0.5 or 0.3)
-  love.graphics.rectangle('fill', 0, self.height - height - clamp(timeS / chartDur, 0, 1) * (self.height - height), self.width, height)
+  love.graphics.rectangle('fill', 0, self.height - clamp(timeE / chartDur, 0, 1) * (self.height - height), self.width, height)
 
   for _, thing in ipairs(chart.chart) do
     if thing.checkpoint then

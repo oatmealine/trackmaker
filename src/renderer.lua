@@ -60,6 +60,7 @@ end
 local function getScaledScrollSpeed()
   return getScrollSpeed() / conductor.maxBPM * 200
 end
+self.getScaledScrollSpeed = getScaledScrollSpeed
 
 local function getColumnX(i)
   if i < 4 then
