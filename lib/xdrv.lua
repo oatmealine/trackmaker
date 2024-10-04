@@ -528,39 +528,38 @@ local function serializeChart(things)
 end
 
 local function serializeMetadata(m)
-  local data = {
-    MUSIC_TITLE = formatString(m.musicTitle),
-    ALTERNATE_TITLE = formatString(m.alternateTitle),
-    SUBTITLE = formatString(m.subtitle),
-    MUSIC_CREDIT = formatString(m.musicCredit),
-    MUSIC_ARTIST = formatString(m.musicArtist),
-    MUSIC_AUDIO = formatString(m.musicAudio),
-    JACKET_IMAGE = formatString(m.jacketImage),
-    JACKET_ILLUSTRATOR = formatString(m.jacketIllustrator),
-    CHART_AUTHOR = formatString(m.chartAuthor),
-    CHART_UNLOCK = formatString(m.chartUnlock),
-    STAGE_BACKGROUND = formatString(m.stageBackground),
-    MODFILE_PATH = formatString(m.modfilePath),
-    CHART_LEVEL = formatInt(m.chartLevel),
-    CHART_DISPLAY_BPM = formatInt(m.chartDisplayBPM),
-    CHART_BOSS = formatBool(m.chartBoss),
-    DISABLE_LEADERBOARD_UPLOADING = formatBool(m.disableLeaderboardUploading),
-    RPC_HIDDEN = formatBool(m.rpcHidden),
-    FLASH_TRACK = formatBool(m.isFlashTrack),
-    KEYBOARD_ONLY = formatBool(m.isKeyboardOnly),
-    ORIGINAL = formatBool(m.isOriginal),
-    MUSIC_PREVIEW_START = formatFloat(m.musicPreviewStart),
-    MUSIC_PREVIEW_LENGTH = formatFloat(m.musicPreviewLength),
-    MUSIC_VOLUME = formatFloat(m.musicVolume),
-    MUSIC_OFFSET = formatFloat(m.musicOffset),
-    CHART_BPM = formatFloat(m.chartBPM),
-    CHART_TAGS = '0,0,0,0', -- TODO
-    CHART_DIFFICULTY = formatDifficulty(m.chartDifficulty),
-  }
+  local data = {}
+  table.insert(data, {'MUSIC_TITLE', formatString(m.musicTitle)})
+  table.insert(data, {'ALTERNATE_TITLE', formatString(m.alternateTitle)})
+  table.insert(data, {'SUBTITLE', formatString(m.subtitle)})
+  table.insert(data, {'MUSIC_CREDIT', formatString(m.musicCredit)})
+  table.insert(data, {'MUSIC_ARTIST', formatString(m.musicArtist)})
+  table.insert(data, {'MUSIC_AUDIO', formatString(m.musicAudio)})
+  table.insert(data, {'JACKET_IMAGE', formatString(m.jacketImage)})
+  table.insert(data, {'JACKET_ILLUSTRATOR', formatString(m.jacketIllustrator)})
+  table.insert(data, {'CHART_AUTHOR', formatString(m.chartAuthor)})
+  table.insert(data, {'CHART_UNLOCK', formatString(m.chartUnlock)})
+  table.insert(data, {'STAGE_BACKGROUND', formatString(m.stageBackground)})
+  table.insert(data, {'MODFILE_PATH', formatString(m.modfilePath)})
+  table.insert(data, {'CHART_LEVEL', formatInt(m.chartLevel)})
+  table.insert(data, {'CHART_DISPLAY_BPM', formatInt(m.chartDisplayBPM)})
+  table.insert(data, {'CHART_BOSS', formatBool(m.chartBoss)})
+  table.insert(data, {'DISABLE_LEADERBOARD_UPLOADING', formatBool(m.disableLeaderboardUploading)})
+  table.insert(data, {'RPC_HIDDEN', formatBool(m.rpcHidden)})
+  table.insert(data, {'FLASH_TRACK', formatBool(m.isFlashTrack)})
+  table.insert(data, {'KEYBOARD_ONLY', formatBool(m.isKeyboardOnly)})
+  table.insert(data, {'ORIGINAL', formatBool(m.isOriginal)})
+  table.insert(data, {'MUSIC_PREVIEW_START', formatFloat(m.musicPreviewStart)})
+  table.insert(data, {'MUSIC_PREVIEW_LENGTH', formatFloat(m.musicPreviewLength)})
+  table.insert(data, {'MUSIC_VOLUME', formatFloat(m.musicVolume)})
+  table.insert(data, {'MUSIC_OFFSET', formatFloat(m.musicOffset)})
+  table.insert(data, {'CHART_BPM', formatFloat(m.chartBPM)})
+  table.insert(data, {'CHART_TAGS', '0,0,0,0'}) -- TODO
+  table.insert(data, {'CHART_DIFFICULTY', formatDifficulty(m.chartDifficulty)})
 
   local lines = {}
-  for k, v in pairs(data) do
-    table.insert(lines, k .. '=' .. v)
+  for _, pair in pairs(data) do
+    table.insert(lines, pair[1] .. '=' .. pair[2])
   end
 
   return table.concat(lines, '\n')
