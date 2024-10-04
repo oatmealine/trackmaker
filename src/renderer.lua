@@ -42,18 +42,23 @@ local MEASURE_COL = hex('373138')
 
 local selectionX, selectionY
 
-local zoom = 1
-
-local SCROLL_SPEED = 60
 local cachedScrollSpeed = 1
 
-local function getScrollSpeed()
-  return SCROLL_SPEED * zoom * cachedScrollSpeed
+function self.getScrollSpeedRaw()
+  return config.config.scrollSpeed
 end
 
 local function scale()
   if config.config.previewMode then return 1 end
-  return math.min(zoom, 1)
+  return math.min(self.getScrollSpeedRaw(), 0.5) * 2
+end
+
+local function getScrollSpeed()
+  return self.getScrollSpeedRaw() * cachedScrollSpeed
+end
+
+local function getScaledScrollSpeed()
+  return getScrollSpeed() / conductor.maxBPM * 200
 end
 
 local function getColumnX(i)
@@ -94,9 +99,9 @@ self.getColumnColor = getColumnColor
 ---@param sh number?
 local function beatToY(b, sh)
   if config.config.cmod then
-    return (sh or love.graphics.getHeight()) - getPadBottom() - (conductor.timeAtBeat(b) - conductor.time) * getScrollSpeed()
+    return (sh or love.graphics.getHeight()) - getPadBottom() - (conductor.timeAtBeat(b) - conductor.time) * getScaledScrollSpeed() * BASE_SCALE
   else
-    return (sh or love.graphics.getHeight()) - getPadBottom() - (b - conductor.beat) * getScrollSpeed()
+    return (sh or love.graphics.getHeight()) - getPadBottom() - (b - conductor.beat) * getScaledScrollSpeed() * BASE_SCALE
   end
 end
 self.beatToY = beatToY
@@ -104,9 +109,9 @@ self.beatToY = beatToY
 ---@param sh number?
 local function yToBeat(y, sh)
   if config.config.cmod then
-    return conductor.beatAtTime(((sh or love.graphics.getHeight()) - getPadBottom() - y) / getScrollSpeed()) + conductor.beat
+    return conductor.beatAtTime(((sh or love.graphics.getHeight()) - getPadBottom() - y) / getScaledScrollSpeed() / BASE_SCALE) + conductor.beat
   else
-    return ((sh or love.graphics.getHeight()) - getPadBottom() - y) / getScrollSpeed() + conductor.beat
+    return ((sh or love.graphics.getHeight()) - getPadBottom() - y) / getScaledScrollSpeed() / BASE_SCALE + conductor.beat
   end
 end
 self.yToBeat = yToBeat
@@ -631,7 +636,7 @@ function self.drawCanvas(static)
 
   cachedScrollSpeed = preview.getScrollSpeed(conductor.beat)
 
-  local noNotes = getScrollSpeed() == 0
+  local noNotes = getScrollSpeed() <= EPSILON
 
   if not chart.loaded then
     love.graphics.setColor(0.7, 0.7, 0.7, 1)
@@ -787,7 +792,7 @@ function self.drawCanvas(static)
     love.graphics.setColor(getColumnColor(c):unpack(0.5 + laneActive[c].eased * 0.5))
     if glyphs['key_' .. c] then
       local spr = glyphs['key_' .. c]
-      local size = (NOTE_WIDTH * 0.92) / spr:getWidth()
+      local size = (NOTE_WIDTH * 0.92) / spr:getWidth() * scale()
       love.graphics.draw(spr, x * scale(), sh - padBottom + NOTE_WIDTH * 0.08, 0, size * 0.8, size, spr:getWidth()/2, 0)
     end
   end
@@ -945,7 +950,7 @@ function self.drawPost()
   love.graphics.push()
   love.graphics.translate(scx, 0)
 
-  local noNotes = getScrollSpeed() == 0
+  local noNotes = getScrollSpeed() <= EPSILON
 
   if not config.config.previewMode then
     local checkBeat = canPlaceCheckpoint(love.mouse.getPosition())
@@ -1251,7 +1256,8 @@ end
 function self.wheelmoved(delta)
   if not chart.loaded then return end
   if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
-    zoom = zoom * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
+    config.config.scrollSpeed = config.config.scrollSpeed * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
+    logs.uplog('scrollspeed', string.format('Scroll speed: %.2f', config.config.scrollSpeed))
     events.redraw()
   else
     edit.setBeat(conductor.beat + sign(delta) * QUANTS[edit.quantIndex])

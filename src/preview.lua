@@ -188,6 +188,9 @@ local function genericEase(target)
     local time = args:getBoolean(3, true)
     local ease = args:getString(4, true)
     local easeFunction = easeFunctionsLower[string.lower(ease or 'InOutSine')]
+    if not easeFunction then
+      error('no such ease ' .. ease, 0)
+    end
     return {
       target = target,
       value = alpha,
@@ -452,8 +455,7 @@ function fauxXDRV.GetPlayerNoteColorAlpha(column) return fauxXDRV.GetPlayerNoteC
 fauxXDRV.get_player_note_color_alpha = fauxXDRV.GetPlayerNoteColorAlpha
 
 function fauxXDRV.GetPlayerScrollSpeed()
-  -- TODO
-  return 1
+  return math.max(config.config.scrollSpeed, 0.5)
 end
 fauxXDRV.get_player_scroll_speed = fauxXDRV.GetPlayerScrollSpeed
 

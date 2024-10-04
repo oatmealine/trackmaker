@@ -15,6 +15,7 @@ local song
 M.offset = -0.007
 M.initialBPM = 120
 M.bpms = { { 0, 120 } }
+M.maxBPM = 120
 M.stops = {}
 M.timeSignatures = {}
 M.fileData = nil
@@ -63,6 +64,7 @@ function M.loadTimings(chart)
   M.measures = {}
   M.timeSignatures = {}
   M.stops = {}
+  M.maxBPM = M.initialBPM
   for _, thing in ipairs(chart.chart) do
     if thing.bpm then
       table.insert(M.bpms, { thing.beat, thing.bpm })
@@ -79,6 +81,9 @@ function M.loadTimings(chart)
   -- chart loading level
   if not M.bpms[1] or M.bpms[1][1] > 0 then
     table.insert(M.bpms, 1, { 0, M.initialBPM })
+  end
+  for _, bpm in ipairs(M.bpms) do
+    M.maxBPM = math.max(M.maxBPM, bpm[2])
   end
   M.makeMeasureLines()
 end

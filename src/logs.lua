@@ -66,6 +66,18 @@ function self.warn(text)
   self.logFile('WARN: ' .. text)
   table.insert(logs, { text, t = t + 8, warning = true })
 end
+-- what's uplog
+function self.uplog(id, text)
+  self.logFile(text)
+  for _, log in ipairs(logs) do
+    if log.id == id then
+      log.t = t
+      log[1] = text
+      return
+    end
+  end
+  table.insert(logs, { text, t = t, id = id })
+end
 
 love.filesystem.write('trackmaker.log', '')
 

@@ -32,6 +32,7 @@ self.config = {
   xdrvChartDev = false,
   previewMode = false,
   controllerGlyphs = '',
+  scrollSpeed = 3,
   view = {
     chart = true,
     drifts = true,
