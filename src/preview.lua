@@ -318,7 +318,7 @@ function self.getEasedValue(type, beat)
     local easeValue = mix(ease.ease.startValue or valuesBuffer[target] or defaultValues[target] or 0, ease.ease.value, ease.ease.ease(clamp(a, 0, 1)))
     easedValuesBuffer[target] = easeValue
 
-    if beat >= (ease.beat + ease.ease.dur) then
+    if (ease.time and time or beat) >= ((ease.time and ease.time or ease.beat) + ease.ease.dur) then
       valuesBuffer[ease.ease.target] = ease.ease.value
       table.insert(removeIndices, i)
       table.insert(inactiveEases, ease)
