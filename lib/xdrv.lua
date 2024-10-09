@@ -62,7 +62,8 @@ M.XDRVDifficulty = {
 
 M.STAGE_BACKGROUNDS = {
   'tunnel',
-  'city'
+  'city',
+  'ignia'
 }
 
 ---@class XDRVMetadata @ https://github.com/tari-cat/XDRV/blob/main/Assets/Scripts/XDRVEditorScripts/XDRV.cs#L631
@@ -75,6 +76,7 @@ M.STAGE_BACKGROUNDS = {
 ---@field jacketImage string @ JACKET_IMAGE
 ---@field jacketIllustrator string @ JACKET_ILLUSTRATOR
 ---@field chartAuthor string @ CHART_AUTHOR
+---@field chartAuthors string[] @ CHART_AUTHORS
 ---@field chartUnlock string @ CHART_UNLOCK
 ---@field stageBackground string @ STAGE_BACKGROUND
 ---@field modfilePath string @ MODFILE_PATH
@@ -99,11 +101,25 @@ local function parseString(s)
   return s
 end
 
+local function trim(s)
+  return string.match(s, '^%s*(.*%S)') or ''
+end
+
+local function parseStringArray(s)
+  if type(s) ~= 'string' then return {} end
+
+  local strs = {}
+  for str in string.gmatch(s, '([^,]+)') do
+    table.insert(strs, trim(str))
+  end
+  return strs
+end
+
 local function parseFloat(s)
   return tonumber(s) or -1
 end
 
-function round(n)
+local function round(n)
   return n >= 0 and math.floor(n + 0.5) or math.ceil(n - 0.5)
 end
 local function parseInt(s)
@@ -125,6 +141,9 @@ end
 
 local function formatString(s)
   return s
+end
+local function formatStringArray(s)
+  return table.concat(s, ', ')
 end
 local function formatFloat(n)
   return tostring(n)
@@ -538,6 +557,7 @@ local function serializeMetadata(m)
   table.insert(data, {'JACKET_IMAGE', formatString(m.jacketImage)})
   table.insert(data, {'JACKET_ILLUSTRATOR', formatString(m.jacketIllustrator)})
   table.insert(data, {'CHART_AUTHOR', formatString(m.chartAuthor)})
+  table.insert(data, {'CHART_AUTHORS', formatStringArray(m.chartAuthors)})
   table.insert(data, {'CHART_UNLOCK', formatString(m.chartUnlock)})
   table.insert(data, {'STAGE_BACKGROUND', formatString(m.stageBackground)})
   table.insert(data, {'MODFILE_PATH', formatString(m.modfilePath)})
@@ -549,9 +569,6 @@ local function serializeMetadata(m)
   table.insert(data, {'FLASH_TRACK', formatBool(m.isFlashTrack)})
   table.insert(data, {'KEYBOARD_ONLY', formatBool(m.isKeyboardOnly)})
   table.insert(data, {'ORIGINAL', formatBool(m.isOriginal)})
-  table.insert(data, {'MUSIC_PREVIEW_START', formatFloat(m.musicPreviewStart)})
-  table.insert(data, {'MUSIC_PREVIEW_LENGTH', formatFloat(m.musicPreviewLength)})
-  table.insert(data, {'MUSIC_VOLUME', formatFloat(m.musicVolume)})
   table.insert(data, {'MUSIC_OFFSET', formatFloat(m.musicOffset)})
   table.insert(data, {'CHART_BPM', formatFloat(m.chartBPM)})
   table.insert(data, {'CHART_TAGS', '0,0,0,0'}) -- TODO
@@ -648,6 +665,7 @@ local function makeMetdata(m)
     jacketImage = parseString(m.JACKET_IMAGE),
     jacketIllustrator = parseString(m.JACKET_ILLUSTRATOR),
     chartAuthor = parseString(m.CHART_AUTHOR),
+    chartAuthors = parseStringArray(m.CHART_AUTHORS),
     chartUnlock = parseString(m.CHART_UNLOCK),
     stageBackground = parseString(m.STAGE_BACKGROUND),
     modfilePath = parseString(m.MODFILE_PATH),
