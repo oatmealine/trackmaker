@@ -145,7 +145,7 @@ function sandbox.protect(code, options)
 
   local f
   if bytecode_blocked then
-    f = assert(load(code, nil, 't', env))
+    f = assert(load(code, options.chunkname, 't', env))
   else
     f = assert(loadstring(code))
     setfenv(f, env)

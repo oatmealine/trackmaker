@@ -589,9 +589,17 @@ function self.bakeEases()
       end
     })
 
-    local success, res = pcall(sandbox.run, chart.loadedScript, { env = env })
+    local success, res = pcall(sandbox.run, chart.loadedScript, { env = env, chunkname = chart.metadata.modfilePath })
     if not success then
       logs.warn('Error evaluating script: ' .. res)
+
+      if DEBUG_SCRIPTS then
+        local filename = 'debug_' .. chart.metadata.modfilePath
+        love.filesystem.write(filename, chart.loadedScript)
+        local _, _, line = string.find(res, '%[string ".-"%]:(%d+):')
+        os.execute('code --goto "' .. love.filesystem.getRealDirectory(filename) .. '/' .. filename .. ':' .. line .. '"')
+      end
+
       -- reset to prevent stupid things from happening
       eases = {}
     end

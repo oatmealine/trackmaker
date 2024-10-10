@@ -15,6 +15,8 @@ require 'src.util'
 
 -- enables some certain xdrv chart dev specific stuff
 DEV = false
+-- opens the script on error
+DEBUG_SCRIPTS = false
 
 fonts = {
   inter_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
@@ -58,6 +60,9 @@ function love.load(args)
       argValue = nil
       if arg == '--dev' then
         DEV = true
+      end
+      if arg == '--debug-scripts' then
+        DEBUG_SCRIPTS = true
       end
       if arg == '--beat' then
         argValue = 'beat'

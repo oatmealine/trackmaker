@@ -191,8 +191,8 @@ function self.tryLoadScript()
     logs.warn('The result will be logged to the console and log file')
 
     -- strip comments
-    content = string.gsub(content, '\n%s*%-%-.-\n', '\n')
-    content = string.gsub(content, '%-%-%[%[.-%]%]%-%-', '\n') -- this doesn't handle --[=[ ]=] syntax, but Oh Fucking Well
+    content = string.gsub(content, '%-%-%[%[.-%]%]', '') -- this doesn't handle --[=[ ]=] syntax, but Oh Fucking Well
+    content = string.gsub(content, '%s*%-%-.-\n', '\n')
     -- strip ambigious syntax
     content = string.gsub(content, '%)%s*\n+%s*%(', ')(')
 
