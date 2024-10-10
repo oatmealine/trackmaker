@@ -33,6 +33,10 @@ This project contains code, assets and binaries from the following projects
   License: MIT
   Copyright © 2013 Dirk Laurie and Steve Fisher
 
+- sandbox
+  License: MIT
+  Copyright © 2021 Enrique García Cota
+
 - Inter
   License: SIL Open Font License 1.1
   Copyright © 2016 The Inter Project Authors

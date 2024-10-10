@@ -13,7 +13,8 @@ local exxdriver      = require 'src.exxdriver'
 local sort           = require 'lib.sort'
 
 self.loaded = false
-self.loadedScript = false
+---@type string?
+self.loadedScript = nil
 ---@type XDRVThing[]
 self.chart = nil
 ---@type XDRVMetadata
@@ -198,13 +199,7 @@ function self.tryLoadScript()
     logs.logStdout(content)
   end
 
-  local loaded, err = load(content, self.metadata.modfilePath, 't')
-  if not loaded then
-    logs.warn('Error parsing script: ' .. err)
-    return
-  end
-
-  self.loadedScript = loaded
+  self.loadedScript = content
   return true
 end
 

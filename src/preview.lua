@@ -1,10 +1,11 @@
-local config = require 'src.config'
+local config        = require 'src.config'
 local easeFunctions = require 'lib.ease'
 local conductor     = require 'src.conductor'
 local xdrv          = require 'lib.xdrv'
 local logs          = require 'src.logs'
 local xdrvColors    = require 'src.xdrvcolors'
 local sort          = require 'lib.sort'
+local sandbox       = require 'lib.sandbox'
 
 local easeFunctionsLower = {}
 for k, v in pairs(easeFunctions) do easeFunctionsLower[string.lower(k)] = v end
@@ -536,6 +537,9 @@ function fauxXDRV:__index(idx)
   end
 end
 
+local safeString = deepcopy(string)
+safeString.dump = nil
+
 local safeEnv = {
   coroutine = deepcopy(coroutine),
   assert = assert,
@@ -549,7 +553,7 @@ local safeEnv = {
   pairs = pairs,
   error = error,
   rawequal = rawequal,
-  loadstring = loadstring,
+  --loadstring = loadstring,
   rawset = rawset,
   unpack = unpack,
   table = deepcopy(table),
@@ -557,7 +561,7 @@ local safeEnv = {
   math = deepcopy(math),
   load = load,
   select = select,
-  string = deepcopy(string),
+  string = safeString,
   type = type,
   getmetatable = getmetatable,
   setmetatable = setmetatable
@@ -584,12 +588,8 @@ function self.bakeEases()
         logs.log(info.short_src .. ':' .. info.currentline .. ': ' .. table.concat(strings, ' '))
       end
     })
-    env._G = env
-    env._ENV = env
 
-    setfenv(chart.loadedScript, env)
-
-    local success, res = pcall(chart.loadedScript)
+    local success, res = pcall(sandbox.run, chart.loadedScript, { env = env })
     if not success then
       logs.warn('Error evaluating script: ' .. res)
       -- reset to prevent stupid things from happening
