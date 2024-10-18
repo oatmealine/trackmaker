@@ -38,6 +38,8 @@ local xdrvColors = require 'src.xdrvcolors'
 local preview    = require 'src.preview'
 require 'src.events'
 
+local PromptWidget = require 'src.widgets.prompt'
+
 function love.load(args)
   love.keyboard.setKeyRepeat(true)
   config.load()
@@ -213,4 +215,16 @@ end
 
 function love.resize(w, h)
   renderer.resize(w, h)
+end
+
+shouldQuitOnSave = false
+function love.quit()
+  if chart.loaded and chart.isDirty() and not shouldQuitOnSave then
+    shouldQuitOnSave = true
+    openWidget(PromptWidget('Your chart has unsaved changes. Would you like to save?', {
+      { text = 'Yes', click = function() chart.quickSave() end},
+      { text = 'No', click = function() love.event.quit(0) end },
+      { text = 'Cancel', click = function() shouldQuitOnSave = false end } }), true)
+    return true
+  end
 end

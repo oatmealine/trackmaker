@@ -133,9 +133,10 @@ function Container.placeFormLike(rows, width)
   return nodes
 end
 
----@param rows Widget[][]
+---@param rows Node[][]
 ---@param width number?
-function Container.placeRows(rows, width)
+---@param center boolean?
+function Container.placeRows(rows, width, center)
   local PAD = 10
   local GAP = 10
   local Y_GAP = 28
@@ -144,13 +145,20 @@ function Container.placeRows(rows, width)
   local y = PAD
   for _, row in ipairs(rows) do
     local x = PAD
-    for _, elem in ipairs(row) do
+    if center then
+      x = x + width/2
+      for _, elem in ipairs(row) do
+        x = x - elem.width/2 - GAP/2
+      end
+      x = x - GAP/2
+    end
+    for i, elem in ipairs(row) do
       elem.x = x
       elem.y = y + Y_GAP/2 - elem.height/2
       table.insert(nodes, elem)
 
       x = x + elem.width + GAP
-      if width and x > (width - PAD) then
+      if width and x > (width - PAD) and i ~= 1 then
         x = PAD
         y = y + Y_GAP
       end

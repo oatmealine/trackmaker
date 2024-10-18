@@ -570,6 +570,10 @@ local function save(filepath, noBackup)
   end
   updateTitle()
   config.save()
+
+  if shouldQuitOnSave then
+    love.event.quit(0)
+  end
 end
 
 ---@param m XDRVMetadata
@@ -654,6 +658,7 @@ function self.saveChart()
       save(path)
     else
       logs.log('Save cancelled.')
+      shouldQuitOnSave = false
     end
   end)
 end
@@ -664,6 +669,7 @@ function self.quickSave()
     self.saveChart()
   else
     save(self.chartLocation)
+    shouldQuitOnSave = false 
   end
 end
 
