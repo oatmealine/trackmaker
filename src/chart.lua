@@ -12,6 +12,38 @@ local widgets        = require 'src.widgets'
 local exxdriver      = require 'src.exxdriver'
 local sort           = require 'lib.sort'
 
+---@type XDRVMetadata
+local DEFAULT_METADATA = {
+  musicTitle = '',
+  subtitle = '',
+  alternateTitle = '',
+  musicArtist = '',
+  musicAudio = '',
+  musicCredit = '',
+  jacketImage = '',
+  jacketIllustrator = '',
+  chartAuthor = '',
+  chartAuthors = {},
+  chartUnlock = '',
+  stageBackground = 'default',
+  modfilePath = '',
+  chartLevel = -1,
+  chartDisplayBPM = 120,
+  chartBoss = false,
+  disableLeaderboardUploading = false,
+  rpcHidden = false,
+  isFlashTrack = false,
+  isKeyboardOnly = false,
+  isOriginal = false,
+  musicPreviewStart = 0,
+  musicPreviewLength = 0,
+  musicVolume = 1,
+  musicOffset = 0,
+  chartBPM = 120,
+  chartTags = { 0, 0, 0, 0 },
+  chartDifficulty = xdrv.XDRVDifficulty.Beginner,
+}
+
 self.loaded = false
 ---@type string?
 self.loadedScript = nil
@@ -19,9 +51,9 @@ self.loadedScript = nil
 self.chart = nil
 ---@type XDRVMetadata
 self.metadata = nil
----@type string
+---@type string?
 self.chartDir = nil
----@type string
+---@type string?
 self.chartLocation = nil
 
 local function updateTitle()
@@ -204,20 +236,43 @@ function self.tryLoadScript()
 end
 
 function self.openPath(filepath)
-  local file, err = io.open(filepath, 'r')
-  if not file then
-    logs.warn(err)
-    return
-  end
-  local data = file:read('*a')
-  file:close()
+  local ext = string.match(filepath, '%.(.+)$')
 
-  local loaded = xdrv.deserialize(data)
+  if ext == 'xdrv' then
+    local file, err = io.open(filepath, 'r')
+    if not file then
+      logs.warn(err)
+      return
+    end
+    local data = file:read('*a')
+    file:close()
+
+    local loaded = xdrv.deserialize(data)
+    self.openData(loaded, filepath)
+  elseif ext == 'ogg' then
+    local basename = string.match(filepath, '[/\\]([^/\\]+)$')
+    self.openData({
+      chart = {},
+      metadata = merge(DEFAULT_METADATA, {
+        musicAudio = basename,
+      }),
+    }, filepath, true)
+  elseif ext == 'sm' or ext == 'ssc' then
+    self.importPath(filepath, 'sm,ssc')
+  else
+    logs.warn('Unknown filetype: ' .. (ext or '(no extension)'))
+  end
+end
+
+---@param filepath string?
+function self.openData(loaded, filepath, anonymous)
   self.chart = loaded.chart or {}
+  self.metadata = merge(DEFAULT_METADATA, loaded.metadata)
   self.sort()
-  self.chartLocation = filepath
-  self.metadata = loaded.metadata
-  self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1')
+  if not anonymous then
+    self.chartLocation = filepath
+  end
+  if filepath then self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1') end
   self.loadedScript = nil
   if self.tryLoadScript() then
     logs.log('Loaded script ' .. self.metadata.modfilePath)
@@ -228,17 +283,18 @@ function self.openPath(filepath)
 
   events.onChartLoad()
 
-  logs.log('Loaded chart ' .. self.metadata.musicTitle .. ' ' .. self.diffMark())
+  logs.log('Loaded chart ' .. self.metadata.musicTitle or self.metadata.musicAudio or filepath .. ' ' .. self.diffMark())
   config.appendRecent(filepath)
   config.save()
 end
 
-local FILE_FILTER = 'xdrv'
+local OPEN_FILE_FILTER = 'xdrv,sm,ssc,ogg'
+local SAVE_FILE_FILTER = 'xdrv'
 
 function self.openChart()
   local songsFolder = exxdriver.getAdditionalFolders()[1]
   -- i could not tell you why appending /? to a path makes it open the folder
-  filesystem.openDialog(songsFolder and (songsFolder .. '/?'), FILE_FILTER, function(path)
+  filesystem.openDialog(songsFolder and (songsFolder .. '/?'), OPEN_FILE_FILTER, function(path)
     if path then
       self.openPath(path)
     else
@@ -327,33 +383,18 @@ local styleMappings = {
 }
 
 function self.importSM(chart, filepath, notes, style)
-  self.metadata = {
-    musicTitle = chart.TITLE or '',
-    alternateTitle = chart.TITLETRANSLIT or '',
-    musicArtist = chart.ARTIST or '',
-    musicAudio = chart.MUSIC or '',
-    jacketImage = '',
-    jacketIllustrator = '',
-    chartAuthor = chart.CREDIT or '',
-    chartUnlock = '',
-    stageBackground = 'default',
-    modfilePath = '',
-    chartLevel = -1,
+  self.metadata = merge(DEFAULT_METADATA, {
+    musicTitle = chart.TITLE,
+    alternateTitle = chart.TITLETRANSLIT,
+    musicArtist = chart.ARTIST,
+    musicAudio = chart.MUSIC,
+    chartAuthor = chart.CREDIT,
     chartDisplayBPM = chart.DISPLAYBPM or chart.BPMS[1][2],
-    chartBoss = false,
-    disableLeaderboardUploading = false,
-    rpcHidden = false,
-    isFlashTrack = false,
-    isKeyboardOnly = false,
-    isOriginal = false,
-    musicPreviewStart = chart.SAMPLESTART or 0,
-    musicPreviewLength = chart.SAMPLELENGTH or 0,
-    musicVolume = 1,
+    musicPreviewStart = chart.SAMPLESTART,
+    musicPreviewLength = chart.SAMPLELENGTH,
     musicOffset = chart.OFFSET,
     chartBPM = chart.BPMS[1][2],
-    chartTags = { 0, 0, 0, 0 },
-    chartDifficulty = xdrv.XDRVDifficulty.Beginner,
-  }
+  })
 
   self.chart = {}
 
@@ -608,7 +649,7 @@ end
 function self.saveChart()
   if not self.chart then return end
 
-  filesystem.saveDialog(self.chartDir .. makeChartFilename(self.metadata), FILE_FILTER, function(path)
+  filesystem.saveDialog(self.chartDir .. makeChartFilename(self.metadata), SAVE_FILE_FILTER, function(path)
     if path then
       save(path)
     else
