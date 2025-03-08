@@ -11,11 +11,17 @@ Heavily work-in-progress GUI chart editor for
 Download a [release](https://github.com/oatmealine/trackmaker/releases), and
 follow the instructions:
 
-- **Windows**: Download and extract `trackmaker-win64-${vew}.zip`, then run
+- **Windows**: Download and extract `trackmaker-win64-${ver}.zip`, then run
 `trackmaker.exe`.
-- **OS X**: _No Mac builds are currently available! If you are a Mac user,
-please get in contact so I can try and test a Mac build. In the meantime, follow
-[the instructions here](#develop)._
+- **macOS**: Download and extract `trackmaker-mac-${ver}.zip`. Either drag into
+    your Applications folder or run as usual.
+
+    If you get an error along the lines of
+    "the developer cannot be verified", see: [Open a Mac app from an unknown
+    developer](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac)
+
+    macOS builds should work on 10.11+. Apple Silicon remains untested as I do
+    not have a machine to test the builds on.
 - **Linux**: Download and extract `trackmaker-linux-${ver}.zip`, and install
 [LÖVE](https://love2d.org) from your distribution's package manager (`love2d` in
 most repos). Run `start.sh`.
