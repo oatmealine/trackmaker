@@ -61,9 +61,10 @@ M.XDRVDifficulty = {
 }
 
 M.STAGE_BACKGROUNDS = {
-  'tunnel',
-  'city',
-  'ignia'
+  'BackgroundTunnel',
+  'BackgroundCity',
+  'BackgroundIgnia',
+  'BackgroundVivid'
 }
 
 ---@class XDRVMetadata @ https://github.com/tari-cat/XDRV/blob/main/Assets/Scripts/XDRVEditorScripts/XDRV.cs#L631
