@@ -288,7 +288,7 @@ function self.openData(loaded, filepath, anonymous)
   config.save()
 end
 
-local OPEN_FILE_FILTER = 'xdrv,sm,ssc,ogg'
+local OPEN_FILE_FILTER = 'xdrv;sm,ssc;ogg'
 local SAVE_FILE_FILTER = 'xdrv'
 
 function self.openChart()

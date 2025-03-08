@@ -18,6 +18,10 @@ DEV = false
 -- opens the script on error
 DEBUG_SCRIPTS = false
 
+WINDOWS = love.system.getOS() == 'Windows'
+MACOS = love.system.getOS() == 'OS X'
+LINUX = love.system.getOS() == 'Linux'
+
 fonts = {
   inter_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
   inter_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),

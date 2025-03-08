@@ -405,6 +405,9 @@ function self.keypressed(key, code, isRepeat)
   end
 
   local ctrl = love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl')
+  if MACOS then
+    ctrl = love.keyboard.isDown('lgui') or love.keyboard.isDown('rgui')
+  end
   local shift = love.keyboard.isDown('lshift') or love.keyboard.isDown('rshift')
 
   ---@type Keybind[]

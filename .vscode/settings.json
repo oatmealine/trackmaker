@@ -1,6 +1,6 @@
 {
   "Lua.workspace.library": [
-    "/home/oatmealine/.config/Code/User/globalStorage/sumneko.lua/addonManager/addons/love2d/module/library"
+    "${addons}/love2d/module/library"
   ],
   "Lua.runtime.version": "LuaJIT",
   "Lua.runtime.special": {

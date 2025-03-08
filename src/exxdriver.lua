@@ -10,7 +10,7 @@ local GAME_IDENTIFIER = 'XDRV'
 function self.getSavePath()
   -- https://docs.unity3d.com/ScriptReference/Application-persistentDataPath.html
 
-  if love.system.getOS() == 'Linux' then
+  if LINUX then
     local configHome = os.getenv('XDG_CONFIG_HOME')
     if configHome then
       return configHome .. '/unity3d/' .. COMPANY_IDENTIFIER .. '/' .. GAME_IDENTIFIER
@@ -19,14 +19,24 @@ function self.getSavePath()
     if home then
       return home .. '/.config/unity3d/' .. COMPANY_IDENTIFIER .. '/' .. GAME_IDENTIFIER
     end
-  elseif love.system.getOS() == 'Windows' then
+  elseif MACOS then
+    local home = os.getenv('HOME')
+    if home then
+      return home .. '/Library/Application Support/com.' .. COMPANY_IDENTIFIER .. '.' .. GAME_IDENTIFIER
+    end
+  elseif WINDOWS then
     local userProfile = os.getenv('USERPROFILE')
     if userProfile then
       return userProfile .. '/AppData/LocalLow/' .. COMPANY_IDENTIFIER .. '/' .. GAME_IDENTIFIER
     end
+  else
+    -- unknown
+    print('Using unsupported platform ' .. love.system.getOS() .. ', expect issues')
+    return ''
   end
-  -- unknown
-  return nil
+  
+  print('Failed to find platform path')
+  return ''
 end
 function self.getColorSchemePath()
   return self.getSavePath() .. '/Data/ColorSchemes'

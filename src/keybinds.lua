@@ -4,8 +4,9 @@ local config = require 'src.config'
 local self = {}
 
 ---@class Keybind
----@field ctrl boolean?
+---@field ctrl boolean? @ cmd on Mac
 ---@field shift boolean?
+---@field alt boolean?
 ---@field viewOnly boolean?
 ---@field writeOnly boolean?
 ---@field keys love.Scancode[]?
@@ -52,7 +53,8 @@ self.binds = {
   redo = {
     name = 'Redo',
     ctrl = true,
-    keyCodes = { 'y' },
+    shift = MACOS,
+    keyCodes = MACOS and { 'z' } or { 'y' },
     trigger = edit.redo,
   },
   selectAll = {
@@ -86,7 +88,7 @@ self.binds = {
   },
   viewBinds = {
     name = 'View keybinds',
-    keys = { 'f11' },
+    keys = { MACOS and 'f12' or 'f11' },
     alwaysUsable = true,
     trigger = function()
       edit.viewBinds = not edit.viewBinds
@@ -229,15 +231,25 @@ end
 ---@param bind Keybind
 function self.formatBind(bind)
   local segments = {}
-  if bind.ctrl then table.insert(segments, 'Ctrl') end
-  if bind.shift then table.insert(segments, 'Shift') end
+  if bind.ctrl then table.insert(segments, MACOS and '⌘' or 'Ctrl') end
+  if bind.shift then table.insert(segments, MACOS and '⇧' or 'Shift') end
+  if bind.alt then table.insert(segments, MACOS and '⌥' or 'Alt') end
+  -- on macos the order is ⌥⇧⌘ (alt shift ctrl) so reverse the list
+  if MACOS then
+    local newSegments = {}
+    for i = #segments, 1, -1 do
+      newSegments[#segments - i + 1] = segments[i]
+    end
+    segments = newSegments
+  end
+
   for _, key in ipairs(bind.keys or {}) do
     table.insert(segments, formatKey(key))
   end
   for _, key in ipairs(bind.keyCodes or {}) do
     table.insert(segments, formatKey(key))
   end
-  return table.concat(segments, '+')
+  return table.concat(segments, MACOS and '' or '+')
 end
 
 return self

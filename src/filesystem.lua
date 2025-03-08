@@ -9,11 +9,11 @@ local config  = require 'src.config'
 
 function self.supportWindowsInThreads()
   if config.config.noMultithreading then return false end
-  return love.system.getOS() ~= 'OS X'
+  return not MACOS
 end
 
 function self.getDirSeparator()
-  return (love.system.getOS() == 'Windows') and '\\' or '/'
+  return WINDOWS and '\\' or '/'
 end
 
 -- Crashes on Windows if using / as path separator
@@ -22,9 +22,7 @@ local function fixNFDPath(path)
     return
   end
 
-  local userOS = love.system.getOS()
-
-  if userOS == 'Windows' then
+  if WINDOWS then
     return string.gsub(path, '/', '\\')
   else
     return path

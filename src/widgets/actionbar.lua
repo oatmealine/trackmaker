@@ -155,7 +155,7 @@ local items = {
         if config.config.noMultithreading then
           logs.log('Only touch this if you know what you\'re doing!')
         end
-      end, toggle = true, value = config.config.noMultithreading },
+      end, toggle = true, value = config.config.noMultithreading, disabled = MACOS },
       {},
       { 'Theme', hover = function(self, i)
         local entries = {}
