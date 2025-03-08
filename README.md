@@ -85,7 +85,7 @@ the rest of the [EX-XDRiVER team](https://xdrv.team). Thank you!
 ## License
 
 trackmaker is licensed under the [zlib License](https://opensource.org/license/Zlib),
-Copyright © 2024 Jill "oatmealine" Monoids.
+Copyright © 2024-2025 Jill "oatmealine" Monoids.
 
 Dependencies are subject to other licenses. More information is
 available in [LICENSE.txt](./LICENSE.txt) and [love-license.txt](./platform/universal/love-license.txt).

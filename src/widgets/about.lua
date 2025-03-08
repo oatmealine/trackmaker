@@ -51,7 +51,7 @@ function AboutWidget:draw()
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.draw(jillo, self.width/2, offset + 40 + 80, 0, sx, sy, jillo:getWidth()/2, jillo:getHeight()/2)
   love.graphics.setColor(colors.textSecondary:unpack())
-  love.graphics.printf('Licensed under the zlib license\nCopyright © 2024\nJill "oatmealine" Monoids\nSee license.txt for more information', 0, offset + 180, self.width, 'center')
+  love.graphics.printf('Licensed under the zlib license\nCopyright © 2024-2025\nJill "oatmealine" Monoids\nSee license.txt for more information', 0, offset + 180, self.width, 'center')
 end
 
 return AboutWidget
