@@ -1,6 +1,22 @@
 local self = {}
 
-local nfd = require 'nfd'
+-- hack to load c libs in fused mode
+-- https://love2d.org/forums/viewtopic.php?t=86149
+if MACOS then
+  local base = love.filesystem.getSourceBaseDirectory()
+  package.preload['nfd'] = package.loadlib(base..'/nfd.so', 'luaopen_nfd')
+end
+
+local success, nfd = pcall(require, 'nfd')
+
+if not success then
+  error(
+    'Failed to load NFD library! Did you forget to add nfd.dll/nfd.so? ' ..
+    '(base dir: ' .. love.filesystem.getSourceBaseDirectory() .. ')\n' ..
+    nfd
+  )
+end
+
 local threads = require 'src.threads'
 local config  = require 'src.config'
 
