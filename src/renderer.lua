@@ -997,9 +997,9 @@ function self.drawPost()
         love.graphics.rectangle('fill', x, y - height/2, width, height, 2, 2)
         love.graphics.polygon('fill', x - 6, y, x, y - 6, x, y + 6)
         love.graphics.setColor(0, 0, 0, 1)
-        love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2 + 2))
+        love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - event.textObj:getHeight()/2 + 2))
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - fonts.inter_16:getHeight()/2 - 2))
+        love.graphics.draw(event.textObj, math.floor(x + 3), math.floor(y - event.textObj:getHeight()/2))
       end
     end
 

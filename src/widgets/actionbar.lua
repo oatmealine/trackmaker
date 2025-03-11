@@ -286,6 +286,15 @@ function ActionBarWidget:new()
   self.openIdx = nil
 end
 
+function ActionBarWidget:reloadAssets()
+  ---@type love.Text[]
+  self.texts = {}
+  for _, item in ipairs(self.items) do
+    local text = love.graphics.newText(fonts.inter_12, item[1])
+    table.insert(self.texts, text)
+  end
+end
+
 function ActionBarWidget:update()
   if self.open and self.open.delete then
     self.open = nil

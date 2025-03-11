@@ -25,7 +25,12 @@ LINUX = love.system.getOS() == 'Linux'
 fonts = {
   inter_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
   inter_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),
+
+  fallback_12 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 12),
+  fallback_16 = love.graphics.newFont('assets/fonts/Inter-Regular.ttf', 16),
 }
+
+local config = require 'src.config'
 
 local widgets    = require 'src.widgets'
 chart            = require 'src.chart'
@@ -34,7 +39,6 @@ keybinds         = require 'src.keybinds'
 local edit       = require 'src.edit'
 local renderer   = require 'src.renderer'
 local logs       = require 'src.logs'
-local config     = require 'src.config'
 local threads    = require 'src.threads'
 local colors     = require 'src.colors'
 local waveform   = require 'src.waveform'
@@ -42,11 +46,20 @@ local xdrvColors = require 'src.xdrvcolors'
 local preview    = require 'src.preview'
 require 'src.events'
 
+local function initFonts()
+  fonts.inter_12 = love.graphics.newFont('assets/fonts/' .. config.config.uiFont, 12)
+  fonts.inter_12:setFallbacks(fonts.fallback_12)
+  fonts.inter_16 = love.graphics.newFont('assets/fonts/' .. config.config.uiFont, 16)
+  fonts.inter_16:setFallbacks(fonts.fallback_16)
+  widgets.reloadAssets()
+end
+
 local PromptWidget = require 'src.widgets.prompt'
 
 function love.load(args)
   love.keyboard.setKeyRepeat(true)
   config.load()
+  initFonts()
   colors.setScheme(config.config.theme)
   xdrvColors.setScheme(config.config.xdrvColors)
   --chart.openChart()

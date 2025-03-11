@@ -12,6 +12,7 @@ self.config = {
   vsync = true,
   noMultithreading = false,
   theme = 'catppuccin_macchiato',
+  uiFont = 'Inter-Regular.ttf',
   xdrvColors = 'Default',
   xdrvCustomColors = {
     LeftGear = '4fccff',

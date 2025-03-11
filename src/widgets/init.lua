@@ -42,6 +42,9 @@ end
 function Widget:update()
 end
 
+function Widget:reloadAssets()
+end
+
 ---@param name string
 function Widget:event(name)
 end
@@ -339,6 +342,11 @@ end
 function self.keypressed(key, scancode, isRepeat)
   if widgets[#widgets] then
     return widgets[#widgets]:key(key, scancode, isRepeat)
+  end
+end
+function self.reloadAssets()
+  for _, widget in ipairs(widgets) do
+    widget:reloadAssets()
   end
 end
 
