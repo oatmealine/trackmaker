@@ -41,6 +41,10 @@ This project contains code, assets and binaries from the following projects
   License: SIL Open Font License 1.1
   Copyright © 2016 The Inter Project Authors
 
+- Hyperjump
+  License: Free for personal and commercial use
+  Copyright © Toufique Islam
+
 - Input Prompts
   License: CC0 1.0
   Copyright © 2010-2024 Kenney

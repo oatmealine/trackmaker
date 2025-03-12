@@ -250,11 +250,11 @@ function self.openPath(filepath)
     local loaded = xdrv.deserialize(data)
     self.openData(loaded, filepath)
   elseif ext == 'ogg' then
-    local basename = string.match(filepath, '[/\\]([^/\\]+)$')
+    local name = basename(filepath)
     self.openData({
       chart = {},
       metadata = merge(DEFAULT_METADATA, {
-        musicAudio = basename,
+        musicAudio = name,
       }),
     }, filepath, true)
   elseif ext == 'sm' or ext == 'ssc' then

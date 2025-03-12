@@ -336,3 +336,7 @@ function eulerToQuaternion(yaw, pitch, roll)
     sinYawOver2 * cosPitchOver2 * cosRollOver2 - cosYawOver2 * sinPitchOver2 * sinRollOver2
   )
 end
+
+function basename(path)
+  return string.match(path, '[/\\]([^/\\]+)$') or path
+end

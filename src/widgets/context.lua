@@ -11,7 +11,7 @@ local GAP = 10
 local LEFT_PAD = 14
 local RIGHT_PAD = 14
 
----@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean?, slider: boolean?, disabled: boolean? }
+---@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean?, slider: boolean?, disabled: boolean?, formatValue: (fun(value: any): string)? }
 
 ---@param entries ContextWidgetEntry[]
 function ContextWidget:new(x, y, entries)
@@ -44,6 +44,8 @@ function ContextWidget:new(x, y, entries)
     end
   end
 
+  HEIGHT = fonts.inter_12:getHeight() + 8
+
   self.entries = entries
 
   self.width = MARGIN * 2 + LEFT_PAD + RIGHT_PAD + width
@@ -56,6 +58,37 @@ function ContextWidget:new(x, y, entries)
   self.supressClose = false
   self.hoveredIdx = 0
   self.activeIdx = nil
+end
+
+function ContextWidget:reloadAssets()
+  ---@type love.Text[]
+  self.texts = {}
+  ---@type love.Text[]
+  self.bindTexts = {}
+  local width = MIN_WIDTH
+  for i, entry in ipairs(self.entries) do
+    if entry[1] then
+      local text = love.graphics.newText(fonts.inter_12, entry[1])
+      local w = text:getWidth()
+      self.texts[i] =  text
+      if entry.bind then
+        local bindText = love.graphics.newText(fonts.inter_12, keybinds.formatBind(entry.bind))
+        self.bindTexts[i] = bindText
+        w = w + bindText:getWidth() + GAP
+      end
+      width = math.max(width, w)
+    end
+  end
+
+  HEIGHT = fonts.inter_12:getHeight() + 8
+
+  -- the width/height changing w/ font changes is Freaky so we avoid that
+  --self.width = MARGIN * 2 + LEFT_PAD + RIGHT_PAD + width
+  self.height = self:getElemY(#self.entries + 1)
+
+  if self.x + self.width >= love.graphics.getWidth() then
+    self.x = love.graphics.getWidth() - self.width
+  end
 end
 
 function ContextWidget:getElemHeight(i)
@@ -178,7 +211,11 @@ function ContextWidget:draw()
       love.graphics.rectangle('fill', 0, y, self.width * entry.value, botY - y)
 
       love.graphics.setColor(colors.textSecondary:unpack())
-      love.graphics.printf(string.format('%.2f', entry.value), MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
+      if entry.formatValue then
+        love.graphics.printf(entry.formatValue(entry.value), MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
+      else
+        love.graphics.printf(string.format('%.2f', entry.value), MARGIN, y + HEIGHT/2 - fonts.inter_12:getHeight()/2, self.width - MARGIN*2, 'right')
+      end
       love.graphics.setColor(colors.text:unpack())
       if hovered then
         love.graphics.setColor((colors.hoverText or colors.text):unpack())

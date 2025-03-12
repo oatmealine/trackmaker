@@ -168,12 +168,65 @@ local items = {
         end
         self:openChild(i, ContextWidget(0, 0, entries))
       end, expandable = true },
+      { 'Fonts', hover = function(self, i)
+        local entries = {}
+        for _, font in ipairs(love.filesystem.getDirectoryItems('assets/fonts')) do
+          table.insert(entries, { font, function()
+            config.config.uiFont = font
+            initFonts()
+            events.redraw()
+            config.save()
+          end, toggle = true, value = config.config.uiFont == font })
+        end
+        if string.sub(config.config.uiFont, 1, 7) == 'file://' then
+          table.insert(entries, { basename(config.config.uiFont) , function()
+            initFonts()
+            events.redraw()
+            config.save()
+          end, toggle = true, value = true })
+        end
+        table.insert(entries, { 'Other...' , function()
+          filesystem.openDialog('', 'ttf;otf', function(path)
+            if not path then return end
+
+            local ext = string.sub(path, -4)
+            if ext ~= '.ttf' and ext ~= '.otf' then
+              logs.warn('Only .ttf and .otf files are supported')
+              return
+            end
+            if ext == '.otf' then
+              logs.log('LÖVE support for .otf files is experimental, some features may not be supported')
+            end
+
+            config.config.uiFont = 'file://' .. path
+            initFonts()
+            events.redraw()
+            config.save()
+          end)
+        end})
+        table.insert(entries, {})
+        local minFontSize = 6
+        local maxFontSize = 18
+        table.insert(entries, { 'Size', function(a)
+          local fontSize = round(minFontSize + a * (maxFontSize - minFontSize))
+          if fontSize ~= config.config.uiFontSize then
+            config.config.uiFontSize = fontSize
+            initFonts()
+            events.redraw()
+            config.save()
+          end
+        end, formatValue = function(a)
+          return tostring(round(minFontSize + a * (maxFontSize - minFontSize)))
+        end, slider = true, value = (config.config.uiFontSize - minFontSize) / (maxFontSize - minFontSize) })
+        self:openChild(i, ContextWidget(0, 0, entries))
+      end, expandable = true },
       { 'Colors', hover = function(self, i)
         local entries = {}
         for _, theme in ipairs(xdrvColors.schemes) do
           table.insert(entries, { theme.name, function()
             xdrvColors.setScheme(theme.name)
             config.config.xdrvColors = theme.name
+            events.redraw()
             config.save()
           end, toggle = true, value = xdrvColors.scheme.name == theme.name })
         end
@@ -184,6 +237,7 @@ local items = {
         table.insert(entries, { 'Custom', function()
           xdrvColors.setScheme('custom')
           config.config.xdrvColors = 'custom'
+          events.redraw()
           config.save()
         end, toggle = true, value = xdrvColors.scheme.name == 'Custom' })
         table.insert(entries, { 'Import from JSON...', function()
@@ -202,6 +256,7 @@ local items = {
             xdrvColors.setScheme('custom')
 
             config.config.xdrvColors = 'custom'
+            events.redraw()
             config.save()
           end)
         end })

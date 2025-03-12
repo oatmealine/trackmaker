@@ -8,7 +8,6 @@ do
   release = t.releases
 end
 
-local xdrv = require 'lib.xdrv'
 require 'lib.color'
 
 require 'src.util'
@@ -46,12 +45,45 @@ local xdrvColors = require 'src.xdrvcolors'
 local preview    = require 'src.preview'
 require 'src.events'
 
-local function initFonts()
-  fonts.inter_12 = love.graphics.newFont('assets/fonts/' .. config.config.uiFont, 12)
+local function loadCustomFont(path)
+  local file, err = io.open(path, 'r')
+  if not file then
+    logs.warn('Error loading font: ' .. err)
+    return
+  end
+
+  local content = file:read('*a')
+  file:close()
+
+  if not content then
+    logs.warn('Error loading font: empty')
+    return
+  end
+
+  local name = basename(path)
+  return love.filesystem.newFileData(content, name)
+end
+
+function initFonts()
+  ---@type string | love.FileData
+  local uiSrc = 'assets/fonts/' .. config.config.uiFont
+  if string.sub(config.config.uiFont, 1, 7) == 'file://' then
+    local path = string.sub(config.config.uiFont, 8)
+    local file = loadCustomFont(path)
+    if not file then
+      config.config.uiFont = config.defaults.uiFont
+      uiSrc = 'assets/fonts/' .. config.config.uiFont
+    else
+      uiSrc = file
+    end
+  end
+
+  fonts.inter_12 = love.graphics.newFont(uiSrc, config.config.uiFontSize)
   fonts.inter_12:setFallbacks(fonts.fallback_12)
-  fonts.inter_16 = love.graphics.newFont('assets/fonts/' .. config.config.uiFont, 16)
+  fonts.inter_16 = love.graphics.newFont(uiSrc, config.config.uiFontSize + 4)
   fonts.inter_16:setFallbacks(fonts.fallback_16)
   widgets.reloadAssets()
+  renderer.updateTimingEvents()
 end
 
 local PromptWidget = require 'src.widgets.prompt'

@@ -13,6 +13,7 @@ self.config = {
   noMultithreading = false,
   theme = 'catppuccin_macchiato',
   uiFont = 'Inter-Regular.ttf',
+  uiFontSize = 12,
   xdrvColors = 'Default',
   xdrvCustomColors = {
     LeftGear = '4fccff',

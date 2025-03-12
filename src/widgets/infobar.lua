@@ -27,6 +27,10 @@ function InfobarWidget:click(x, y, button)
   end
 end
 
+function InfobarWidget:reloadAssets()
+  footerFieldCache = {}
+end
+
 function InfobarWidget:drawFrame()
   local footerFields = {
     { 'Difficulty', chart.loaded and (xdrv.formatDifficulty(chart.metadata.chartDifficulty) .. ' ' .. chart.metadata.chartLevel) or '' },
@@ -66,7 +70,7 @@ function InfobarWidget:drawFrame()
     local cache = footerFieldCache[i]
     local text = cache[2]
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.draw(text, round(x + (cache[3] - text:getWidth())/2), 2)
+    love.graphics.draw(text, round(x + (cache[3] - text:getWidth())/2), self.height/2 - text:getHeight())
     love.graphics.setColor(0.4, 0.4, 0.4, 1)
     love.graphics.printf(f[1], round(x) - 50, 22, round(cache[3]) + 50*2, 'center')
     x = x + cache[3] + GAP
