@@ -1256,7 +1256,9 @@ end
 
 function self.wheelmoved(delta)
   if not chart.loaded then return end
-  if love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl') then
+  local ctrl = love.keyboard.isDown('lctrl') or love.keyboard.isDown('rctrl')
+  if MACOS then ctrl = love.keyboard.isDown('lgui') or love.keyboard.isDown('rgui') end
+  if ctrl then
     config.config.scrollSpeed = config.config.scrollSpeed * (1 + math.max(math.min(delta / 12, 0.5), -0.5))
     logs.uplog('scrollspeed', string.format('Scroll speed: %.2f', config.config.scrollSpeed))
     events.redraw()
