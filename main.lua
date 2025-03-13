@@ -78,9 +78,18 @@ function initFonts()
     end
   end
 
-  fonts.inter_12 = love.graphics.newFont(uiSrc, config.config.uiFontSize)
+  local res
+  res, fonts.inter_12 = pcall(love.graphics.newFont, uiSrc, config.config.uiFontSize)
+  if not res then
+    logs.warn(fonts.inter_12)
+    fonts.inter_12 = fonts.fallback_12
+  end
   fonts.inter_12:setFallbacks(fonts.fallback_12)
-  fonts.inter_16 = love.graphics.newFont(uiSrc, config.config.uiFontSize + 4)
+  res, fonts.inter_16 = pcall(love.graphics.newFont, uiSrc, config.config.uiFontSize + 4)
+  if not res then
+    logs.warn(fonts.inter_16)
+    fonts.inter_16 = fonts.fallback_16
+  end
   fonts.inter_16:setFallbacks(fonts.fallback_16)
   widgets.reloadAssets()
   renderer.updateTimingEvents()
