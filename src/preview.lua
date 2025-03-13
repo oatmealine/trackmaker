@@ -270,6 +270,15 @@ local aliases = {
   mod_camera_rotate_y = 'mod_camera_rotation_y',
   mod_camera_rotate_z = 'mod_camera_rotation_z',
   mod_camera_field_of_vision = 'mod_camera_fov',
+  mod_track_rotate_x = 'mod_track_rotation_x',
+  mod_track_rotate_y = 'mod_track_rotation_y',
+  mod_track_rotate_z = 'mod_track_rotation_z',
+  mod_trackleft_rotate_x = 'mod_trackleft_rotation_x',
+  mod_trackleft_rotate_y = 'mod_trackleft_rotation_y',
+  mod_trackleft_rotate_z = 'mod_trackleft_rotation_z',
+  mod_trackright_rotate_x = 'mod_trackright_rotation_x',
+  mod_trackright_rotate_y = 'mod_trackright_rotation_y',
+  mod_trackright_rotate_z = 'mod_trackright_rotation_z',
 }
 
 local lastBeat = 9e9

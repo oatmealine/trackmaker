@@ -8,6 +8,7 @@ local sqrt    = math.sqrt
 local cos     = math.cos
 local sin     = math.sin
 ---@class cpml.vec3
+---@overload fun(): cpml.vec3
 local vec3    = {}
 local vec3_mt = {}
 

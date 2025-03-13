@@ -427,16 +427,27 @@ for i = 1, 6 do
   laneActive[i] = easable(0, 16)
 end
 
-local mesh3d = love.graphics.newMesh({
+local laneMeshLeft = love.graphics.newMesh({
   {'VertexPosition', 'float', 3}, -- introduce Z axis
   {'VertexTexCoord', 'float', 2}, -- UVs
   -- ignore color
 }, {
   -- x, y, z, u, v
-  {-0.5, -0.5,  0, 0, 1},
-  { 0.5, -0.5,  0, 1, 1},
-  {-0.5,  0.5,  0, 0, 0},
-  { 0.5,  0.5,  0, 1, 0},
+  {-0.5, -0.5,  0, 0  , 1},
+  { 0  , -0.5,  0, 0.5, 1},
+  {-0.5,  0.5,  0, 0  , 0},
+  { 0  ,  0.5,  0, 0.5, 0},
+}, 'strip', 'static')
+local laneMeshRight = love.graphics.newMesh({
+  {'VertexPosition', 'float', 3}, -- introduce Z axis
+  {'VertexTexCoord', 'float', 2}, -- UVs
+  -- ignore color
+}, {
+  -- x, y, z, u, v
+  { 0  , -0.5,  0, 0.5, 1},
+  { 0.5, -0.5,  0, 1  , 1},
+  { 0  ,  0.5,  0, 0.5, 0},
+  { 0.5,  0.5,  0, 1  , 0},
 }, 'strip', 'static')
 
 local vertShader = love.graphics.newShader([[
@@ -604,7 +615,8 @@ local cacheCanvas
 
 local function initCanvases()
   canvas3d = love.graphics.newCanvas(CANVAS_PAD * 2 + NOTE_WIDTH * 6 + GAP_WIDTH, love.graphics.getHeight() * 4)
-  mesh3d:setTexture(canvas3d)
+  laneMeshLeft:setTexture(canvas3d)
+  laneMeshRight:setTexture(canvas3d)
   cacheCanvas = love.graphics.newCanvas(love.graphics.getWidth(), love.graphics.getHeight(), {
     msaa = 2
   })
@@ -905,9 +917,15 @@ function self.drawCanvas(static)
     local originalPosition = cpml.vec3(0, 3.1, -4)
     -- why is the y and z swapped and mirrored?
     -- good question!
-    local camPos = cpml.vec3(preview.getModValue('camera_position_x'), -preview.getModValue('camera_position_z'), -preview.getModValue('camera_position_y'))
+    local camPos = cpml.vec3(
+       preview.getModValue('camera_position_x'),
+      -preview.getModValue('camera_position_z'),
+      -preview.getModValue('camera_position_y'))
     local originalRotation = cpml.vec3(math.rad(59), 0, 0)
-    local camRot = cpml.vec3(math.rad(preview.getModValue('camera_rotation_x')), math.rad(preview.getModValue('camera_rotation_y')), math.rad(preview.getModValue('camera_rotation_z')))
+    local camRot = cpml.vec3(
+      math.rad(preview.getModValue('camera_rotation_x')),
+      math.rad(preview.getModValue('camera_rotation_y')),
+      math.rad(preview.getModValue('camera_rotation_z')))
 
     local translate = originalPosition + camPos
     -- unsure of why i have to mess with the rotations here, but...
@@ -928,11 +946,55 @@ function self.drawCanvas(static)
 
     m:scale(m, {x = modelScale, y = modelScale / (ratio * 3.4), z = 1})
     m:translate(m,
-      cpml.vec3(preview.getModValue('track_move_x') / modelScale, preview.getModValue('track_move_z') / modelScale, -preview.getModValue('track_move_y') / modelScale)
+      cpml.vec3(
+         preview.getModValue('track_move_x') / modelScale,
+         preview.getModValue('track_move_z') / modelScale,
+        -preview.getModValue('track_move_y') / modelScale)
     )
 
-    vertShader:send('modelMatrix', m:to_vec4s_cols())
-    love.graphics.draw(mesh3d)
+    -- no fucking clue why there's a *0.75 here
+    local origin = cpml.vec3(((NOTE_WIDTH * 3)/2 + GAP_WIDTH*0.75) / BASE_SCALE / modelScale, 0, 0)
+
+    local mLeft = cpml.mat4(m)
+    local leftRot = eulerToQuaternion((-cpml.vec3(
+      math.rad(preview.getModValue('trackleft_rotation_x')),
+      math.rad(preview.getModValue('trackleft_rotation_z')),
+      math.rad(preview.getModValue('trackleft_rotation_y'))
+    )):unpack())
+
+    mLeft:translate(mLeft, origin)
+    mLeft = cpml.mat4.from_quaternion(leftRot) * mLeft
+    mLeft:translate(mLeft, -origin)
+    mLeft:scale(mLeft, {x = 1, y = -1, z = 1})
+
+    mLeft:translate(mLeft,
+      cpml.vec3(
+         preview.getModValue('trackleft_move_x') / modelScale,
+         preview.getModValue('trackleft_move_z') / modelScale,
+        -preview.getModValue('trackleft_move_y') / modelScale))
+    local mRight = cpml.mat4(m)
+
+    local rightRot = eulerToQuaternion((-cpml.vec3(
+      math.rad(preview.getModValue('trackright_rotation_x')),
+      math.rad(preview.getModValue('trackright_rotation_z')),
+      math.rad(preview.getModValue('trackright_rotation_y'))
+    )):unpack())
+
+    mRight:translate(mRight, -origin)
+    mRight = cpml.mat4.from_quaternion(rightRot) * mRight
+    mRight:translate(mRight, origin)
+    mRight:scale(mRight, {x = 1, y = -1, z = 1})
+
+    mRight:translate(mRight,
+      cpml.vec3(
+         preview.getModValue('trackright_move_x') / modelScale,
+         preview.getModValue('trackright_move_z') / modelScale,
+        -preview.getModValue('trackright_move_y') / modelScale))
+
+    vertShader:send('modelMatrix', mLeft:to_vec4s_cols())
+    love.graphics.draw(laneMeshLeft)
+    vertShader:send('modelMatrix', mRight:to_vec4s_cols())
+    love.graphics.draw(laneMeshRight)
     love.graphics.setShader()
 
     love.graphics.setMeshCullMode('none')

@@ -234,8 +234,13 @@ function love.draw()
   end
   if config.config.debug.modsDisplay then
     for mod in pairs(preview.getKnownModNames()) do
+      local value = string.format('%.2f', preview.getEasedValue(mod))
+      love.graphics.setColor(0, 0, 0, 1)
+      love.graphics.print(mod .. ':', 2, y + 2)
+      love.graphics.print(value, 160 + 2, y + 2)
+      love.graphics.setColor(1, 1, 1, 1)
       love.graphics.print(mod .. ':', 0, y)
-      love.graphics.print(string.format('%.2f', preview.getEasedValue(mod)), 150, y)
+      love.graphics.print(value, 160, y)
       y = y + 14
     end
   end

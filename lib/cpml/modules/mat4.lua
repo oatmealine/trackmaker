@@ -14,6 +14,7 @@ local sin       = math.sin
 local tan       = math.tan
 local rad       = math.rad
 ---@class cpml.mat4
+---@overload fun(): cpml.mat4
 local mat4      = {}
 local mat4_mt   = {}
 
