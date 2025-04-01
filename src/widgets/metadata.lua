@@ -91,6 +91,7 @@ function MetadataWidget:getContainer()
         'NORMAL',
         'HYPER',
         'EXTREME',
+        'OVERDRIVE'
       }, function(value)
         chart.metadata.chartDifficulty = value - 1
         chart.markDirty()

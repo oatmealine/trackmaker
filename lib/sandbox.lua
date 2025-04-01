@@ -128,7 +128,7 @@ function sandbox.protect(code, options)
     quota = options.quota or 500000
   end
 
-  assert(type(code) == 'string', "expected a string")
+  --assert(type(code) == 'string', "expected a string")
 
   local passed_env = options.env or {}
   local env = {}
@@ -144,10 +144,15 @@ function sandbox.protect(code, options)
   env._G = env
 
   local f
-  if bytecode_blocked then
-    f = assert(load(code, options.chunkname, 't', env))
+  if type(code) == 'string' then
+    if bytecode_blocked then
+      f = assert(load(code, options.chunkname, 't', env))
+    else
+      f = assert(loadstring(code))
+      setfenv(f, env)
+    end
   else
-    f = assert(loadstring(code))
+    f = code
     setfenv(f, env)
   end
 

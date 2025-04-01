@@ -127,11 +127,15 @@ local function checkArg(value, index, typee, nillable, layer)
     error('expected arg #' .. index .. ' to be ' .. typee .. ', got ' .. type(value), layer or 3)
   end
 end
+local warned = {}
 local function warn(msg, source)
   if not source then
     local info = debug.getinfo(3, 'lS')
-    source = info.short_src .. ':' .. info.currentline
+    source = string.gsub(info.short_src, '%[string "(.-)"%]', '%1') .. ':' .. info.currentline
   end
+  local s = source .. msg
+  if warned[s] then return end
+  warned[s] = true
   logs.warn('Warning: ' .. source .. ': ' .. msg)
 end
 
@@ -411,7 +415,7 @@ local fauxXDRV = {}
 function fauxXDRV.RunEvent(eventName, beatOrTime, timingValue, ...)
   checkArg(eventName, 1, 'string')
   if not (beatOrTime == 'beat' or beatOrTime == 'time') then
-    warn('beatOrTime arg is neither \'beat\' nor \'time\'')
+    warn('beatOrTime arg is neither \'beat\' nor \'time\', but \'' .. tostring(beatOrTime) .. '\'')
   end
   checkArg(timingValue, 3, 'number')
 
@@ -469,11 +473,18 @@ function fauxXDRV.GetPlayerScrollSpeed()
 end
 fauxXDRV.get_player_scroll_speed = fauxXDRV.GetPlayerScrollSpeed
 
-function fauxXDRV.Set(modName, value, beatOrTime, timingValue)
+function fauxXDRV.Set(...)
+  if type(arg[1]) == 'number' or type(arg[1]) == 'table' then
+    local note, modName, value, beatOrTime, timingValue = ...
+    warn('Note mods unsupported')
+    return
+  end
+  local modName, value, beatOrTime, timingValue = ...
+
   checkArg(modName, 1, 'string')
   checkArg(value, 2, 'number')
   if not (beatOrTime == 'beat' or beatOrTime == 'time') then
-    warn('beatOrTime arg is neither \'beat\' nor \'time\'')
+    warn('beatOrTime arg is neither \'beat\' nor \'time\', but \'' .. tostring(beatOrTime) .. '\'')
   end
   checkArg(timingValue, 4, 'number')
 
@@ -495,16 +506,22 @@ fauxXDRV.set = fauxXDRV.Set
 fauxXDRV.Mod = fauxXDRV.Set
 fauxXDRV.mod = fauxXDRV.Mod
 
-function fauxXDRV.Ease(modName, startValue, endValue, beatOrTime, startTime, lenOrEnd, endTime, easeName)
+function fauxXDRV.Ease(...)
+  if type(arg[1]) == 'number' or type(arg[1]) == 'table' then
+    local note, modName, startValue, endValue, beatOrTime, startTime, lenOrEnd, endTime, easeName = ...
+    warn('Note mods unsupported')
+    return
+  end
+  local modName, startValue, endValue, beatOrTime, startTime, lenOrEnd, endTime, easeName = ...
   checkArg(modName, 1, 'string')
   checkArg(startValue, 2, 'number')
   checkArg(endValue, 3, 'number')
   if not (beatOrTime == 'beat' or beatOrTime == 'time') then
-    warn('beatOrTime arg is neither \'beat\' nor \'time\'')
+    warn('beatOrTime arg is neither \'beat\' nor \'time\', but \'' .. tostring(beatOrTime) .. '\'')
   end
   checkArg(startTime, 5, 'number')
   if not (lenOrEnd == 'len' or lenOrEnd == 'end') then
-    warn('lenOrEnd arg is neither \'len\' nor \'end\'')
+    warn('lenOrEnd arg is neither \'len\' nor \'end\', but \'' .. tostring(lenOrEnd) .. '\'')
   end
   checkArg(endTime, 7, 'number')
   checkArg(easeName, 8, 'string')
@@ -536,6 +553,41 @@ function fauxXDRV.Ease(modName, startValue, endValue, beatOrTime, startTime, len
   })
 end
 fauxXDRV.ease = fauxXDRV.Ease
+
+function fauxXDRV.Load(filename)
+  if not chart.loadedScripts[filename] then
+    local res = chart.tryLoadScript(filename)
+    if not res then
+      error('Failed loading file ' .. filename, 2)
+    end
+  end
+
+  local f, err = loadstring(chart.loadedScripts[filename], filename)
+  if not f then
+    error(err, 2)
+  end
+  local env = getfenv(2)
+  setfenv(f, env)
+  f()
+end
+fauxXDRV.load = fauxXDRV.Load
+
+-- just to fix errors for unsupported stuff
+
+fauxXDRV.GetNoteData = function() return {} end
+fauxXDRV.get_note_data = fauxXDRV.GetNoteData
+fauxXDRV.GetNoteDataInBeatRange = function() return {} end
+fauxXDRV.get_note_data_in_beat_range = fauxXDRV.GetNoteDataInBeatRange
+fauxXDRV.GetNoteDataInTimeRange = function() return {} end
+fauxXDRV.get_note_data_in_time_range = fauxXDRV.GetNoteDataInTimeRange
+fauxXDRV.GetNoteDataOfType = function() return {} end
+fauxXDRV.get_note_data_of_type = fauxXDRV.GetNoteDataOfType
+fauxXDRV.GetNoteDataOfTypeInTimeRange = function() return {} end
+fauxXDRV.get_note_data_of_type_in_time_range = fauxXDRV.GetNoteDataOfTypeInTimeRange
+fauxXDRV.GetNoteDataOfTypeInDisplayBeatRange = function() return {} end
+fauxXDRV.get_note_data_of_type_in_display_beat_range = fauxXDRV.GetNoteDataOfTypeInDisplayBeatRange
+fauxXDRV.GetNoteDataOfTypeInBeatRange = function() return {} end
+fauxXDRV.get_note_data_of_type_in_beat_range = fauxXDRV.GetNoteDataOfTypeInBeatRange
 
 -- metatable funcs get applied when passing into script
 
@@ -576,37 +628,70 @@ local safeEnv = {
   setmetatable = setmetatable
 }
 
+local function getEnv()
+  local xdrv = deepcopy(fauxXDRV)
+
+  local env = merge(safeEnv, {
+    xdrv = setmetatable(xdrv, xdrv),
+    print = function(...)
+      local args = {...}
+      local strings = {}
+      for k, v in pairs(args) do
+        strings[k] = tostring(v)
+      end
+      local info = debug.getinfo(2, 'lS')
+      logs.log(info.short_src .. ':' .. info.currentline .. ': ' .. table.concat(strings, ' '))
+    end
+  })
+
+  return env
+end
+
 function self.bakeEases()
   eases = {}
   activeEases = {}
   inactiveEases = {}
   valuesBuffer = {}
   lastBeat = 9e9
-  if chart.loadedScript then
-    local xdrv = deepcopy(fauxXDRV)
+  if chart.loadedScripts[chart.metadata.modfilePath] then
+    local path = chart.metadata.modfilePath -- must be an upvalue
+    local traceback = debug.traceback -- also must be an upvalue
+    local trace, err
+    sandbox.run(function()
+      xpcall(function()
+        fauxXDRV.Load(path)
+      end, function(res)
+        err = res
+        trace = traceback()
+      end)
+    end, { env = getEnv(), chunkname = chart.metadata.modfilePath })
 
-    local env = merge(safeEnv, {
-      xdrv = setmetatable(xdrv, xdrv),
-      print = function(...)
-        local args = {...}
-        local strings = {}
-        for k, v in pairs(args) do
-          strings[k] = tostring(v)
+    if err then
+      local _, _, name, line, message = string.find(err, '%[string "(.-)"%]:(%d+): (.+)')
+
+      if name and line and message then
+        logs.warn(name .. ':' .. line .. ': ' .. message)
+        if trace then
+          local skip = 2
+          for s in string.gmatch(trace, '[^\r\n]+') do
+            if skip > 0 then
+              skip = skip - 1
+            else
+              if not string.find(s, 'src/preview%.lua: in function \'[Ll]oad\'') then
+                if string.find(s, 'src/preview%.lua') then break end
+                logs.warn(string.gsub(s, '%[string "(.-)"%]:(%d+)', '%1:%2'))
+              end
+            end
+          end
         end
-        local info = debug.getinfo(2, 'lS')
-        logs.log(info.short_src .. ':' .. info.currentline .. ': ' .. table.concat(strings, ' '))
-      end
-    })
 
-    local success, res = pcall(sandbox.run, chart.loadedScript, { env = env, chunkname = chart.metadata.modfilePath })
-    if not success then
-      logs.warn('Error evaluating script: ' .. res)
-
-      if DEBUG_SCRIPTS then
-        local filename = 'debug_' .. chart.metadata.modfilePath
-        love.filesystem.write(filename, chart.loadedScript)
-        local _, _, line = string.find(res, '%[string ".-"%]:(%d+):')
-        os.execute('code --goto "' .. love.filesystem.getRealDirectory(filename) .. '/' .. filename .. ':' .. line .. '"')
+        if DEBUG_SCRIPTS then
+          local filename = 'debug_' .. name
+          love.filesystem.write(filename, chart.loadedScripts[name])
+          os.execute('code --goto "' .. love.filesystem.getRealDirectory(filename) .. '/' .. filename .. ':' .. line .. '"')
+        end
+      else
+        logs.warn('Error evaluating script: ' .. err)
       end
 
       -- reset to prevent stupid things from happening

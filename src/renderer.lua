@@ -139,14 +139,23 @@ local function drawNote(thing, sh)
   local x = getColumnX(note.column) * scale() + mx * NOTE_WIDTH
   local y = beatToY(thing.beat, sh) + my * NOTE_WIDTH
 
-  local width = NOTE_WIDTH * scale() * 0.95 * sx
-  local height = NOTE_HEIGHT * sy
-
   if y < -NOTE_HEIGHT then return -1 end
   if y > (sh + NOTE_HEIGHT) then return end
 
-  love.graphics.setColor(getColumnColor(note.column):unpack())
-  love.graphics.rectangle('fill', x - width/2, y - (height/2) * scale(), width, height * scale(), 1, 1)
+  if note.mine then
+    love.graphics.setColor(getColumnColor(note.column):alpha(0.8):unpack())
+    love.graphics.setLineWidth(6)
+    local width = NOTE_WIDTH * scale() * sx * 0.6
+    local height = NOTE_WIDTH * scale() * sy * 0.6
+    love.graphics.ellipse('line', x, y, width/2, height/2)
+    love.graphics.setLineWidth(1)
+  else
+    local width = NOTE_WIDTH * scale() * 0.95 * sx
+    local height = NOTE_HEIGHT * sy
+
+    love.graphics.setColor(getColumnColor(note.column):unpack())
+    love.graphics.rectangle('fill', x - width/2, y - (height/2) * scale(), width, height * scale(), 1, 1)
+  end
 end
 local function drawHoldTail(thing, sh)
   local note = thing.note
@@ -519,7 +528,7 @@ end
 function self.updateTimingEvents()
   timingEvents = {}
 
-  print('update timing events')
+  --print('update timing events')
 
   if not chart.loaded then return end
 

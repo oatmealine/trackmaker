@@ -58,6 +58,7 @@ M.XDRVDifficulty = {
   Normal = 1,
   Hyper = 2,
   Extreme = 3,
+  Overdrive = 4,
 }
 
 M.STAGE_BACKGROUNDS = {
@@ -132,10 +133,11 @@ local function parseBool(s)
 end
 
 local function parseDifficulty(s)
-  if s == 'BEGINNER' then return M.XDRVDifficulty.Beginner end
-  if s == 'NORMAL'   then return M.XDRVDifficulty.Normal   end
-  if s == 'HYPER'    then return M.XDRVDifficulty.Hyper    end
-  if s == 'EXTREME'  then return M.XDRVDifficulty.Extreme  end
+  if s == 'BEGINNER'  then return M.XDRVDifficulty.Beginner  end
+  if s == 'NORMAL'    then return M.XDRVDifficulty.Normal    end
+  if s == 'HYPER'     then return M.XDRVDifficulty.Hyper     end
+  if s == 'EXTREME'   then return M.XDRVDifficulty.Extreme   end
+  if s == 'OVERDRIVE' then return M.XDRVDifficulty.Overdrive end
 
   return M.XDRVDifficulty.Beginner
 end
@@ -156,18 +158,20 @@ local function formatBool(b)
   return b and 'TRUE' or 'FALSE'
 end
 local function formatDifficulty(d)
-  if d == M.XDRVDifficulty.Beginner then return 'BEGINNER' end
-  if d == M.XDRVDifficulty.Normal   then return 'NORMAL'   end
-  if d == M.XDRVDifficulty.Hyper    then return 'HYPER'    end
-  if d == M.XDRVDifficulty.Extreme  then return 'EXTREME'  end
+  if d == M.XDRVDifficulty.Beginner  then return 'BEGINNER'  end
+  if d == M.XDRVDifficulty.Normal    then return 'NORMAL'    end
+  if d == M.XDRVDifficulty.Hyper     then return 'HYPER'     end
+  if d == M.XDRVDifficulty.Extreme   then return 'EXTREME'   end
+  if d == M.XDRVDifficulty.Overdrive then return 'OVERDRIVE' end
   return 'BEGINNER'
 end
 M.formatDifficulty = formatDifficulty
 function M.formatDifficultyShort(d)
-  if d == M.XDRVDifficulty.Beginner then return 'BG' end
-  if d == M.XDRVDifficulty.Normal   then return 'NM' end
-  if d == M.XDRVDifficulty.Hyper    then return 'HY' end
-  if d == M.XDRVDifficulty.Extreme  then return 'EX' end
+  if d == M.XDRVDifficulty.Beginner  then return 'BG' end
+  if d == M.XDRVDifficulty.Normal    then return 'NM' end
+  if d == M.XDRVDifficulty.Hyper     then return 'HY' end
+  if d == M.XDRVDifficulty.Extreme   then return 'EX' end
+  if d == M.XDRVDifficulty.Overdrive then return 'OV' end
   return 'BG'
 end
 
@@ -186,7 +190,7 @@ M.XDRVDriftDirection = {
 
 ---@alias XDRVNoteColumn 1 | 2 | 3 | 4 | 5 | 6
 
----@alias XDRVNote { beat: number, note: { column: XDRVNoteColumn, length: number? } }
+---@alias XDRVNote { beat: number, note: { column: XDRVNoteColumn, length: number?, mine: boolean? } }
 ---@alias XDRVHoldStart { beat: number, holdStart: { column: XDRVNoteColumn } }
 ---@alias XDRVHoldEnd { beat: number, holdEnd: { column: XDRVNoteColumn } }
 ---@alias XDRVGearShift { beat: number, gearShift: { lane: XDRVLane, length: number } }
@@ -366,6 +370,7 @@ end
 ---@param thing XDRVThing
 local function noteToType(thing)
   if not thing then return '0' end
+  if thing.note and thing.note.mine then return 'M' end
   if thing.note then return '1' end
   if thing.holdStart then return '2' end
   if thing.holdEnd then return '4' end
@@ -414,6 +419,9 @@ local function noteEvent(beat, s, c)
   end
   if s == '4' then
     return { beat = beat, holdEnd = { column = c } }
+  end
+  if s == 'M' then
+    return { beat = beat, note = { column = c, mine = true } }
   end
   return nil
 end
@@ -627,7 +635,7 @@ local function deserializeChart(str)
         end
       end
       local noterow = row[#row]
-      local c1, c2, c3, c4, c5, c6, l, r, d = string.match(noterow, '(%d)(%d)(%d)%-(%d)(%d)(%d)|(%d)(%d)|(%d)')
+      local c1, c2, c3, c4, c5, c6, l, r, d = string.match(noterow, '([%dM])([%dM])([%dM])%-([%dM])([%dM])([%dM])|([%dM])([%dM])|([%dM])')
       if c1 then
         for column, s in ipairs({c1, c2, c3, c4, c5, c6}) do
           local ev = noteEvent(b, s, column)

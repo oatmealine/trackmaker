@@ -222,6 +222,14 @@ self.binds = {
       edit.clearSelection()
     end,
   },
+  mines = {
+    name = 'Toggle mines',
+    keys = { '`' },
+    viewOnly = true,
+    trigger = function()
+      edit.turnToMines()
+    end
+  }
 }
 
 local function formatKey(key)

@@ -45,8 +45,8 @@ local DEFAULT_METADATA = {
 }
 
 self.loaded = false
----@type string?
-self.loadedScript = nil
+---@type table<string, string>
+self.loadedScripts = {}
 ---@type XDRVThing[]
 self.chart = nil
 ---@type XDRVMetadata
@@ -191,8 +191,9 @@ function self.ensureInitialBPM()
   table.insert(self.chart, 1, { beat = 0, bpm = self.metadata.chartBPM })
 end
 
-function self.tryLoadScript()
-  if not self.metadata.modfilePath or self.metadata.modfilePath == '' then
+function self.tryLoadScript(filepath)
+  filepath = filepath or self.metadata.modfilePath
+  if not filepath or filepath == '' then
     logs.logFile('No modfile to load')
     return
   end
@@ -201,7 +202,7 @@ function self.tryLoadScript()
     return
   end
 
-  local file, err = io.open(self.chartDir .. self.metadata.modfilePath, 'r')
+  local file, err = io.open(self.chartDir .. filepath, 'r')
   if not file then
     logs.warn('Error loading script: ' .. err)
     return
@@ -231,7 +232,7 @@ function self.tryLoadScript()
     logs.logStdout(content)
   end
 
-  self.loadedScript = content
+  self.loadedScripts[filepath] = content
   return true
 end
 
@@ -273,7 +274,7 @@ function self.openData(loaded, filepath, anonymous)
     self.chartLocation = filepath
   end
   if filepath then self.chartDir = string.gsub(filepath, '([/\\])[^/\\]+$', '%1') end
-  self.loadedScript = nil
+  self.loadedScripts = {}
   if self.tryLoadScript() then
     logs.log('Loaded script ' .. self.metadata.modfilePath)
   end

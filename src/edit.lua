@@ -325,6 +325,31 @@ function self.selectAll()
   logs.log('Selected ' .. #self.selection .. ' notes')
 end
 
+function self.turnToMines()
+  local c = 0
+  local hasMines = false
+  local hasNotes = false
+  for _, thing in ipairs(chart.chart) do
+    if includes(self.selection, thing) and thing.note and not thing.note.length then
+      c = c + 1
+      thing.note.mine = not thing.note.mine
+      if thing.note.mine then
+        hasMines = true
+      else
+        hasNotes = true
+      end
+    end
+  end
+  local source = ''
+  local target = ''
+  if hasMines then source = 'notes' target = 'mines' end
+  if hasNotes then source = 'mines' target = 'notes' end
+  if hasNotes and hasMines then source = 'things' target = 'notes/mines' end
+  logs.log('Turned ' .. c .. ' ' .. source .. ' to ' .. target)
+  chart.insertHistory('Invert selection mines')
+  events.redraw()
+end
+
 function self.undo()
   local mem = chart.undo()
   if mem then
