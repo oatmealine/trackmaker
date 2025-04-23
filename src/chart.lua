@@ -494,7 +494,7 @@ function self.importSM(chart, filepath, notes, style)
   end
 
   for _, v in ipairs(chart.FAKES or {}) do
-    table.insert(self.chart, { beat = v[1], fake = v[2] })
+    table.insert(self.chart, { beat = v[1], fake = { v[2] } })
   end
 
   self.chart = xdrv.collapseHoldEnds(self.chart)

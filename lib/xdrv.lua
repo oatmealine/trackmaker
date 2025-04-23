@@ -205,7 +205,7 @@ M.XDRVDriftDirection = {
 ---@alias XDRVTimeSignature { beat: number, timeSignature: { [1]: number, [2]: number } }
 ---@alias XDRVComboTicks { beat: number, comboTicks: number }
 ---@alias XDRVLabel { beat: number, label: string }
----@alias XDRVFake { beat: number, fake: number }
+---@alias XDRVFake { beat: number, fake: { [1]: number, [2]: number? } }
 ---@alias XDRVSceneEvent { beat: number, event: { name: string, args: string[] } }
 ---@alias XDRVCheckpoint { beat: number, checkpoint: string }
 ---@alias XDRVThing XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVDrift | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
@@ -268,7 +268,10 @@ local function parseTimingSegment(beat, s)
   elseif key == 'FAKE' then
     return {
       beat = beat,
-      fake = tonumber(args[1]),
+      fake = {
+        tonumber(args[1]),
+        args[2] and tonumber(args[2])
+      }
     }
   elseif key == 'EVENT' then
     local name = args[1]
@@ -533,7 +536,7 @@ local function serializeChart(things)
           elseif thing.label then
             table.insert(segmentStr, '#LABEL=' .. thing.label)
           elseif thing.fake then
-            table.insert(segmentStr, '#FAKE=' .. thing.fake)
+            table.insert(segmentStr, '#FAKE=' .. thing.fake[1] .. (thing.fake[2] and (',' .. thing.fake[2]) or ''))
           elseif thing.event then
             table.insert(segmentStr, '#EVENT=' .. thing.event.name .. ',' .. table.concat(thing.event.args, ','))
           elseif thing.checkpoint then

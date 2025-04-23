@@ -45,7 +45,10 @@ local eventFields = {
   }},
   comboTicks = { 'number', nil, 'x' },
   label = { 'string', nil, nil },
-  fake = { 'number', nil, 'Beats' },
+  fake = { 'arr', {
+    { 'number', nil, 'Beats' },
+    { 'number', nil, 'Column' },
+  }},
 }
 
 function EventEditWidget:getRows(field, store)
