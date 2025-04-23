@@ -399,6 +399,19 @@ local function drawDrift(thing, prevEvent, sh)
   ]]
 end
 
+local function drawMeasureLine(b, sh, alpha, lane)
+  lane = lane or -1
+  local y = beatToY(b, sh)
+
+  love.graphics.setColor(MEASURE_COL:alpha(alpha or 1):unpack())
+  if lane == xdrv.XDRVLane.Left or lane == -1 then
+    love.graphics.line(getLeft(), y, getMLeft(), y)
+  end
+  if lane == xdrv.XDRVLane.Right or lane == -1 then
+    love.graphics.line(getRight(), y, getMRight(), y)
+  end
+end
+
 local QUANT_DEFAULT_COLOR = hex('a5a5a5')
 local QUANT_COLORS = {
   hex('f15858'),
@@ -583,6 +596,25 @@ function self.updateTimingEvents()
       text = thing.label
       hoverText = 'Label'
       hoverSummary = '"' .. thing.label .. '"'
+    elseif thing.fake then
+      col = rgb(0.6, 0.1, 0.7)
+      text = string.format('x%.2fb', thing.fake[1])
+      hoverText = 'Fake'
+      hoverSummary = string.format('x%.2fb', thing.fake[1])
+      if thing.fake[2] then
+        hoverSummary = hoverSummary .. ' (column ' .. thing.fake[2] .. ')'
+      end
+    elseif thing.measureLine then
+      col = rgb(0.2, 0.6, 0.3)
+      text = 'Measure Line'
+      hoverText = 'Measure Line'
+      if thing.measureLine == xdrv.XDRVLane.Left then
+        hoverSummary = 'Left lane'
+      elseif thing.measureLine == xdrv.XDRVLane.Right then
+        hoverSummary = 'Right lane'
+      else
+        hoverSummary = 'Both lanes'
+      end
     elseif not (thing.note or thing.gearShift or thing.drift or thing.checkpoint) then
       local type = getThingType(thing)
       invalid = true
@@ -732,19 +764,25 @@ function self.drawCanvas(static)
       love.graphics.setColor(0.6, 0.6, 0.6, 1)
       if b == nextMeasure then
         if not config.config.previewMode then
-          love.graphics.print(tostring(nextMeasureI), math.floor(getRight() + 16), math.floor(y - fonts.inter_12:getHeight()/2))
+          love.graphics.print(tostring(nextMeasureI), math.floor(getRight() + 16), math.floor(y - love.graphics.getFont():getHeight()/2))
         end
         nextMeasureI = nextMeasureI + 1
         nextMeasure = conductor.measures[nextMeasureI]
-        love.graphics.setColor(MEASURE_COL:unpack())
+        drawMeasureLine(b, sh)
       elseif not config.config.previewMode then
-        love.graphics.setColor(MEASURE_COL:alpha(0.5):unpack())
-      else
-        love.graphics.setColor(0, 0, 0, 0)
+        drawMeasureLine(b, sh, 0.5)
       end
+    end
 
-      love.graphics.line(getLeft(), y, getMLeft(), y)
-      love.graphics.line(getRight(), y, getMRight(), y)
+    for _, thing in ipairs(chart.chart) do
+      if thing.beat > topB then break end
+      if thing.measureLine then
+        drawMeasureLine(thing.beat, sh, 1, thing.measureLine)
+      end
+    end
+    for _, thing in ipairs(preview.getMeasureLines()) do
+      if thing.beat > topB then break end
+      drawMeasureLine(thing.beat, sh, 1, thing.measureLine)
     end
   end
 

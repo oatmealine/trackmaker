@@ -32,6 +32,7 @@ local eventNames = {
   label = 'Label',
   fake = 'Fake',
   event = 'Stage Event',
+  measureLine = 'Measure Line',
 }
 local eventFields = {
   bpm = { 'number', nil, 'BPM' },
@@ -49,6 +50,7 @@ local eventFields = {
     { 'number', nil, 'Beats' },
     { 'number', nil, 'Column' },
   }},
+  measureLine = { 'number', nil, 'Lane' },
 }
 
 function EventEditWidget:getRows(field, store)

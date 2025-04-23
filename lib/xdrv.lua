@@ -175,6 +175,16 @@ function M.formatDifficultyShort(d)
   return 'BG'
 end
 
+local function parseLane(str)
+  if str == 'left'  then return M.XDRVLane.Left  end
+  if str == 'right' then return M.XDRVLane.Right end
+  return -1
+end
+local function formatLane(lane)
+  if lane == M.XDRVLane.Left  then return 'left'  end
+  if lane == M.XDRVLane.Right then return 'right' end
+end
+
 ---@enum XDRVLane
 M.XDRVLane = {
   Left = 1,
@@ -205,55 +215,70 @@ M.XDRVDriftDirection = {
 ---@alias XDRVTimeSignature { beat: number, timeSignature: { [1]: number, [2]: number } }
 ---@alias XDRVComboTicks { beat: number, comboTicks: number }
 ---@alias XDRVLabel { beat: number, label: string }
----@alias XDRVFake { beat: number, fake: { [1]: number, [2]: number? } }
+---@alias XDRVFake { beat: number, fake: { [1]: number, [2]: XDRVNoteColumn? } }
 ---@alias XDRVSceneEvent { beat: number, event: { name: string, args: string[] } }
 ---@alias XDRVCheckpoint { beat: number, checkpoint: string }
----@alias XDRVThing XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVDrift | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint
+---@alias XDRVMeasureLine { beat: number, measureLine: XDRVLane | -1 }
+---@alias XDRVThing XDRVNote | XDRVHoldStart | XDRVHoldEnd | XDRVGearShift | XDRVGearShiftStart | XDRVGearShiftEnd | XDRVDrift | XDRVBPMChange | XDRVWarp | XDRVStop | XDRVStopSeconds | XDRVScroll | XDRVTimeSignature | XDRVComboTicks | XDRVLabel | XDRVFake | XDRVSceneEvent | XDRVCheckpoint | XDRVMeasureLine
 
 ---@return XDRVThing?
 local function parseTimingSegment(beat, s)
   s = string.sub(s, 2) -- remove leading #
   local eq = string.find(s, '=')
-  if not eq then return nil end
-  local key = string.sub(s, 1, eq - 1)
-  local value = string.sub(s, eq + 1)
+
+  local key = s
+  local value = ''
+  if eq then
+    key = string.sub(s, 1, eq - 1)
+    value = string.sub(s, eq + 1)
+  end
 
   local args = {}
-  for arg in string.gmatch(value, '([^,]+)') do
-    table.insert(args, arg)
+  if eq then
+    for arg in string.gmatch(value, '([^,]+)') do
+      table.insert(args, arg)
+    end
   end
 
   if key == 'BPM' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       bpm = tonumber(args[1]),
     }
   elseif key == 'WARP' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       warp = tonumber(args[1]),
     }
   elseif key == 'STOP' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       stop = tonumber(args[1]),
     }
   elseif key == 'STOP_SECONDS' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       stopSeconds = tonumber(args[1]),
     }
   elseif key == 'SCROLL' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       scroll = tonumber(args[1]),
     }
   elseif key == 'TIME_SIGNATURE' then
+    if not args[1] then return nil end
+    if not args[2] then return nil end
     return {
       beat = beat,
       timeSignature = { tonumber(args[1]), tonumber(args[2]) },
     }
   elseif key == 'COMBO_TICKS' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       comboTicks = tonumber(args[1]),
@@ -261,11 +286,13 @@ local function parseTimingSegment(beat, s)
   elseif key == 'COMBO' then
     -- unused
   elseif key == 'LABEL' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       label = args[1],
     }
   elseif key == 'FAKE' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       fake = {
@@ -274,6 +301,7 @@ local function parseTimingSegment(beat, s)
       }
     }
   elseif key == 'EVENT' then
+    if not args[1] then return nil end
     local name = args[1]
 
     local eventArgs = {}
@@ -286,9 +314,15 @@ local function parseTimingSegment(beat, s)
       event = { name = name, args = eventArgs }
     }
   elseif key == 'CHECKPOINT' then
+    if not args[1] then return nil end
     return {
       beat = beat,
       checkpoint = args[1],
+    }
+  elseif key == 'MEASURE_LINE' then
+    return {
+      beat = beat,
+      measureLine = parseLane(args[1]),
     }
   end
 
@@ -541,6 +575,12 @@ local function serializeChart(things)
             table.insert(segmentStr, '#EVENT=' .. thing.event.name .. ',' .. table.concat(thing.event.args, ','))
           elseif thing.checkpoint then
             table.insert(segmentStr, '#CHECKPOINT=' .. thing.checkpoint)
+          elseif thing.measureLine then
+            if thing.measureLine == -1 then
+              table.insert(segmentStr, '#MEASURE_LINE')
+            else
+              table.insert(segmentStr, '#MEASURE_LINE=' .. formatLane(thing.measureLine))
+            end
           end
         end
       end

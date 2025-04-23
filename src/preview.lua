@@ -148,6 +148,8 @@ local eases = {}
 local activeEases = {}
 ---@type TimedEase[]
 local inactiveEases = {}
+---@type XDRVMeasureLine[]
+local measureLines = {}
 local knownModNames = {}
 
 local function easeSort(a, b)
@@ -349,6 +351,10 @@ function self.getModValue(type)
   return self.getEasedValue('mod_' .. type)
 end
 
+function self.getMeasureLines()
+  return measureLines
+end
+
 -- !! WILL ERROR IN YOUR FACE !!
 ---@param beat number?
 ---@param time number?
@@ -412,12 +418,19 @@ end
 
 local fauxXDRV = {}
 
-function fauxXDRV.RunEvent(eventName, beatOrTime, timingValue, ...)
+function fauxXDRV.RunEvent(eventName, b, c, ...)
   checkArg(eventName, 1, 'string')
+
+  local beatOrTime, timingValue = b, c
+  if type(c) == 'string' and type(b) == 'number' then
+    beatOrTime, timingValue = c, b
+    checkArg(timingValue, 2, 'number')
+  else
+    checkArg(timingValue, 3, 'number')
+  end
   if not (beatOrTime == 'beat' or beatOrTime == 'time') then
     warn('beatOrTime arg is neither \'beat\' nor \'time\', but \'' .. tostring(beatOrTime) .. '\'')
   end
-  checkArg(timingValue, 3, 'number')
 
   local time = beatOrTime == 'time'
 
@@ -436,6 +449,27 @@ function fauxXDRV.RunEvent(eventName, beatOrTime, timingValue, ...)
   end
 end
 fauxXDRV.run_event = fauxXDRV.RunEvent
+
+function fauxXDRV.AddMeasureLine(a, b, lane)
+  local beatOrTime, timingValue = a, b
+  if type(b) == 'string' and type(a) == 'number' then
+    beatOrTime, timingValue = b, a
+    checkArg(timingValue, 1, 'number')
+  else
+    checkArg(timingValue, 2, 'number')
+  end
+  if not (beatOrTime == 'beat' or beatOrTime == 'time') then
+    warn('beatOrTime arg is neither \'beat\' nor \'time\', but \'' .. tostring(beatOrTime) .. '\'')
+  end
+
+  local time = beatOrTime == 'time'
+  local beat = timingValue
+  if time then
+    beat = conductor.beatAtTime(timingValue)
+  end
+  table.insert(measureLines, { beat = beat, measureLine = lane or -1 })
+end
+fauxXDRV.add_measure_line = fauxXDRV.AddMeasureLine
 
 function fauxXDRV.GetPlayerNoteColor(column)
   if column < 0 or column > 7 then
@@ -652,6 +686,7 @@ function self.bakeEases()
   activeEases = {}
   inactiveEases = {}
   valuesBuffer = {}
+  measureLines = {}
   lastBeat = 9e9
   if chart.loadedScripts[chart.metadata.modfilePath] then
     local path = chart.metadata.modfilePath -- must be an upvalue
@@ -696,6 +731,7 @@ function self.bakeEases()
 
       -- reset to prevent stupid things from happening
       eases = {}
+      measureLines = {}
     end
   end
   for _, thing in ipairs(chart.chart) do
