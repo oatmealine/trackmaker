@@ -240,7 +240,10 @@ local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { InfobarWidget(), ActionBarWidget(), MinimapWidget(love.graphics.getWidth(), 0) }
+widgets = { InfobarWidget(), MinimapWidget(love.graphics.getWidth(), 0) }
+if not MACOS then
+  table.insert(widgets, ActionBarWidget())
+end
 
 function getWidgets()
   return widgets

@@ -45,6 +45,11 @@ local xdrvColors = require 'src.xdrvcolors'
 local preview    = require 'src.preview'
 require 'src.events'
 
+macos = nil
+if MACOS then
+  macos = require 'src.macos'
+end
+
 local function loadCustomFont(path)
   local file, err = io.open(path, 'r')
   if not file then
@@ -290,4 +295,8 @@ function love.quit()
       { text = 'Cancel', click = function() shouldQuitOnSave = false end } }), true)
     return true
   end
+
+  if macos then macos.clean() end
 end
+
+if macos then macos.injectMenuBar() end

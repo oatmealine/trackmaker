@@ -8,6 +8,7 @@ local xdrvColors = require 'src.xdrvcolors'
 local filesystem = require 'src.filesystem'
 local exxdriver  = require 'src.exxdriver'
 local json       = require 'lib.json'
+local keybinds   = require 'src.keybinds'
 
 local ContextWidget = require 'src.widgets.context'
 local MetadataWidget = require 'src.widgets.metadata'
@@ -27,300 +28,327 @@ local MARGIN = GAP / 2
 ---@type CatjamWidget?
 local catjam = nil
 
----@type { [1]: string, [2]: fun(): ContextWidgetEntry }[]
+local glyphListEntries = {}
+
+table.insert(glyphListEntries, {
+  'None', click = function()
+    config.config.controllerGlyphs = ''
+    config.save()
+    events.redraw()
+  end,
+  toggle = true, value = function() return config.config.controllerGlyphs == '' end
+})
+for _, layout in ipairs(glyphsList) do
+  table.insert(glyphListEntries, {
+    titleCase(layout), click = function()
+      config.config.controllerGlyphs = layout
+      config.save()
+      events.redraw()
+    end,
+    toggle = true, value = function() return config.config.controllerGlyphs == layout end
+  })
+end
+
+local schemesEntries = {}
+for _, theme in ipairs(colors.getSchemes()) do
+  table.insert(schemesEntries, { theme.name, click = function()
+    colors.setScheme(theme.key)
+    config.config.theme = theme.key
+    config.save()
+  end,
+  toggle = true, value = function() return colors.getScheme() == theme.key end })
+end
+
+local notChartLoaded = function() return not chart.loaded end
+
+-- todo: make these arguments a table?
+local function toggle(name, base, key, callback, keybind)
+  return { name, click = function()
+    base[key] = not base[key]
+    config.save()
+    events.redraw()
+    if callback then callback(base[key]) end
+  end, toggle = true, value = function() return base[key] end, bind = keybind }
+end
+local function toggleVerbose(name, base, key, callback, keybind)
+  return toggle(name, base, key, function(value)
+    logs.log(name .. ': ' .. (value and 'ON' or 'OFF'))
+    callback()
+  end, keybind)
+end
+
 local items = {
-  { 'File', function()
-    return {
-      { 'Open',        function() chart.openChart()  end, bind = keybinds.binds.open },
-      { 'Recent files', hover = function(self, i)
+  { 'File',
+    {
+      { 'Open',         click = function()
+        chart.openChart()
+      end, bind = keybinds.binds.open },
+      { 'Recent files', getSubmenu = function()
         local entries = {}
         for _, path in ipairs(config.config.recent) do
-          table.insert(entries, { path, function() chart.openPath(path) end })
+          table.insert(entries, { path, click = function() chart.openPath(path) end })
         end
         if #entries == 0 then
           table.insert(entries, { 'No recent files..' })
         end
-        self:openChild(i, ContextWidget(0, 0, entries))
+        return entries
       end, expandable = true },
-      { 'Close',       function() chart.loaded = false; chart.chart = nil; chart.metadata = nil; chart.loadedScripts = {}; end, disabled = not chart.loaded },
+      { 'Close',       click = function()
+        chart.loaded = false
+        chart.chart = nil
+        chart.metadata = nil
+        chart.loadedScripts = {}
+      end, disabled = notChartLoaded },
       {},
-      { 'Save',        function() chart.quickSave()  end, bind = keybinds.binds.quicksave, disabled = not chart.loaded },
-      { 'Save as...',  function() chart.saveChart()  end, bind = keybinds.binds.save,      disabled = not chart.loaded },
-      { 'Open in file browser', function() love.system.openURL('file://' .. chart.chartDir) end, disabled = not chart.chartDir },
-      { 'Reload', function()
+      { 'Save',        click = function()
+        chart.quickSave()
+      end, disabled = notChartLoaded, bind = keybinds.binds.quicksave },
+      { 'Save as...',  click = function()
+        chart.saveChart()
+      end, disabled = notChartLoaded, bind = keybinds.binds.save },
+      { 'Open in file browser', click = function()
+        love.system.openURL('file://' .. chart.chartDir)
+      end, disabled = function() return not chart.chartDir end },
+      { 'Reload', click = function()
         chart.reload()
-      end, disabled = not chart.chartLocation, bind = keybinds.binds.reload },
-      { 'Import',   hover = function(self, i)
-        self:openChild(i, ContextWidget(0, 0, {
-          { '.SM/.SSC file', function() chart.importMenu('sm,ssc') end },
-        }))
-      end, expandable = true },
+      end,
+      disabled = function() return not chart.chartLocation end,
+      bind = keybinds.binds.reload },
+      { 'Import',   {
+        { '.SM/.SSC file', click = function() chart.importMenu('sm,ssc') end },
+      }},
       {},
-      { 'Metadata...', function() openWidget(MetadataWidget(), true) end, disabled = not chart.loaded },
+      { 'Metadata...', click = function()
+        openWidget(MetadataWidget(), true)
+      end, disabled = notChartLoaded },
       {},
-      { 'Exit',        function() love.event.quit(0) end}
+      { 'Exit',        click = function()
+        love.event.quit(0)
+      end}
     }
-  end},
-  { 'View', function()
-    return {
-      { 'Preview mode', function()
-        config.config.previewMode = not config.config.previewMode
-        config.save()
-        events.redraw()
-      end, toggle = true, value = config.config.previewMode },
-      { 'CMod', function()
-        config.config.cmod = not config.config.cmod
-        config.save()
-        events.redraw()
-      end, toggle = true, value = config.config.cmod },
-      { 'Controller glyphs...', hover = function(self, i)
-        local entries = {}
-        table.insert(entries, {
-          'None', function()
-            config.config.controllerGlyphs = ''
-            config.save()
-            events.redraw()
-          end,
-          toggle = true, value = config.config.controllerGlyphs == ''
-        })
-        for _, layout in ipairs(glyphsList) do
-          table.insert(entries, {
-            titleCase(layout), function()
-              config.config.controllerGlyphs = layout
-              config.save()
-              events.redraw()
-            end,
-            toggle = true, value = config.config.controllerGlyphs == layout
-          })
-        end
-        self:openChild(i, ContextWidget(0, 0, entries))
-      end, expandable = true },
-      { 'View...', hover = function(self, i)
-        self:openChild(i, ContextWidget(0, 0, {
-          { 'Chart',       function() config.config.view.chart                = not config.config.view.chart;         config.save(); events.redraw() end,
-          toggle = true, value = config.config.view.chart },
-          { 'Drifts',      function() config.config.view.drifts               = not config.config.view.drifts;        config.save(); events.redraw() end,
-          toggle = true, value = config.config.view.drifts },
-          { 'Checkpoints', function() config.config.view.checkpoints          = not config.config.view.checkpoints;   config.save(); events.redraw() end,
-          toggle = true, value = config.config.view.checkpoints },
-          { 'Unsupported events', function() config.config.view.invalidEvents = not config.config.view.invalidEvents; config.save(); events.onEventsModify() end,
-          toggle = true, value = config.config.view.invalidEvents },
-        }))
-      end, expandable = true },
+  },
+  { 'View',
+    {
+      toggle('Preview mode', config.config, 'previewMode'),
+      toggle('CMod', config.config, 'cmod'),
+      { 'Controller glyphs...', glyphListEntries },
+      { 'View...', {
+        toggle('Chart', config.config.view, 'chart'),
+        toggle('Drifts', config.config.view, 'drifts'),
+        toggle('Checkpoints', config.config.view, 'checkpoints'),
+        toggle('Unsupported events', config.config.view, 'invalidEvents', function() events.onEventsModify() end),
+      }},
     }
-  end },
-  { 'Edit', function()
-    return {
-      { 'Undo',  function() edit.undo()  end, bind = keybinds.binds.undo, disabled = #chart.history <= 1 },
-      { 'Redo',  function() edit.redo()  end, bind = keybinds.binds.redo, disabled = #chart.future == 0 },
+  },
+  { 'Edit',
+    {
+      { 'Undo',  click = function()
+        edit.undo()
+      end, disabled = function() return #chart.history <= 1 end, bind = keybinds.binds.undo },
+      { 'Redo',  click = function()
+        edit.redo()
+      end, disabled = function() return #chart.future == 0 end, bind = keybinds.binds.redo },
       {},
-      { 'Cut',   function() edit.cut()   end, bind = keybinds.binds.cut },
-      { 'Copy',  function() edit.copy()  end, bind = keybinds.binds.copy },
-      { 'Paste', function() edit.paste() end, bind = keybinds.binds.paste, disabled = not edit.hasSomethingToPaste() },
+      { 'Cut',   click = function()
+        edit.cut()
+      end, bind = keybinds.binds.cut },
+      { 'Copy',  click = function()
+        edit.copy()
+      end, bind = keybinds.binds.copy },
+      { 'Paste', click = function()
+        edit.paste()
+      end, disabled = function() return not edit.hasSomethingToPaste() end, bind = keybinds.binds.paste },
       {},
-      { 'Mirror',   hover = function(self, i)
-        self:openChild(i, ContextWidget(0, 0, {
-          { 'Horizontally', function() edit.mirrorSelection(edit.MirrorType.Horizontal) end },
-          { 'Vertically',   function() edit.mirrorSelection(edit.MirrorType.Vertical)   end },
-          { 'Both',         function() edit.mirrorSelection(edit.MirrorType.Both)       end },
-        }))
-      end, expandable = true },
+      { 'Mirror', {
+        { 'Horizontally', click = function() edit.mirrorSelection(edit.MirrorType.Horizontal) end },
+        { 'Vertically',   click = function() edit.mirrorSelection(edit.MirrorType.Vertical)   end },
+        { 'Both',         click = function() edit.mirrorSelection(edit.MirrorType.Both)       end },
+      }},
       {},
-      { 'Toggle mines',  function() edit.turnToMines()  end, bind = keybinds.binds.mines, disabled = #edit.selection == 0 },
+      { 'Toggle mines',  click = function()
+        edit.turnToMines()
+      end, disabled = function() return #edit.selection == 0 end, bind = keybinds.binds.mines },
       {},
-      { 'Select All', function() edit.selectAll() end, bind = keybinds.binds.selectAll },
-      { 'Delete',     function() edit.deleteKey() end, bind = keybinds.binds.delete, disabled = #edit.selection == 0 },
+      { 'Select All', click = function() edit.selectAll() end, bind = keybinds.binds.selectAll },
+      { 'Delete',     click = function() edit.deleteKey() end,
+      disabled = function() return #edit.selection == 0 end,
+      bind = keybinds.binds.delete },
     }
-  end},
-  { 'Options', function()
-    local vsync = love.window.getVSync()
-    return {
-      { 'Beat tick', function()
-        config.config.beatTick = not config.config.beatTick
-        logs.log('Beat tick: ' .. (config.config.beatTick and 'ON' or 'OFF'))
-      end, toggle = true, value = config.config.beatTick, bind = keybinds.binds.beatTick },
-      { 'Note tick', function()
-        config.config.noteTick = not config.config.noteTick
-        logs.log('Note tick: ' .. (config.config.noteTick and 'ON' or 'OFF'))
-      end, toggle = true, value = config.config.noteTick, bind = keybinds.binds.noteTick },
-      {},
-      { 'VSync', function()
-        local newVsync = 1 - vsync
-        logs.log('VSync: ' .. ((newVsync == 1) and 'ON' or 'OFF'))
-        love.window.setVSync(newVsync)
-        config.config.vsync = newVsync == 1
-        config.save()
-      end, toggle = true, value = vsync == 1 },
-      { 'Disable multithreading', function()
-        config.config.noMultithreading = not config.config.noMultithreading
-        logs.log('Multithreading: ' .. (config.config.noMultithreading and 'OFF' or 'ON'))
-        if config.config.noMultithreading then
-          logs.log('Only touch this if you know what you\'re doing!')
-        end
-      end, toggle = true, value = config.config.noMultithreading, disabled = MACOS },
-      {},
-      { 'Theme', hover = function(self, i)
-        local entries = {}
-        for _, theme in ipairs(colors.getSchemes()) do
-          table.insert(entries, { theme.name, function()
-            colors.setScheme(theme.key)
-            config.config.theme = theme.key
-            config.save()
-          end, toggle = true, value = colors.getScheme() == theme.key })
-        end
-        self:openChild(i, ContextWidget(0, 0, entries))
-      end, expandable = true },
-      { 'Fonts', hover = function(self, i)
-        local entries = {}
-        for _, font in ipairs(love.filesystem.getDirectoryItems('assets/fonts')) do
-          table.insert(entries, { font, function()
-            config.config.uiFont = font
-            initFonts()
-            events.redraw()
-            config.save()
-          end, toggle = true, value = config.config.uiFont == font })
-        end
-        if string.sub(config.config.uiFont, 1, 7) == 'file://' then
-          table.insert(entries, { basename(config.config.uiFont) , function()
-            initFonts()
-            events.redraw()
-            config.save()
-          end, toggle = true, value = true })
-        end
-        table.insert(entries, { 'Other...' , function()
-          filesystem.openDialog('', 'ttf;otf', function(path)
-            if not path then return end
+  },
+  { 'Options', {
+    toggleVerbose('Beat tick', config.config, 'beatTick', nil, keybinds.binds.beatTick),
+    toggleVerbose('Note tick', config.config, 'noteTick', nil, keybinds.binds.noteTick),
+    {},
+    { 'VSync', click = function()
+      local newVsync = 1 - love.window.getVSync()
+      logs.log('VSync: ' .. ((newVsync == 1) and 'ON' or 'OFF'))
+      love.window.setVSync(newVsync)
+      config.config.vsync = newVsync == 1
+      config.save()
+    end, toggle = true, value = function() return love.window.getVSync() == 1 end },
+    { 'Disable multithreading', click = function()
+      config.config.noMultithreading = not config.config.noMultithreading
+      logs.log('Multithreading: ' .. (config.config.noMultithreading and 'OFF' or 'ON'))
+      if config.config.noMultithreading then
+        logs.log('Only touch this if you know what you\'re doing!')
+      end
+    end,
+    toggle = true, value = function() return config.config.noMultithreading end,
+    disabled = function() return MACOS end },
+    {},
+    { 'Theme', schemesEntries },
+    { 'Fonts', getSubmenu = function()
+      local entries = {}
+      for _, font in ipairs(love.filesystem.getDirectoryItems('assets/fonts')) do
+        table.insert(entries, { font, click = function()
+          config.config.uiFont = font
+          initFonts()
+          events.redraw()
+          config.save()
+        end, toggle = true, value = function() return config.config.uiFont == font end })
+      end
+      if string.sub(config.config.uiFont, 1, 7) == 'file://' then
+        table.insert(entries, { basename(config.config.uiFont), click = function()
+          initFonts()
+          events.redraw()
+          config.save()
+        end, toggle = true, value = function() return true end })
+      end
+      table.insert(entries, { 'Other...' , click = function()
+        filesystem.openDialog('', 'ttf;otf', function(path)
+          if not path then return end
 
-            local ext = string.sub(path, -4)
-            if ext ~= '.ttf' and ext ~= '.otf' then
-              logs.warn('Only .ttf and .otf files are supported')
-              return
-            end
-            if ext == '.otf' then
-              logs.log('LÖVE support for .otf files is experimental, some features may not be supported')
-            end
-
-            config.config.uiFont = 'file://' .. path
-            initFonts()
-            events.redraw()
-            config.save()
-          end)
-        end})
-        table.insert(entries, {})
-        local minFontSize = 6
-        local maxFontSize = 18
-        table.insert(entries, { 'Size', function(a)
-          local fontSize = round(minFontSize + a * (maxFontSize - minFontSize))
-          if fontSize ~= config.config.uiFontSize then
-            config.config.uiFontSize = fontSize
-            initFonts()
-            events.redraw()
-            config.save()
+          local ext = string.sub(path, -4)
+          if ext ~= '.ttf' and ext ~= '.otf' then
+            logs.warn('Only .ttf and .otf files are supported')
+            return
           end
-        end, formatValue = function(a)
-          return tostring(round(minFontSize + a * (maxFontSize - minFontSize)))
-        end, slider = true, value = (config.config.uiFontSize - minFontSize) / (maxFontSize - minFontSize) })
-        self:openChild(i, ContextWidget(0, 0, entries))
-      end, expandable = true },
-      { 'Colors', hover = function(self, i)
-        local entries = {}
-        for _, theme in ipairs(xdrvColors.schemes) do
-          table.insert(entries, { theme.name, function()
-            xdrvColors.setScheme(theme.name)
-            config.config.xdrvColors = theme.name
-            events.redraw()
-            config.save()
-          end, toggle = true, value = xdrvColors.scheme.name == theme.name })
-        end
-        -- a little ugly; adds the little break after the first theme
-        table.insert(entries, 2, {})
+          if ext == '.otf' then
+            logs.log('LÖVE support for .otf files is experimental, some features may not be supported')
+          end
 
-        table.insert(entries, {})
-        table.insert(entries, { 'Custom', function()
+          config.config.uiFont = 'file://' .. path
+          initFonts()
+          events.redraw()
+          config.save()
+        end)
+      end})
+      table.insert(entries, {})
+      local minFontSize = 6
+      local maxFontSize = 18
+      table.insert(entries, { 'Size', set = function(a)
+        local fontSize = round(minFontSize + a * (maxFontSize - minFontSize))
+        if fontSize ~= config.config.uiFontSize then
+          config.config.uiFontSize = fontSize
+          initFonts()
+          events.redraw()
+          config.save()
+        end
+      end, formatValue = function(a)
+        return tostring(round(minFontSize + a * (maxFontSize - minFontSize)))
+      end, slider = true, value = function()
+        return (config.config.uiFontSize - minFontSize) / (maxFontSize - minFontSize)
+      end })
+      return entries
+    end },
+    { 'Colors', getSubmenu = function()
+      local entries = {}
+      for _, theme in ipairs(xdrvColors.schemes) do
+        table.insert(entries, { theme.name, click = function()
+          xdrvColors.setScheme(theme.name)
+          config.config.xdrvColors = theme.name
+          events.redraw()
+          config.save()
+        end, toggle = true, value = function() return xdrvColors.scheme.name == theme.name end })
+      end
+      -- a little ugly; adds the little break after the first theme
+      table.insert(entries, 2, {})
+
+      table.insert(entries, {})
+      table.insert(entries, { 'Custom', click = function()
+        xdrvColors.setScheme('custom')
+        config.config.xdrvColors = 'custom'
+        events.redraw()
+        config.save()
+      end, toggle = true, value = function() return xdrvColors.scheme.name == 'Custom' end })
+      table.insert(entries, { 'Import from JSON...', click = function()
+        filesystem.openDialog(exxdriver.getColorSchemePath() .. '/', 'json', function(path)
+          if not path then return end
+          local file, err = io.open(path, 'r')
+          if not file then
+            logs.warn(err)
+            return
+          end
+          local raw = file:read('*a')
+          file:close()
+
+          local data = json.decode(raw)
+          xdrvColors.setCustom(data.Colors)
           xdrvColors.setScheme('custom')
+
           config.config.xdrvColors = 'custom'
           events.redraw()
           config.save()
-        end, toggle = true, value = xdrvColors.scheme.name == 'Custom' })
-        table.insert(entries, { 'Import from JSON...', function()
-          filesystem.openDialog(exxdriver.getColorSchemePath() .. '/', 'json', function(path)
-            if not path then return end
-            local file, err = io.open(path, 'r')
-            if not file then
-              logs.warn(err)
-              return
-            end
-            local raw = file:read('*a')
-            file:close()
+        end)
+      end })
 
-            local data = json.decode(raw)
-            xdrvColors.setCustom(data.Colors)
-            xdrvColors.setScheme('custom')
-
-            config.config.xdrvColors = 'custom'
-            events.redraw()
-            config.save()
-          end)
-        end })
-
-        self:openChild(i, ContextWidget(0, 0, entries))
-      end, expandable = true },
-      { 'Waveform (EXPERIMENTAL)', function()
-        config.config.waveform = not config.config.waveform
-        if config.config.waveform and conductor.fileData then
-          waveform.init(conductor.fileData)
-        else
-          waveform.clear()
-        end
-        config.save()
-      end, toggle = true, value = config.config.waveform },
-      { 'Double-res waveform', function()
-        config.config.doubleResWaveform = not config.config.doubleResWaveform
-        if config.config.waveform and conductor.fileData then
-          waveform.init(conductor.fileData)
-        end
-        config.save()
-      end, toggle = true, value = config.config.doubleResWaveform },
-      { 'Waveform opacity', function(value)
-        config.config.waveformOpacity = value
-      end, slider = true, value = config.config.waveformOpacity },
-      { 'Waveform brightness', function(value)
-        config.config.waveformBrightness = value
-      end, slider = true, value = config.config.waveformBrightness },
-      {},
-      { 'Cat', function()
-        if not catjam or catjam.delete then
-          catjam = CatjamWidget(32, 32)
-          openWidget(catjam)
-        else
-          catjam.delete = true
-          catjam = nil
-        end
-      end, toggle = true, value = not (not catjam or catjam.delete) },
+      return entries
+    end},
+    { 'Waveform (EXPERIMENTAL)', click = function()
+      config.config.waveform = not config.config.waveform
+      if config.config.waveform and conductor.fileData then
+        waveform.init(conductor.fileData)
+      else
+        waveform.clear()
+      end
+      config.save()
+    end, toggle = true, value = function() return config.config.waveform end },
+    { 'Double-res waveform', click = function()
+      config.config.doubleResWaveform = not config.config.doubleResWaveform
+      if config.config.waveform and conductor.fileData then
+        waveform.init(conductor.fileData)
+      end
+      config.save()
+    end, toggle = true, value = function() return config.config.doubleResWaveform end },
+    { 'Waveform opacity', set = function(value)
+      config.config.waveformOpacity = value
+    end, slider = true, value = function() return config.config.waveformOpacity end },
+    { 'Waveform brightness', set = function(value)
+      config.config.waveformBrightness = value
+    end, slider = true, value = function() return config.config.waveformBrightness end },
+    {},
+    { 'Cat', click = function()
+      if not catjam or catjam.delete then
+        catjam = CatjamWidget(32, 32)
+        openWidget(catjam)
+      else
+        catjam.delete = true
+        catjam = nil
+      end
+    end, toggle = true, value = function() return not (not catjam or catjam.delete) end },
     }
-  end},
-  { 'Help', function()
-    return {
-      { 'View keybinds', function() edit.viewBinds = not edit.viewBinds end, bind = keybinds.binds.viewBinds },
+  },
+  { 'Help',
+    {
+      { 'View keybinds', click = function()
+        edit.viewBinds = not edit.viewBinds
+      end, bind = keybinds.binds.viewBinds },
       {},
-      { 'UI Test',         function() openWidget(UITestWidget(150, 150)) end },
-      { 'About',         function() openWidget(AboutWidget(150, 150)) end },
+      { 'UI Test',       click = function() openWidget(UITestWidget(150, 150)) end },
+      { 'About',         click = function() openWidget(AboutWidget(150, 150)) end },
       {},
-      { 'Debug', hover = function(self, i)
-        self:openChild(i, ContextWidget(0, 0, {
-          { '!! No support will be offered !!', disabled = true },
-          { 'Use the options here at your own risk', disabled = true },
-          { 'Undo history', function() config.config.debug.undoHistory = not config.config.debug.undoHistory; config.save() end,
-          toggle = true, value = config.config.debug.undoHistory },
-          { 'Mods display', function() config.config.debug.modsDisplay = not config.config.debug.modsDisplay; config.save() end,
-          toggle = true, value = config.config.debug.modsDisplay },
-          { 'Ignore draw cache', function() config.config.debug.alwaysIgnoreCache = not config.config.debug.alwaysIgnoreCache; config.save() end,
-          toggle = true, value = config.config.debug.alwaysIgnoreCache },
-        }))
-      end, expandable = true },
+      { 'Debug', {
+        { '!! No support will be offered !!' },
+        { 'Use the options here at your own risk' },
+        toggle('Undo history', config.config.debug, 'undoHistory'),
+        toggle('Mods display', config.config.debug, 'modsDisplay'),
+        toggle('Ignore draw cache', config.config.debug, 'alwaysIgnoreCache'),
+      }}
     }
-  end},
+  }
 }
+
+ActionBarWidget.items = items
 
 function ActionBarWidget:new()
   ActionBarWidget.super.new(self, 0, 0)

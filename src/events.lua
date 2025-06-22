@@ -109,6 +109,8 @@ function events.onChartLoad()
   preview.bakeEases()
   chart.clearHistory()
   chart.insertHistory('Load chart')
+
+  if macos then macos.bounceDockApp() end
 end
 
 -- hacky. oh well
