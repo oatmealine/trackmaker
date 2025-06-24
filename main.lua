@@ -30,6 +30,7 @@ fonts = {
 }
 
 local config = require 'src.config'
+config.load()
 
 local widgets    = require 'src.widgets'
 chart            = require 'src.chart'
@@ -46,7 +47,7 @@ local preview    = require 'src.preview'
 require 'src.events'
 
 macos = nil
-if MACOS then
+if MACOS and (not config.config.disableNativeMacOSBar) then
   macos = require 'src.macos'
 end
 
@@ -104,7 +105,6 @@ local PromptWidget = require 'src.widgets.prompt'
 
 function love.load(args)
   love.keyboard.setKeyRepeat(true)
-  config.load()
   initFonts()
   colors.setScheme(config.config.theme)
   xdrvColors.setScheme(config.config.xdrvColors)

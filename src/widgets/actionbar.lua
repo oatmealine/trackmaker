@@ -90,6 +90,9 @@ local function toggleVerbose(t)
   return toggle(t)
 end
 
+---@alias ActionBarItem { [1]: string?, [2]: ActionBarItem[], click: fun()?, bind: Keybind?, disabled: (fun(): boolean)?, value: (fun(): any)?, set: (fun(value: any): any)?, representedFile: string?, toggle: boolean?, slider: boolean?, getSubmenu: (fun(): ActionBarItem[])?, formatValue: (fun(value: number): string)? }
+
+---@type ActionBarItem[]
 local items = {
   { 'File',
     {
@@ -105,7 +108,7 @@ local items = {
           table.insert(entries, { 'No recent files..' })
         end
         return entries
-      end, expandable = true },
+      end },
       { 'Close',       click = function()
         chart.loaded = false
         chart.chart = nil
@@ -220,7 +223,7 @@ local items = {
         logs.log('Only touch this if you know what you\'re doing!')
       end
     end,
-    toggle = true, value = function() return config.config.noMultithreading end,
+    toggle = true, value = function() return MACOS or config.config.noMultithreading end,
     disabled = function() return MACOS end },
     {},
     { 'Theme', schemesEntries },
@@ -363,7 +366,12 @@ local items = {
         catjam = nil
       end
     end, toggle = true, value = function() return not (not catjam or catjam.delete) end },
-    }
+    },
+    MACOS and { 'Disable native macOS menu', set = function(value)
+      config.config.disableNativeMacOSBar = value
+      config.save()
+      logs.warn('Restart required to take effect')
+    end, toggle = true, value = function() return config.config.disableNativeMacOSBar end } or nil
   },
   { 'Help',
     {
@@ -371,7 +379,6 @@ local items = {
         edit.viewBinds = not edit.viewBinds
       end, bind = keybinds.binds.viewBinds },
       {},
-      { 'UI Test',       click = function() openWidget(UITestWidget(150, 150)) end },
       { 'About',         click = function() openWidget(AboutWidget(150, 150)) end },
       {},
       { 'Debug', {
@@ -386,6 +393,7 @@ local items = {
         toggle { 'Ignore draw cache',
           get = function() return config.config.debug.alwaysIgnoreCache end,
           set = function(v) config.config.debug.alwaysIgnoreCache = v end },
+        { 'UI Test',       click = function() openWidget(UITestWidget(150, 150)) end },
       }}
     }
   }
@@ -430,6 +438,49 @@ function ActionBarWidget:update()
   end
 end
 
+---@param menuItem ActionBarItem
+---@returns ContextWidgetEntry
+function ActionBarWidget.actionBarToContext(menuItem)
+  local entry = {}
+  entry[1] = menuItem[1]
+  entry[2] = menuItem.click
+  if menuItem.set then
+    entry[2] = menuItem.set
+  end
+  entry.bind = menuItem.bind
+  local submenu = nil
+  if menuItem[2] then
+    submenu = menuItem[2]
+  end
+  if menuItem.getSubmenu then
+    submenu = menuItem.getSubmenu()
+  end
+  if submenu then
+    entry.hover = function(self, i)
+      self:openChild(i, ContextWidget(0, 0, ActionBarWidget.actionBarsToContexts(submenu)))
+    end
+    entry.expandable = true
+  end
+  entry.toggle = menuItem.toggle
+  entry.slider = menuItem.slider
+  if menuItem.disabled then entry.disabled = menuItem.disabled() end
+  if not (entry[2] or entry.expandable) then entry.disabled = true end
+  if menuItem.value then entry.value = menuItem.value() end
+  entry.formatValue = menuItem.formatValue
+
+  return entry
+end
+
+---@param menuItems ActionBarItem[]
+---@returns ContextWidgetEntry[]
+function ActionBarWidget.actionBarsToContexts(menuItems)
+  local newItems = {}
+  for _, item in ipairs(menuItems) do
+    table.insert(newItems, ActionBarWidget.actionBarToContext(item))
+  end
+  return newItems
+end
+
 function ActionBarWidget:mouse(x, y, click)
   local tx = MARGIN
   for i, item in ipairs(self.texts) do
@@ -443,7 +494,8 @@ function ActionBarWidget:mouse(x, y, click)
 
       if i == self.openIdx then break end
 
-      local widget = ContextWidget(tx - GAP/2, self.y + self.height, self.items[i][2]())
+      local subItems = self.items[i][2]
+      local widget = ContextWidget(tx - GAP/2, self.y + self.height, self.actionBarsToContexts(subItems))
       openWidget(widget)
       self.open = widget
       self.openIdx = i
