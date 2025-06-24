@@ -49,8 +49,10 @@ function events.onEventsModify(event)
   logs.logFile('event : onEventsModify')
 
   if not event or event.bpm or event.warp or event.stop or event.stopSeconds or event.timeSignature then
-    chart.ensureInitialBPM()
-    conductor.loadTimings(chart)
+    if chart.loaded then
+      chart.ensureInitialBPM()
+      conductor.loadTimings(chart)
+    end
   end
   renderer.updateTimingEvents()
 end

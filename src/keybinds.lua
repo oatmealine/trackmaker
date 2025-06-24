@@ -229,6 +229,14 @@ self.binds = {
     trigger = function()
       edit.turnToMines()
     end
+  },
+  exit = {
+    name = 'Exit',
+    keys = { 'q' },
+    ctrl = true,
+    trigger = function()
+      love.event.quit(0)
+    end,
   }
 }
 

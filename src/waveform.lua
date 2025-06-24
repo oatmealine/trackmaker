@@ -51,16 +51,21 @@ function self.update()
   if not self.bake then return end
 
   self.resumedAt = os.clock()
-  local _, segments, segmentsTotal, samples, samplesTotal, finished = coroutine.resume(self.bake)
-  self.totalHeight = #self.meshes * MESH_SEGMENT_SIZE
-  self.status = string.format('Baking waveform... %d/%d segments', segments, segmentsTotal)
-  self.progress = ((segments + (samples / samplesTotal)) / segmentsTotal)
-  if finished then
+  local ok, segments, segmentsTotal, samples, samplesTotal, finished = coroutine.resume(self.bake)
+  if finished or (not ok) then
+    if not ok then
+      logs.warn('waveform: ' .. segments) -- the error, in this case
+    end
+
     self.status = nil
     self.bake = nil
     self.samples = nil
     self.progress = nil
     collectgarbage('collect')
+  else
+    self.totalHeight = #self.meshes * MESH_SEGMENT_SIZE
+    self.status = string.format('Baking waveform... %d/%d segments', segments, segmentsTotal)
+    self.progress = ((segments + (samples / samplesTotal)) / segmentsTotal)
   end
   events.redraw()
 end

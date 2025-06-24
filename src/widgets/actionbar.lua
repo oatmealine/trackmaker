@@ -62,19 +62,31 @@ end
 local notChartLoaded = function() return not chart.loaded end
 
 -- todo: make these arguments a table?
-local function toggle(name, base, key, callback, keybind)
-  return { name, click = function()
-    base[key] = not base[key]
+local function toggle(t)
+  local entry = deepcopy(t)
+  entry.set = nil
+  entry.get = nil
+  entry.callback = nil
+
+  entry.click = function()
+    local new = not t.get()
+    t.set(new)
     config.save()
     events.redraw()
-    if callback then callback(base[key]) end
-  end, toggle = true, value = function() return base[key] end, bind = keybind }
+    if t.callback then t.callback(new) end
+  end
+  entry.toggle = true
+  entry.value = t.get
+
+  return entry
 end
-local function toggleVerbose(name, base, key, callback, keybind)
-  return toggle(name, base, key, function(value)
-    logs.log(name .. ': ' .. (value and 'ON' or 'OFF'))
-    callback()
-  end, keybind)
+local function toggleVerbose(t)
+  local _set = t.set
+  t.set = function(v)
+    logs.log(t[1] .. ': ' .. (v and 'ON' or 'OFF'))
+    return _set(v)
+  end
+  return toggle(t)
 end
 
 local items = {
@@ -86,7 +98,7 @@ local items = {
       { 'Recent files', getSubmenu = function()
         local entries = {}
         for _, path in ipairs(config.config.recent) do
-          table.insert(entries, { path, click = function() chart.openPath(path) end })
+          table.insert(entries, { path, click = function() chart.openPath(path) end, representedFile = path })
         end
         if #entries == 0 then
           table.insert(entries, { 'No recent files..' })
@@ -124,19 +136,27 @@ local items = {
       {},
       { 'Exit',        click = function()
         love.event.quit(0)
-      end}
+      end, bind = keybinds.binds.exit}
     }
   },
   { 'View',
     {
-      toggle('Preview mode', config.config, 'previewMode'),
-      toggle('CMod', config.config, 'cmod'),
+      toggle { 'Preview mode', get = function() return config.config.previewMode end, set = function(v) config.config.previewMode = v end },
+      toggle { 'CMod', get = function() return config.config.cmod end, set = function(v) config.config.cmod = v end },
       { 'Controller glyphs...', glyphListEntries },
       { 'View...', {
-        toggle('Chart', config.config.view, 'chart'),
-        toggle('Drifts', config.config.view, 'drifts'),
-        toggle('Checkpoints', config.config.view, 'checkpoints'),
-        toggle('Unsupported events', config.config.view, 'invalidEvents', function() events.onEventsModify() end),
+        toggle { 'Chart',
+          get = function() return config.config.view.chart end,
+          set = function(v) config.config.view.chart = v end },
+        toggle { 'Drifts',
+          get = function() return config.config.view.drifts end,
+          set = function(v) config.config.view.drifts = v end },
+        toggle { 'Checkpoints',
+          get = function() return config.config.view.checkpoints end,
+          set = function(v) config.config.view.checkpoints = v end },
+        toggle { 'Unsupported events',
+          get = function() return config.config.view.invalidEvents end,
+          set = function(v) events.onEventsModify() config.config.view.invalidEvents = v end },
       }},
     }
   },
@@ -176,8 +196,14 @@ local items = {
     }
   },
   { 'Options', {
-    toggleVerbose('Beat tick', config.config, 'beatTick', nil, keybinds.binds.beatTick),
-    toggleVerbose('Note tick', config.config, 'noteTick', nil, keybinds.binds.noteTick),
+    toggleVerbose { 'Beat tick',
+      get = function() return config.config.beatTick end,
+      set = function(v) config.config.beatTick = v end,
+      bind = keybinds.binds.beatTick },
+    toggleVerbose { 'Note tick',
+      get = function() return config.config.noteTick end,
+      set = function(v) config.config.noteTick = v end,
+      bind = keybinds.binds.noteTick },
     {},
     { 'VSync', click = function()
       local newVsync = 1 - love.window.getVSync()
@@ -200,19 +226,29 @@ local items = {
     { 'Fonts', getSubmenu = function()
       local entries = {}
       for _, font in ipairs(love.filesystem.getDirectoryItems('assets/fonts')) do
-        table.insert(entries, { font, click = function()
-          config.config.uiFont = font
-          initFonts()
-          events.redraw()
-          config.save()
-        end, toggle = true, value = function() return config.config.uiFont == font end })
+        local path = 'assets/fonts/' .. font
+        local realDir = love.filesystem.getRealDirectory(path) .. '/' .. path
+        if font ~= '.DS_Store' then
+          table.insert(entries, { font, click = function()
+            config.config.uiFont = font
+            initFonts()
+            events.redraw()
+            config.save()
+          end,
+          representedFile = realDir,
+          toggle = true,
+          value = function() return config.config.uiFont == font end })
+        end
       end
       if string.sub(config.config.uiFont, 1, 7) == 'file://' then
         table.insert(entries, { basename(config.config.uiFont), click = function()
           initFonts()
           events.redraw()
           config.save()
-        end, toggle = true, value = function() return true end })
+        end,
+        representedFile = string.sub(config.config.uiFont, 8),
+        toggle = true,
+        value = function() return true end })
       end
       table.insert(entries, { 'Other...' , click = function()
         filesystem.openDialog('', 'ttf;otf', function(path)
@@ -239,6 +275,7 @@ local items = {
       table.insert(entries, { 'Size', set = function(a)
         local fontSize = round(minFontSize + a * (maxFontSize - minFontSize))
         if fontSize ~= config.config.uiFontSize then
+          print('new fontsize', fontSize)
           config.config.uiFontSize = fontSize
           initFonts()
           events.redraw()
@@ -340,9 +377,15 @@ local items = {
       { 'Debug', {
         { '!! No support will be offered !!' },
         { 'Use the options here at your own risk' },
-        toggle('Undo history', config.config.debug, 'undoHistory'),
-        toggle('Mods display', config.config.debug, 'modsDisplay'),
-        toggle('Ignore draw cache', config.config.debug, 'alwaysIgnoreCache'),
+        toggle { 'Undo history',
+          get = function() return config.config.debug.undoHistory end,
+          set = function(v) config.config.debug.undoHistory = v end },
+        toggle { 'Mods display',
+          get = function() return config.config.debug.modsDisplay end,
+          set = function(v) config.config.debug.modsDisplay = v end },
+        toggle { 'Ignore draw cache',
+          get = function() return config.config.debug.alwaysIgnoreCache end,
+          set = function(v) config.config.debug.alwaysIgnoreCache = v end },
       }}
     }
   }
