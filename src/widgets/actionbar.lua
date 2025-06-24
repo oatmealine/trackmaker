@@ -366,12 +366,12 @@ local items = {
         catjam = nil
       end
     end, toggle = true, value = function() return not (not catjam or catjam.delete) end },
-    },
-    MACOS and { 'Disable native macOS menu', set = function(value)
-      config.config.disableNativeMacOSBar = value
+    { 'Disable native macOS menu', click = function()
+      config.config.disableNativeMacOSBar = not config.config.disableNativeMacOSBar
       config.save()
       logs.warn('Restart required to take effect')
-    end, toggle = true, value = function() return config.config.disableNativeMacOSBar end } or nil
+    end, toggle = true, value = function() return config.config.disableNativeMacOSBar end },
+    },
   },
   { 'Help',
     {

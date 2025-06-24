@@ -237,7 +237,7 @@ local MinimapWidget = require 'src.widgets.minimap'
 
 -- ugly and stupid
 function getTopPadding()
-  if MACOS then
+  if macos then
     return 0
   else
     return ActionBarWidget.HEIGHT
@@ -249,9 +249,11 @@ local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { InfobarWidget(), MinimapWidget(love.graphics.getWidth(), 0) }
-if not MACOS then
-  table.insert(widgets, ActionBarWidget())
+function self.init()
+  widgets = { InfobarWidget(), MinimapWidget(love.graphics.getWidth(), 0) }
+  if not macos then
+    table.insert(widgets, ActionBarWidget())
+  end
 end
 
 function getWidgets()

@@ -108,6 +108,7 @@ function love.load(args)
   initFonts()
   colors.setScheme(config.config.theme)
   xdrvColors.setScheme(config.config.xdrvColors)
+  widgets.init()
   --chart.openChart()
 
   if config.config.xdrvChartDev then
