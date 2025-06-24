@@ -235,6 +235,15 @@ local InfobarWidget = require 'src.widgets.infobar'
 local ActionBarWidget = require 'src.widgets.actionbar'
 local MinimapWidget = require 'src.widgets.minimap'
 
+-- ugly and stupid
+function getTopPadding()
+  if MACOS then
+    return 0
+  else
+    return ActionBarWidget.HEIGHT
+  end
+end
+
 ---@type Widget?
 local draggingWidget = nil
 ---@type number, number

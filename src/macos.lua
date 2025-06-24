@@ -201,7 +201,6 @@ local function contextToNSMenuItem(item)
       view:addArrangedSubview(label)
 
       local sliderView = objc.NSStackView:alloc():init()
-      sliderView:autorelease()
       sliderView:setTranslatesAutoresizingMaskIntoConstraints(NO)
 
       local value = item.value()
@@ -214,7 +213,6 @@ local function contextToNSMenuItem(item)
       slider.tag = tagIdx
       itemTagMap[tagIdx] = item[1]
       tagIdx = tagIdx + 1
-      slider:autorelease()
 
       local sliderLabel = objc.NSTextField:labelWithString(NSString(formattedValue))
       sliderLabel:setTranslatesAutoresizingMaskIntoConstraints(NO)

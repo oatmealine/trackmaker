@@ -22,6 +22,7 @@ local glyphsList = require 'assets.sprites.controller'
 local ActionBarWidget = Widget:extend()
 
 local HEIGHT = 24
+ActionBarWidget.HEIGHT = 24
 local GAP = 14
 local MARGIN = GAP / 2
 
@@ -275,7 +276,6 @@ local items = {
       table.insert(entries, { 'Size', set = function(a)
         local fontSize = round(minFontSize + a * (maxFontSize - minFontSize))
         if fontSize ~= config.config.uiFontSize then
-          print('new fontsize', fontSize)
           config.config.uiFontSize = fontSize
           initFonts()
           events.redraw()

@@ -55,6 +55,10 @@ function self.update()
   if finished or (not ok) then
     if not ok then
       logs.warn('waveform: ' .. segments) -- the error, in this case
+      logs.warn('waveform: coroutine errors are handled very poorly atm, a crash is likely imminent')
+      logs.warn('waveform: an autosave has been forced for your safety')
+
+      chart.triggerAutosave()
     end
 
     self.status = nil

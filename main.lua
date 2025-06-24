@@ -202,7 +202,7 @@ function love.draw()
 
     love.graphics.setFont(fonts.inter_12)
 
-    local y = 48
+    local y = 24 + getTopPadding()
     for name, bind in pairs(keybinds.binds) do
       if bind.name then
         love.graphics.print(keybinds.formatBind(bind) .. ' - ' .. bind.name, 16, y)
@@ -223,7 +223,7 @@ function love.draw()
     , 0, sh - fonts.inter_12:getHeight() * 2)
   end
 
-  local y = 24
+  local y = getTopPadding()
   if config.config.debug.undoHistory then
     for i, v in ipairs(chart.history) do
       love.graphics.print(tostring(i), 0, y)
