@@ -18,7 +18,7 @@ function MinimapWidget:new(x, y)
   self.mx = 0
   self.my = 0
 
-  self.canvasHeight = love.graphics.getHeight() - 24
+  self.canvasHeight = love.graphics.getHeight() - getTopPadding()
   love.graphics.setDefaultFilter('nearest', 'nearest')
   self.canvas = love.graphics.newCanvas(6, self.canvasHeight / 2)
   love.graphics.setDefaultFilter('linear', 'linear')
@@ -50,14 +50,14 @@ end
 local checkTex = love.graphics.newImage('assets/sprites/check.png')
 
 function MinimapWidget:draw()
-  local canvasHeight = love.graphics.getHeight() - 24
+  self.height = love.graphics.getHeight() - getTopPadding()
+
+  local canvasHeight = self.height
   if self.canvasHeight ~= canvasHeight then
     love.graphics.setDefaultFilter('nearest', 'nearest')
     self.canvas = love.graphics.newCanvas(6, self.canvasHeight / 2)
     love.graphics.setDefaultFilter('linear', 'linear')
   end
-
-  self.height = love.graphics.getHeight() - 24
 
   if chart.loaded then
     self.width = 20
@@ -67,7 +67,7 @@ function MinimapWidget:draw()
   end
 
   self.x = love.graphics.getWidth() - self.width
-  self.y = 24
+  self.y = getTopPadding()
 
   love.graphics.push()
   love.graphics.origin()

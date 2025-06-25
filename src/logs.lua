@@ -29,7 +29,7 @@ function self.update(dt)
 end
 
 function self.draw()
-  local y = 24
+  local y = getTopPadding()
   for _, log in ipairs(logs) do
     local lifetime = t - log.t
     local alpha = math.min(1, LOG_LIFETIME - lifetime)

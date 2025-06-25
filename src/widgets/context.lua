@@ -11,6 +11,7 @@ local GAP = 10
 local LEFT_PAD = 14
 local RIGHT_PAD = 14
 
+-- TODO why are these and ActionBarItem seperate anyway
 ---@alias ContextWidgetEntry { [1]: string, [2]: fun(self: ContextWidget)?, bind: Keybind?, hover: fun(self: ContextWidget, i: number)?, toggle: boolean?, value: any, expandable: boolean?, slider: boolean?, disabled: boolean?, formatValue: (fun(value: any): string)? }
 
 ---@param entries ContextWidgetEntry[]

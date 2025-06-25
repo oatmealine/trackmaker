@@ -235,12 +235,26 @@ local InfobarWidget = require 'src.widgets.infobar'
 local ActionBarWidget = require 'src.widgets.actionbar'
 local MinimapWidget = require 'src.widgets.minimap'
 
+-- ugly and stupid
+function getTopPadding()
+  if macos then
+    return 0
+  else
+    return ActionBarWidget.HEIGHT
+  end
+end
+
 ---@type Widget?
 local draggingWidget = nil
 ---@type number, number
 local dragX, dragY = nil, nil
 
-widgets = { InfobarWidget(), ActionBarWidget(), MinimapWidget(love.graphics.getWidth(), 0) }
+function self.init()
+  widgets = { InfobarWidget(), MinimapWidget(love.graphics.getWidth(), 0) }
+  if not macos then
+    table.insert(widgets, ActionBarWidget())
+  end
+end
 
 function getWidgets()
   return widgets

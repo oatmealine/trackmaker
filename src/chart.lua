@@ -677,6 +677,12 @@ end
 local autosaveTimer = 0
 local AUTOSAVE_INTERVAL = 60 * 3
 --local AUTOSAVE_INTERVAL = 5
+
+function self.triggerAutosave()
+  logs.log('Autosaving..')
+  save(self.chartLocation .. '.auto', true)
+  autosaveTimer = math.max(autosaveTimer - AUTOSAVE_INTERVAL, 0)
+end
 function self.update(dt)
   if not (self.isDirty() and self.chart and self.chartLocation) then
     autosaveTimer = 0
@@ -684,9 +690,7 @@ function self.update(dt)
     autosaveTimer = autosaveTimer + dt
 
     if autosaveTimer > AUTOSAVE_INTERVAL then
-      logs.log('Autosaving..')
-      save(self.chartLocation .. '.auto', true)
-      autosaveTimer = autosaveTimer - AUTOSAVE_INTERVAL
+      self.triggerAutosave()
     end
   end
 end

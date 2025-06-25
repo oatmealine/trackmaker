@@ -30,6 +30,7 @@ fonts = {
 }
 
 local config = require 'src.config'
+config.load()
 
 local widgets    = require 'src.widgets'
 chart            = require 'src.chart'
@@ -44,6 +45,11 @@ local waveform   = require 'src.waveform'
 local xdrvColors = require 'src.xdrvcolors'
 local preview    = require 'src.preview'
 require 'src.events'
+
+macos = nil
+if MACOS and (not config.config.disableNativeMacOSBar) then
+  macos = require 'src.macos'
+end
 
 local function loadCustomFont(path)
   local file, err = io.open(path, 'r')
@@ -99,10 +105,10 @@ local PromptWidget = require 'src.widgets.prompt'
 
 function love.load(args)
   love.keyboard.setKeyRepeat(true)
-  config.load()
   initFonts()
   colors.setScheme(config.config.theme)
   xdrvColors.setScheme(config.config.xdrvColors)
+  widgets.init()
   --chart.openChart()
 
   if config.config.xdrvChartDev then
@@ -197,7 +203,7 @@ function love.draw()
 
     love.graphics.setFont(fonts.inter_12)
 
-    local y = 48
+    local y = 24 + getTopPadding()
     for name, bind in pairs(keybinds.binds) do
       if bind.name then
         love.graphics.print(keybinds.formatBind(bind) .. ' - ' .. bind.name, 16, y)
@@ -218,7 +224,7 @@ function love.draw()
     , 0, sh - fonts.inter_12:getHeight() * 2)
   end
 
-  local y = 24
+  local y = getTopPadding()
   if config.config.debug.undoHistory then
     for i, v in ipairs(chart.history) do
       love.graphics.print(tostring(i), 0, y)
@@ -290,4 +296,8 @@ function love.quit()
       { text = 'Cancel', click = function() shouldQuitOnSave = false end } }), true)
     return true
   end
+
+  if macos then macos.clean() end
 end
+
+if macos then macos.injectMenuBar() end

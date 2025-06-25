@@ -340,3 +340,17 @@ end
 function basename(path)
   return string.match(path, '[/\\]([^/\\]+)$') or path
 end
+
+function trunc(str, len)
+  if utf8.len(str) <= (len - 3) then
+    return str
+  end
+  return utf8sub(str, 1, len - 3) .. '...'
+end
+function truncEnd(str, len)
+  local strLen = utf8.len(str)
+  if strLen <= (len - 3) then
+    return str
+  end
+  return '...' .. utf8sub(str, strLen - len + 3, strLen)
+end

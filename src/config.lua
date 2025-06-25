@@ -46,6 +46,7 @@ self.config = {
     alwaysIgnoreCache = false,
     modsDisplay = false,
   },
+  disableNativeMacOSBar = false,
 }
 self.defaults = deepcopy(self.config)
 
