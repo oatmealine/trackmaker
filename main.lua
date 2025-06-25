@@ -294,6 +294,7 @@ function love.quit()
       { text = 'Yes', click = function() chart.quickSave() end},
       { text = 'No', click = function() love.event.quit(0) end },
       { text = 'Cancel', click = function() shouldQuitOnSave = false end } }), true)
+    if macos then macos.bounceDockApp() end
     return true
   end
 
