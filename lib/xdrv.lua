@@ -598,6 +598,7 @@ local function serializeChart(things)
   return '--\n' .. table.concat(segments, '\n--\n') .. '\n--'
 end
 
+---@param m XDRVMetadata
 local function serializeMetadata(m)
   local data = {}
   table.insert(data, {'MUSIC_TITLE', formatString(m.musicTitle)})
@@ -608,8 +609,11 @@ local function serializeMetadata(m)
   table.insert(data, {'MUSIC_AUDIO', formatString(m.musicAudio)})
   table.insert(data, {'JACKET_IMAGE', formatString(m.jacketImage)})
   table.insert(data, {'JACKET_ILLUSTRATOR', formatString(m.jacketIllustrator)})
-  table.insert(data, {'CHART_AUTHOR', formatString(m.chartAuthor)})
-  table.insert(data, {'CHART_AUTHORS', formatStringArray(m.chartAuthors)})
+  if #m.chartAuthors > 0 then
+    table.insert(data, {'CHART_AUTHORS', formatStringArray(m.chartAuthors)})
+  else
+    table.insert(data, {'CHART_AUTHOR', formatString(m.chartAuthor)})
+  end
   table.insert(data, {'CHART_UNLOCK', formatString(m.chartUnlock)})
   table.insert(data, {'STAGE_BACKGROUND', formatString(m.stageBackground)})
   table.insert(data, {'MODFILE_PATH', formatString(m.modfilePath)})
@@ -621,6 +625,9 @@ local function serializeMetadata(m)
   table.insert(data, {'FLASH_TRACK', formatBool(m.isFlashTrack)})
   table.insert(data, {'KEYBOARD_ONLY', formatBool(m.isKeyboardOnly)})
   table.insert(data, {'ORIGINAL', formatBool(m.isOriginal)})
+  table.insert(data, {'MUSIC_PREVIEW_START', formatFloat(m.musicPreviewStart)})
+  table.insert(data, {'MUSIC_PREVIEW_LENGTH', formatFloat(m.musicPreviewLength)})
+  table.insert(data, {'MUSIC_VOLUME', formatFloat(m.musicVolume)})
   table.insert(data, {'MUSIC_OFFSET', formatFloat(m.musicOffset)})
   table.insert(data, {'CHART_BPM', formatFloat(m.chartBPM)})
   table.insert(data, {'CHART_TAGS', '0,0,0,0'}) -- TODO
@@ -706,7 +713,7 @@ end
 
 ---@param m table<string, string>
 ---@return XDRVMetadata
-local function makeMetdata(m)
+local function makeMetadata(m)
   return {
     musicTitle = parseString(m.MUSIC_TITLE),
     alternateTitle = parseString(m.ALTERNATE_TITLE),
@@ -754,7 +761,7 @@ local function deserializeMetadata(str)
     end
   end
 
-  return makeMetdata(metadata)
+  return makeMetadata(metadata)
 end
 
 ---@alias XDRVChart { metadata: XDRVMetadata, chart: XDRVThing[] }

@@ -4,6 +4,7 @@ local Button    = require 'src.ui.button'
 local Label     = require 'src.ui.label'
 local Textfield = require 'src.ui.textfield'
 local Select    = require 'src.ui.select'
+local Checkmark = require 'src.ui.checkmark'
 local UIWidget  = require 'src.widgets.ui'
 local conductor = require 'src.conductor'
 local ChartSettingsWidget = require 'src.widgets.chartsettings'
@@ -49,8 +50,35 @@ function MetadataWidget:new(x, y)
   self.title = 'Metadata'
 end
 
+local function trim(s)
+  return string.match(s, '^%s*(.*%S)') or ''
+end
+
+local function splitStr(s)
+  local strs = {}
+  for str in string.gmatch(s, '([^,]+)') do
+    table.insert(strs, trim(str))
+  end
+  return strs
+end
+
 function MetadataWidget:getContainer()
   local metadata = chart.metadata or {}
+
+  local charterField = {}
+  if #chart.metadata.chartAuthors > 0 then
+    charterField =
+      { Label(0, 0, 'Charters'), { Textfield(0, 0, 100, table.concat(metadata.chartAuthors, ', '), function(value)
+        chart.metadata.chartAuthors = splitStr(value)
+        chart.markDirty()
+      end), } }
+  else
+    charterField =
+      { Label(0, 0, 'Charter'), { Textfield(0, 0, 100, metadata.chartAuthor or '', function(value)
+        chart.metadata.chartAuthor = value
+        chart.markDirty()
+      end) } }
+  end
 
   local elems = Container.placeFormLike({
     { Label(0, 0, 'Title'),   { Textfield(0, 0, 100, metadata.musicTitle or '',  function(value)
@@ -65,10 +93,7 @@ function MetadataWidget:getContainer()
       chart.metadata.musicArtist = value
       chart.markDirty()
     end), } },
-    { Label(0, 0, 'Charter'), { Textfield(0, 0, 100, metadata.chartAuthor or '', function(value)
-      chart.metadata.chartAuthor = value
-      chart.markDirty()
-    end), } },
+    charterField,
     { Label(0, 0, 'Music'),   { Textfield(0, 0, 100, metadata.musicAudio or '', function(value)
       chart.metadata.musicAudio = value
       if chart.chartDir then
@@ -79,6 +104,7 @@ function MetadataWidget:getContainer()
     { Label(0, 0, 'Jacket'),  { Textfield(0, 0, 100, metadata.jacketImage or '', function(value)
       chart.metadata.jacketImage = value
       self:updateJacket()
+      self.container = self:getContainer()
       chart.markDirty()
     end), } },
     { Label(0, 0, 'Illustrator'), { Textfield(0, 0, 100, metadata.jacketIllustrator or '', function(value)
@@ -139,6 +165,7 @@ function MetadataWidget:event(name)
 end
 
 function MetadataWidget:updateJacket()
+  self.jacketImg = nil
   if chart.loaded and chart.metadata.jacketImage and chart.metadata.jacketImage ~= '' and chart.chartDir then
     local path = chart.chartDir .. chart.metadata.jacketImage
     local file, err = io.open(path, 'rb')
