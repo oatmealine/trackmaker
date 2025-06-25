@@ -93,7 +93,7 @@ end
 ---@alias ActionBarItem { [1]: string?, [2]: ActionBarItem[], click: fun()?, bind: Keybind?, disabled: (fun(): boolean)?, value: (fun(): any)?, set: (fun(value: any): any)?, representedFile: string?, toggle: boolean?, slider: boolean?, getSubmenu: (fun(): ActionBarItem[])?, formatValue: (fun(value: number): string)? }
 
 ---@type ActionBarItem[]
-local items = {
+ActionBarWidget.barItems = {
   { 'File',
     {
       { 'Open',         click = function()
@@ -399,8 +399,6 @@ local items = {
   }
 }
 
-ActionBarWidget.items = items
-
 function ActionBarWidget:new()
   ActionBarWidget.super.new(self, 0, 0)
   self.isMovable = false
@@ -409,13 +407,14 @@ function ActionBarWidget:new()
   self.height = HEIGHT
   self.ignoreFocus = true
 
+  self.items = self.barItems
+
   ---@type love.Text[]
   self.texts = {}
-  for _, item in ipairs(items) do
+  for _, item in ipairs(self.items) do
     local text = love.graphics.newText(fonts.inter_12, item[1])
     table.insert(self.texts, text)
   end
-  self.items = items
 
   ---@type ContextWidget
   self.open = nil

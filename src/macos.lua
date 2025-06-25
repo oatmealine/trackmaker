@@ -21,62 +21,53 @@ local function NSEdgeInsets(top, left, bottom, right)
   return ffi.new('NSEdgeInsets', { top = top, left = left, bottom = bottom, right = right })
 end
 
+---@alias NSString string
+---@return NSString
 local function NSString(str)
   return objc.NSString:stringWithUTF8String(str)
 end
-
-local function NSPoint(x, y)
-  return ffi.new('CGPoint', { x = x, y = y })
+---@alias NSInteger integer
+---@return NSInteger
+local function NSInteger(n)
+  return ffi.new('NSInteger', n) --[[@as NSInteger]]
 end
+
 local function NSSize(w, h)
   return ffi.new('CGSize', { width = w, height = h })
-end
-local function NSRect(x, y, w, h)
-  return ffi.new('CGRect', { origin = NSPoint(x, y), size = NSSize(w, h) })
 end
 
 local self = {}
 
 -- constants / enums
-local NSCriticalRequest = ffi.new('NSInteger', 0)
+local NSCriticalRequest = NSInteger(0)
 
-local NSEventModifierFlagShift = ffi.new('NSInteger', bit.lshift(1, 17))
-local NSEventModifierFlagOption = ffi.new('NSInteger', bit.lshift(1, 19))
-local NSEventModifierFlagCommand = ffi.new('NSInteger', bit.lshift(1, 20))
+local NSEventModifierFlagShift = NSInteger(bit.lshift(1, 17))
+local NSEventModifierFlagOption = NSInteger(bit.lshift(1, 19))
+local NSEventModifierFlagCommand = NSInteger(bit.lshift(1, 20))
 
-local NSControlStateValueOff = ffi.new('NSInteger', 0)
-local NSControlStateValueOn = ffi.new('NSInteger', 1)
+local NSControlStateValueOff = NSInteger(0)
+local NSControlStateValueOn = NSInteger(1)
 
-local NSStackViewGravityTop = ffi.new('NSInteger', 1)
-local NSStackViewGravityLeading = ffi.new('NSInteger', 1)
-local NSStackViewGravityCenter = ffi.new('NSInteger', 2)
-local NSStackViewGravityBottom = ffi.new('NSInteger', 3)
-local NSStackViewGravityTrailing = ffi.new('NSInteger', 4)
+local NSControlSizeRegular = NSInteger(0)
+local NSControlSizeSmall = NSInteger(1)
+local NSControlSizeMini = NSInteger(2)
+local NSControlSizeLarge = NSInteger(3)
 
-local NSControlSizeRegular = ffi.new('NSInteger', 0)
-local NSControlSizeSmall = ffi.new('NSInteger', 1)
-local NSControlSizeMini = ffi.new('NSInteger', 2)
-local NSControlSizeLarge = ffi.new('NSInteger', 3)
+local NSUserInterfaceLayoutOrientationHorizontal = NSInteger(0)
+local NSUserInterfaceLayoutOrientationVertical = NSInteger(1)
 
-local NSUserInterfaceLayoutOrientationHorizontal = ffi.new('NSInteger', 0)
-local NSUserInterfaceLayoutOrientationVertical = ffi.new('NSInteger', 1)
-
-local NSLayoutAttributeLeft = ffi.new('NSInteger', 1)
-local NSLayoutAttributeRight = ffi.new('NSInteger', 2)
-local NSLayoutAttributeTop = ffi.new('NSInteger', 3)
-local NSLayoutAttributeBottom = ffi.new('NSInteger', 4)
-local NSLayoutAttributeLeading = ffi.new('NSInteger', 5)
-local NSLayoutAttributeTrailing = ffi.new('NSInteger', 6)
-local NSLayoutAttributeWidth = ffi.new('NSInteger', 7)
-local NSLayoutAttributeHeight = ffi.new('NSInteger', 8)
-local NSLayoutAttributeCenterX = ffi.new('NSInteger', 9)
-local NSLayoutAttributeCenterY = ffi.new('NSInteger', 10)
-local NSLayoutAttributeBaseline = ffi.new('NSInteger', 11)
-local NSLayoutAttributeFirstBaseline = ffi.new('NSInteger', 12)
-
-local NSLayoutPriorityRequired = 1000
-
-local NSLayoutConstraintOrientationHorizontal = ffi.new('NSInteger', 0)
+local NSLayoutAttributeLeft = NSInteger(1)
+local NSLayoutAttributeRight = NSInteger(2)
+local NSLayoutAttributeTop = NSInteger(3)
+local NSLayoutAttributeBottom = NSInteger(4)
+local NSLayoutAttributeLeading = NSInteger(5)
+local NSLayoutAttributeTrailing = NSInteger(6)
+local NSLayoutAttributeWidth = NSInteger(7)
+local NSLayoutAttributeHeight = NSInteger(8)
+local NSLayoutAttributeCenterX = NSInteger(9)
+local NSLayoutAttributeCenterY = NSInteger(10)
+local NSLayoutAttributeBaseline = NSInteger(11)
+local NSLayoutAttributeFirstBaseline = NSInteger(12)
 
 local NO = ffi.new('BOOL', 0)
 local YES = ffi.new('BOOL', 1)
@@ -131,7 +122,9 @@ objc.addMethod(AppDelegateClass, 'applicationDockMenu:', '@:@',
   end
 )
 
+---@type table<string, ActionBarItem>
 local itemNameMap = {}
+---@type table<integer, string>
 local itemTagMap = {}
 local tagIdx = 0
 
@@ -149,7 +142,7 @@ objc.addMethod(AppDelegateClass, 'sliderDrag:', 'v@:@',
     local item = itemNameMap[name]
     if not item then return end
 
-    local value = tonumber(slider.doubleValue)
+    local value = tonumber(slider.doubleValue) --[[@as number]]
     item.set(value)
     local formattedValue = string.format('%.2f', value)
     if item.formatValue then formattedValue = item.formatValue(value) end
@@ -160,6 +153,7 @@ objc.addMethod(AppDelegateClass, 'sliderDrag:', 'v@:@',
 local appDelegate = objc.AppDelegate:alloc():init()
 appDelegate:autorelease()
 
+---@param item ActionBarItem
 local function contextToNSMenuItem(item)
   if item[1] then
     local menuItem = objc.NSMenuItem:alloc():init()
@@ -169,8 +163,8 @@ local function contextToNSMenuItem(item)
 
     menuItem.title = NSString(item[1])
     menuItem.action = 'menubarClick:'
-    if item.bind then
-      local bind = item.bind
+    local bind = item.bind
+    if bind then
       local keys = bind.keys
       if not keys then
         keys = bind.keyCodes
@@ -181,9 +175,9 @@ local function contextToNSMenuItem(item)
       end
       menuItem.keyEquivalent = NSString(key)
       local flags = 0
-      if bind.shift then flags = bit.bor(flags, NSEventModifierFlagShift)   end
+      if bind.shift then flags = bit.bor(flags, NSEventModifierFlagShift  ) end
       if bind.ctrl  then flags = bit.bor(flags, NSEventModifierFlagCommand) end
-      if bind.alt   then flags = bit.bor(flags, NSEventModifierFlagOption)  end
+      if bind.alt   then flags = bit.bor(flags, NSEventModifierFlagOption ) end
       menuItem.keyEquivalentModifierMask = flags
     end
 
@@ -323,7 +317,7 @@ function self.injectMenuBar()
 
   -- add our usual actionbar menu items
 
-  for _, menu in ipairs(ActionBarWidget.items) do
+  for _, menu in ipairs(ActionBarWidget.barItems) do
     local appMenuItem = objc.NSMenuItem:alloc():init()
     appMenuItem:autorelease()
 
