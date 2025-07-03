@@ -95,19 +95,61 @@ M.STAGE_BACKGROUNDS = {
 ---@field musicVolume number @ MUSIC_VOLUME
 ---@field musicOffset number @ MUSIC_OFFSET
 ---@field chartBPM number @ CHART_BPM
----@field chartTags { [1]: number, [2]: number, [3]: number, [4]: number } @ CHART_TAGS
+-----@field chartTags { [1]: number, [2]: number, [3]: number, [4]: number } @ CHART_TAGS -- moved to _discardedTags
 ---@field chartDifficulty XDRVDifficulty @ CHART_DIFFICULTY
+---@field _discardedTags table<string, string> @ for unrecognized or invalid tags
 
-local function parseString(s)
-  if type(s) ~= 'string' then return '' end
-  return s
-end
+---@alias XDRVMetadataValueType 'string' | 'stringArray' | 'float' | 'int' | 'bool' | 'difficulty'
+
+-- until lua-lsp adds a keyof<> this is the best we're getting
+-- probably susceptible to missing a key either in the type def or in this table
+-- still better than the other solution of having to sync across 3 places!
+---@type { [1]: string, [2]: string, [3]: XDRVMetadataValueType, eitherOr: string?}[]
+local metadataTags = {
+  {'MUSIC_TITLE',                   'musicTitle',                  'string'     },
+  {'ALTERNATE_TITLE',               'alternateTitle',              'string'     },
+  {'SUBTITLE',                      'subtitle',                    'string'     },
+  {'MUSIC_CREDIT',                  'musicCredit',                 'string'     },
+  {'MUSIC_ARTIST',                  'musicArtist',                 'string'     },
+  {'MUSIC_AUDIO',                   'musicAudio',                  'string'     },
+  {'JACKET_IMAGE',                  'jacketImage',                 'string'     },
+  {'JACKET_ILLUSTRATOR',            'jacketIllustrator',           'string'     },
+  {'CHART_AUTHOR',                  'chartAuthor',                 'string',      eitherOr = 'CHART_AUTHORS'},
+  {'CHART_AUTHORS',                 'chartAuthors',                'stringArray', eitherOr = 'CHART_AUTHOR' },
+  {'CHART_UNLOCK',                  'chartUnlock',                 'string'     },
+  {'STAGE_BACKGROUND',              'stageBackground',             'string'     },
+  {'MODFILE_PATH',                  'modfilePath',                 'string'     },
+  {'CHART_LEVEL',                   'chartLevel',                  'int'        },
+  {'CHART_DISPLAY_BPM',             'chartDisplayBPM',             'int'        },
+  {'CHART_BOSS',                    'chartBoss',                   'bool'       },
+  {'DISABLE_LEADERBOARD_UPLOADING', 'disableLeaderboardUploading', 'bool'       },
+  {'RPC_HIDDEN',                    'rpcHidden',                   'bool'       },
+  {'FLASH_TRACK',                   'isFlashTrack',                'bool'       },
+  {'KEYBOARD_ONLY',                 'isKeyboardOnly',              'bool'       },
+  {'ORIGINAL',                      'isOriginal',                  'bool'       },
+  {'MUSIC_PREVIEW_START',           'musicPreviewStart',           'float'      },
+  {'MUSIC_PREVIEW_LENGTH',          'musicPreviewLength',          'float'      },
+  {'MUSIC_VOLUME',                  'musicVolume',                 'float'      },
+  {'MUSIC_OFFSET',                  'musicOffset',                 'float'      },
+  {'CHART_BPM',                     'chartBPM',                    'float'      },
+  {'CHART_DIFFICULTY',              'chartDifficulty',             'difficulty' },
+}
 
 local function trim(s)
   return string.match(s, '^%s*(.*%S)') or ''
 end
+local function round(n)
+  return n >= 0 and math.floor(n + 0.5) or math.ceil(n - 0.5)
+end
 
-local function parseStringArray(s)
+---@type table<XDRVMetadataValueType, fun(value: string?): any>
+local metadataValueParsers = {}
+
+function metadataValueParsers.string(s)
+  if type(s) ~= 'string' then return '' end
+  return s
+end
+function metadataValueParsers.stringArray(s)
   if type(s) ~= 'string' then return {} end
 
   local strs = {}
@@ -116,23 +158,16 @@ local function parseStringArray(s)
   end
   return strs
 end
-
-local function parseFloat(s)
+function metadataValueParsers.float(s)
   return tonumber(s) or -1
 end
-
-local function round(n)
-  return n >= 0 and math.floor(n + 0.5) or math.ceil(n - 0.5)
+function metadataValueParsers.int(s)
+  return round(metadataValueParsers.float(s))
 end
-local function parseInt(s)
-  return round(parseFloat(s))
-end
-
-local function parseBool(s)
+function metadataValueParsers.bool(s)
   return s == 'TRUE'
 end
-
-local function parseDifficulty(s)
+function metadataValueParsers.difficulty(s)
   if s == 'BEGINNER'  then return M.XDRVDifficulty.Beginner  end
   if s == 'NORMAL'    then return M.XDRVDifficulty.Normal    end
   if s == 'HYPER'     then return M.XDRVDifficulty.Hyper     end
@@ -142,22 +177,25 @@ local function parseDifficulty(s)
   return M.XDRVDifficulty.Beginner
 end
 
-local function formatString(s)
+---@type table<XDRVMetadataValueType, fun(value: any): string>
+local metadataValueSerializers = {}
+
+function metadataValueSerializers.string(s)
   return s
 end
-local function formatStringArray(s)
+function metadataValueSerializers.stringArray(s)
   return table.concat(s, ', ')
 end
-local function formatFloat(n)
+function metadataValueSerializers.float(n)
   return tostring(n)
 end
-local function formatInt(n)
+function metadataValueSerializers.int(n)
   return tostring(round(n))
 end
-local function formatBool(b)
+function metadataValueSerializers.bool(b)
   return b and 'TRUE' or 'FALSE'
 end
-local function formatDifficulty(d)
+function metadataValueSerializers.difficulty(d)
   if d == M.XDRVDifficulty.Beginner  then return 'BEGINNER'  end
   if d == M.XDRVDifficulty.Normal    then return 'NORMAL'    end
   if d == M.XDRVDifficulty.Hyper     then return 'HYPER'     end
@@ -165,7 +203,92 @@ local function formatDifficulty(d)
   if d == M.XDRVDifficulty.Overdrive then return 'OVERDRIVE' end
   return 'BEGINNER'
 end
-M.formatDifficulty = formatDifficulty
+M.formatDifficulty = metadataValueSerializers.difficulty
+
+---@param t XDRVMetadata
+---@return ({[1]: string, [2]: string})[]
+local function serializeMetadataValues(t)
+  local data = {}
+  local seenTags = {}
+  local populatedTags = {}
+
+  for _, tag in ipairs(metadataTags) do
+    local what = tag[3]
+    local v
+    if t[tag[2]] then
+      v = metadataValueSerializers[what](t[tag[2]])
+    else
+      -- for unset values, do a parse->serialize round trip to fill in a
+      -- default value
+      -- TODO: hacky? but like it works..?????
+      v = metadataValueSerializers[what](metadataValueParsers[what](nil))
+    end
+
+    local excluded = false
+
+    if tag.eitherOr then
+      if populatedTags[tag.eitherOr] then
+        -- it's resolved, move on
+        excluded = true
+      elseif seenTags[tag.eitherOr] then
+        -- resolved, but in our favor, hey!
+        excluded = false
+      else
+        -- one of us two needs to die
+        -- this is a STUPID way to resolve this; we see if the current value
+        -- is empty and exclude ourselves if so
+        excluded = v == ''
+      end
+    end
+
+    if not excluded then
+      table.insert(data, { tag[1], v })
+      populatedTags[tag[1]] = true
+    end
+    seenTags[tag[1]] = true
+  end
+
+  for tag, value in ipairs(t._discardedTags) do
+    table.insert(data, tag, value)
+  end
+
+  return data
+end
+
+---@param t table<string, string>
+---@return XDRVMetadata
+local function parseMetadataValues(t)
+  local metadata = {}
+  metadata._discardedTags = {}
+  local populatedTags = {}
+
+  for key, value in pairs(t) do
+    local foundMatch = false
+    for _, tag in ipairs(metadataTags) do
+      local what = tag[3]
+      if tag[1] == key and not populatedTags[tag.eitherOr] then
+        print(tag[2], what, metadataValueParsers[what](value))
+        metadata[tag[2]] = metadataValueParsers[what](value)
+        foundMatch = true
+        populatedTags[tag[2]] = true
+        break
+      end
+    end
+    if not foundMatch then
+      -- unrecognized, drop it in the misc pile
+      metadata._discardedTags[key] = value
+    end
+  end
+  for _, tag in ipairs(metadataTags) do
+    if not metadata[tag[2]] and not populatedTags[tag.eitherOr] then
+      local what = tag[3]
+      metadata[tag[2]] = metadataValueParsers[what](nil)
+    end
+  end
+
+  return metadata
+end
+
 function M.formatDifficultyShort(d)
   if d == M.XDRVDifficulty.Beginner  then return 'BG' end
   if d == M.XDRVDifficulty.Normal    then return 'NM' end
@@ -600,38 +723,7 @@ end
 
 ---@param m XDRVMetadata
 local function serializeMetadata(m)
-  local data = {}
-  table.insert(data, {'MUSIC_TITLE', formatString(m.musicTitle)})
-  table.insert(data, {'ALTERNATE_TITLE', formatString(m.alternateTitle)})
-  table.insert(data, {'SUBTITLE', formatString(m.subtitle)})
-  table.insert(data, {'MUSIC_CREDIT', formatString(m.musicCredit)})
-  table.insert(data, {'MUSIC_ARTIST', formatString(m.musicArtist)})
-  table.insert(data, {'MUSIC_AUDIO', formatString(m.musicAudio)})
-  table.insert(data, {'JACKET_IMAGE', formatString(m.jacketImage)})
-  table.insert(data, {'JACKET_ILLUSTRATOR', formatString(m.jacketIllustrator)})
-  if #m.chartAuthors > 0 then
-    table.insert(data, {'CHART_AUTHORS', formatStringArray(m.chartAuthors)})
-  else
-    table.insert(data, {'CHART_AUTHOR', formatString(m.chartAuthor)})
-  end
-  table.insert(data, {'CHART_UNLOCK', formatString(m.chartUnlock)})
-  table.insert(data, {'STAGE_BACKGROUND', formatString(m.stageBackground)})
-  table.insert(data, {'MODFILE_PATH', formatString(m.modfilePath)})
-  table.insert(data, {'CHART_LEVEL', formatInt(m.chartLevel)})
-  table.insert(data, {'CHART_DISPLAY_BPM', formatInt(m.chartDisplayBPM)})
-  table.insert(data, {'CHART_BOSS', formatBool(m.chartBoss)})
-  table.insert(data, {'DISABLE_LEADERBOARD_UPLOADING', formatBool(m.disableLeaderboardUploading)})
-  table.insert(data, {'RPC_HIDDEN', formatBool(m.rpcHidden)})
-  table.insert(data, {'FLASH_TRACK', formatBool(m.isFlashTrack)})
-  table.insert(data, {'KEYBOARD_ONLY', formatBool(m.isKeyboardOnly)})
-  table.insert(data, {'ORIGINAL', formatBool(m.isOriginal)})
-  table.insert(data, {'MUSIC_PREVIEW_START', formatFloat(m.musicPreviewStart)})
-  table.insert(data, {'MUSIC_PREVIEW_LENGTH', formatFloat(m.musicPreviewLength)})
-  table.insert(data, {'MUSIC_VOLUME', formatFloat(m.musicVolume)})
-  table.insert(data, {'MUSIC_OFFSET', formatFloat(m.musicOffset)})
-  table.insert(data, {'CHART_BPM', formatFloat(m.chartBPM)})
-  table.insert(data, {'CHART_TAGS', '0,0,0,0'}) -- TODO
-  table.insert(data, {'CHART_DIFFICULTY', formatDifficulty(m.chartDifficulty)})
+  local data = serializeMetadataValues(m)
 
   local lines = {}
   for _, pair in pairs(data) do
@@ -714,36 +806,7 @@ end
 ---@param m table<string, string>
 ---@return XDRVMetadata
 local function makeMetadata(m)
-  return {
-    musicTitle = parseString(m.MUSIC_TITLE),
-    alternateTitle = parseString(m.ALTERNATE_TITLE),
-    subtitle = parseString(m.SUBTITLE),
-    musicCredit = parseString(m.MUSIC_CREDIT),
-    musicArtist = parseString(m.MUSIC_ARTIST),
-    musicAudio = parseString(m.MUSIC_AUDIO),
-    jacketImage = parseString(m.JACKET_IMAGE),
-    jacketIllustrator = parseString(m.JACKET_ILLUSTRATOR),
-    chartAuthor = parseString(m.CHART_AUTHOR),
-    chartAuthors = parseStringArray(m.CHART_AUTHORS),
-    chartUnlock = parseString(m.CHART_UNLOCK),
-    stageBackground = parseString(m.STAGE_BACKGROUND),
-    modfilePath = parseString(m.MODFILE_PATH),
-    chartLevel = parseInt(m.CHART_LEVEL),
-    chartDisplayBPM = parseInt(m.CHART_DISPLAY_BPM),
-    chartBoss = parseBool(m.CHART_BOSS),
-    disableLeaderboardUploading = parseBool(m.DISABLE_LEADERBOARD_UPLOADING),
-    rpcHidden = parseBool(m.RPC_HIDDEN),
-    isFlashTrack = parseBool(m.FLASH_TRACK),
-    isKeyboardOnly = parseBool(m.KEYBOARD_ONLY),
-    isOriginal = parseBool(m.ORIGINAL),
-    musicPreviewStart = parseFloat(m.MUSIC_PREVIEW_START),
-    musicPreviewLength = parseFloat(m.MUSIC_PREVIEW_LENGTH),
-    musicVolume = parseFloat(m.MUSIC_VOLUME),
-    musicOffset = parseFloat(m.MUSIC_OFFSET),
-    chartBPM = parseFloat(m.CHART_BPM),
-    chartTags = { 0, 0, 0, 0 }, -- TODO
-    chartDifficulty = parseDifficulty(m.CHART_DIFFICULTY),
-  }
+  return parseMetadataValues(m)
 end
 
 local function deserializeMetadata(str)

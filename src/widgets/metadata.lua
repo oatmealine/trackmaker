@@ -66,7 +66,7 @@ function MetadataWidget:getContainer()
   local metadata = chart.metadata or {}
 
   local charterField = {}
-  if #chart.metadata.chartAuthors > 0 then
+  if #metadata.chartAuthors > 0 then
     charterField =
       { Label(0, 0, 'Charters'), { Textfield(0, 0, 100, table.concat(metadata.chartAuthors, ', '), function(value)
         chart.metadata.chartAuthors = splitStr(value)
