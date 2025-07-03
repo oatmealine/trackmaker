@@ -40,8 +40,8 @@ local DEFAULT_METADATA = {
   musicVolume = 1,
   musicOffset = 0,
   chartBPM = 120,
-  chartTags = { 0, 0, 0, 0 },
   chartDifficulty = xdrv.XDRVDifficulty.Beginner,
+  _discardedTags = {},
 }
 
 self.loaded = false
