@@ -30,7 +30,7 @@ mkdir -p releases/trackmaker-win64
 unzip releases/trackmaker-win64.zip -d releases/
 rm releases/trackmaker-win64.zip
 
-cp $nfd_windows releases/trackmaker-win64/
+cp "$nfd_windows" releases/trackmaker-win64/nfd.dll
 cp LICENSE.txt releases/trackmaker-win64/license.txt
 cp platform/universal/love-license.txt releases/trackmaker-win64/love-license.txt
 
@@ -46,7 +46,7 @@ rm -f releases/trackmaker-macos-*.zip
 unzip releases/trackmaker-macos.zip -d releases/
 rm releases/trackmaker-macos.zip
 
-cp $nfd_mac releases/trackmaker.app/Contents/Resources/
+cp "$nfd_mac" releases/trackmaker.app/Contents/Resources/nfd.so
 cp platform/universal/love-license.txt releases/trackmaker.app/Contents/Resources/
 cp LICENSE.txt releases/trackmaker.app/Contents/Resources/
 
@@ -61,7 +61,7 @@ rm -f releases/trackmaker-linux-*.zip
 
 mkdir -p releases/trackmaker-linux
 
-cp "$nfd_linux" releases/trackmaker-linux/
+cp "$nfd_linux" releases/trackmaker-linux/nfd.so
 cp releases/trackmaker.love releases/trackmaker-linux/
 cp platform/linux/start.sh releases/trackmaker-linux/
 cp LICENSE.txt releases/trackmaker-linux/license.txt
