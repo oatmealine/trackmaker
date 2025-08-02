@@ -41,9 +41,9 @@ local self = {}
 -- constants / enums
 local NSCriticalRequest = NSInteger(0)
 
-local NSEventModifierFlagShift = NSInteger(bit.lshift(1, 17))
-local NSEventModifierFlagOption = NSInteger(bit.lshift(1, 19))
-local NSEventModifierFlagCommand = NSInteger(bit.lshift(1, 20))
+local NSEventModifierFlagShift = bit.lshift(1, 17)
+local NSEventModifierFlagOption = bit.lshift(1, 19)
+local NSEventModifierFlagCommand = bit.lshift(1, 20)
 
 local NSControlStateValueOff = NSInteger(0)
 local NSControlStateValueOn = NSInteger(1)
