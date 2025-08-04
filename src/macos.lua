@@ -188,8 +188,8 @@ local function contextToNSMenuItem(item)
 
       local label = objc.NSTextField:labelWithString(NSString(item[1]))
       label:setTranslatesAutoresizingMaskIntoConstraints(NO)
-      label:widthAnchor():constraintEqualToConstant(150).active = YES
-      label:heightAnchor():constraintEqualToConstant(15).active = YES-- Set font to system font, size 11 (or whatever you like)
+      label.widthAnchor:constraintEqualToConstant(150).isActive = YES
+      label.heightAnchor:constraintEqualToConstant(15).isActive = YES
       label.font = objc.NSFont:systemFontOfSize(12)
       label.textColor = objc.NSColor:grayColor()
       view:addArrangedSubview(label)
