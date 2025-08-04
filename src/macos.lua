@@ -188,12 +188,13 @@ local function contextToNSMenuItem(item)
 
       local label = objc.NSTextField:labelWithString(NSString(item[1]))
       label:setTranslatesAutoresizingMaskIntoConstraints(NO)
+      -- awful higher ver macos fix
       if type(label.widthAnchor) == 'function' then
 		label:widthAnchor():constraintEqualToConstant(150).active = YES
       	label:heightAnchor():constraintEqualToConstant(15).active = YES
       else
-      	label.widthAnchor:constraintEqualToConstant(150).isActive = YES
-      	label.heightAnchor:constraintEqualToConstant(15).isActive = YES
+      	label.widthAnchor:constraintEqualToConstant(150).active = YES
+      	label.heightAnchor:constraintEqualToConstant(15).active = YES
       end
       label.font = objc.NSFont:systemFontOfSize(12)
       label.textColor = objc.NSColor:grayColor()
