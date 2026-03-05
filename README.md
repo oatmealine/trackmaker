@@ -12,19 +12,20 @@ Download a [release](https://github.com/oatmealine/trackmaker/releases), and
 follow the instructions:
 
 - **Windows**: Download and extract `trackmaker-win64-${ver}.zip`, then run
-`trackmaker.exe`.
+  `trackmaker.exe`.
 - **macOS**: Download and extract `trackmaker-mac-${ver}.zip`. Either drag into
-    your Applications folder or run as usual.
+  your Applications folder or run as usual.
 
-    If you get an error along the lines of
-    "the developer cannot be verified", see: [Open a Mac app from an unknown
-    developer](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac)
+  If you get an error along the lines of
+  "the developer cannot be verified", see: [Open a Mac app from an unknown
+  developer](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac)
 
-    macOS builds should work on 10.11+. Apple Silicon remains untested as I do
-    not have a machine to test the builds on.
+  macOS builds should work on 10.11+. Apple Silicon remains untested as I do
+  not have a machine to test the builds on.
 - **Linux**: Download and extract `trackmaker-linux-${ver}.zip`, and install
-[LÖVE](https://love2d.org) from your distribution's package manager (`love2d` in
-most repos). Run `start.sh`.
+  [LÖVE](https://love2d.org) from your distribution's package manager (`love2d`
+  in most repos). Run `start.sh`. To add .xdrv file associations and have
+  trackmaker show up in your application launcher, run `install.sh`.
 
 ## Develop
 
@@ -80,13 +81,14 @@ nativefiledialog handling code is stolen from them. Thank you very much!
 
 And these people:
 
+- [Foodbot](https://foodbot.carrd.co) - the trackmaker logo
 - [tari](https://github.com/tari-cat), [riley](https://github.com/rilegoat), and
 the rest of the [EX-XDRiVER team](https://xdrv.team). Thank you!
 
 ## License
 
 trackmaker is licensed under the [zlib License](https://opensource.org/license/Zlib),
-Copyright © 2024-2025 Jill "oatmealine" Monoids.
+Copyright © 2024-2026 Jade "oatmealine" Monoids.
 
 Dependencies are subject to other licenses. More information is
 available in [LICENSE.txt](./LICENSE.txt) and [love-license.txt](./platform/universal/love-license.txt).

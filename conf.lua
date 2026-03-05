@@ -4,7 +4,7 @@ function love.conf(t)
   t.version = '11.3'
 
   t.window.title = 'trackmaker'
-  t.window.icon = nil
+  t.window.icon = 'assets/sprites/trackmaker-icon.png'
   t.window.width = 1120
   t.window.height = 800
   t.window.resizable = true

@@ -3,7 +3,7 @@ This project contains code, assets and binaries from the following projects
 
 - trackmaker
   License: zlib
-  Copyright © 2024-2025 Jill "oatmealine" Monoids
+  Copyright © 2024-2026 Jade "oatmealine" Monoids
 
 - LOVE
   License: zlib; see love-license.txt for dependency licenses
@@ -55,7 +55,7 @@ This project contains code, assets and binaries from the following projects
 
 - EX-XDRiVER
   License: All rights reserved, used with permission
-  Copyright © 2024-2025 Team XDRV
+  Copyright © 2024-2026 Team XDRV
 
 == License text ==
 

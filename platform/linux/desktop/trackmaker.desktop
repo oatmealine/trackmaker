@@ -1,0 +1,9 @@
+[Desktop Entry]
+Exec=start.sh %f
+Name=trackmaker
+Comment=A GUI chart editor for EX-XDRiVER
+Terminal=false
+MimeType=application/xdrv;
+Type=Application
+Icon=trackmaker.png
+StartupWMClass=trackmaker

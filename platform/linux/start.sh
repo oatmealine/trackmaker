@@ -7,4 +7,5 @@ then
   exit 1
 fi
 
-love trackmaker.love
+SDL_VIDEO_X11_WMCLASS="trackmaker" SDL_VIDEO_WAYLAND_WMCLASS="trackmaker" \
+love trackmaker.love "$@"
