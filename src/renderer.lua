@@ -25,7 +25,7 @@ local NOTE_HEIGHT = NOTE_WIDTH * (0.25 / 0.75)
 local GAP_WIDTH = (4 * BASE_SCALE - NOTE_WIDTH * 1.5)/2
 
 local CANVAS_PAD = 16 -- on each side
-local canvas3d = love.graphics.newCanvas(CANVAS_PAD * 2 + NOTE_WIDTH * 6 + GAP_WIDTH, love.graphics.getHeight() * 4)
+local canvas3d
 
 local function getPadBottom()
   if config.config.previewMode then
@@ -966,8 +966,8 @@ function self.drawCanvas(static)
     -- good question!
     local camPos = cpml.vec3(
        preview.getModValue('camera_position_x'),
-      -preview.getModValue('camera_position_z'),
-      -preview.getModValue('camera_position_y'))
+      -preview.getModValue('camera_position_z') + 1,
+      -preview.getModValue('camera_position_y') - 1)
     local originalRotation = cpml.vec3(math.rad(59), 0, 0)
     local camRot = cpml.vec3(
       math.rad(preview.getModValue('camera_rotation_x')),
