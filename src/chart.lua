@@ -12,38 +12,6 @@ local widgets        = require 'src.widgets'
 local exxdriver      = require 'src.exxdriver'
 local sort           = require 'lib.sort'
 
----@type XDRVMetadata
-local DEFAULT_METADATA = {
-  musicTitle = '',
-  subtitle = '',
-  alternateTitle = '',
-  musicArtist = '',
-  musicAudio = '',
-  musicCredit = '',
-  jacketImage = '',
-  jacketIllustrator = '',
-  chartAuthor = '',
-  chartAuthors = {},
-  chartUnlock = '',
-  stageBackground = 'default',
-  modfilePath = '',
-  chartLevel = -1,
-  chartDisplayBPM = 120,
-  chartBoss = false,
-  disableLeaderboardUploading = false,
-  rpcHidden = false,
-  isFlashTrack = false,
-  isKeyboardOnly = false,
-  isOriginal = false,
-  musicPreviewStart = 0,
-  musicPreviewLength = 0,
-  musicVolume = 1,
-  musicOffset = 0,
-  chartBPM = 120,
-  chartDifficulty = xdrv.XDRVDifficulty.Beginner,
-  _discardedTags = {},
-}
-
 self.loaded = false
 ---@type table<string, string>
 self.loadedScripts = {}
@@ -236,6 +204,10 @@ function self.tryLoadScript(filepath)
   return true
 end
 
+function self.newChart()
+  self.openData({}, '', true)
+end
+
 function self.openPath(filepath)
   local ext = string.match(filepath, '%.(.+)$')
 
@@ -254,7 +226,7 @@ function self.openPath(filepath)
     local name = basename(filepath)
     self.openData({
       chart = {},
-      metadata = merge(DEFAULT_METADATA, {
+      metadata = merge(xdrv.defaultMetadata, {
         musicAudio = name,
       }),
     }, filepath, true)
@@ -268,7 +240,7 @@ end
 ---@param filepath string?
 function self.openData(loaded, filepath, anonymous)
   self.chart = loaded.chart or {}
-  self.metadata = merge(DEFAULT_METADATA, loaded.metadata)
+  self.metadata = merge(xdrv.defaultMetadata, loaded.metadata or {})
   self.sort()
   if not anonymous then
     self.chartLocation = filepath
@@ -284,7 +256,7 @@ function self.openData(loaded, filepath, anonymous)
 
   events.onChartLoad()
 
-  logs.log('Loaded chart ' .. self.metadata.musicTitle or self.metadata.musicAudio or filepath .. ' ' .. self.diffMark())
+  logs.log('Loaded chart ' .. (self.metadata.musicTitle or self.metadata.musicAudio or filepath) .. ' ' .. self.diffMark())
   config.appendRecent(filepath)
   config.save()
 end
@@ -384,13 +356,13 @@ local styleMappings = {
 }
 
 function self.importSM(chart, filepath, notes, style)
-  self.metadata = merge(DEFAULT_METADATA, {
+  self.metadata = merge(xdrv.defaultMetadata, {
     musicTitle = chart.TITLE,
     alternateTitle = chart.TITLETRANSLIT,
     musicArtist = chart.ARTIST,
     musicAudio = chart.MUSIC,
     chartAuthor = chart.CREDIT,
-    chartDisplayBPM = chart.DISPLAYBPM or chart.BPMS[1][2],
+    chartDisplayBPM = chart.DISPLAYBPM,
     musicPreviewStart = chart.SAMPLESTART,
     musicPreviewLength = chart.SAMPLELENGTH,
     musicOffset = chart.OFFSET,

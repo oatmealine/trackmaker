@@ -34,6 +34,7 @@ end
 
 function M.loadSong(songPath)
   M.fileData = nil
+  if songPath == nil or songPath == '' then return end
   local file, err = io.open(songPath, 'rb')
   if file then
     local data = file:read('*a')
@@ -52,7 +53,7 @@ function M.loadSong(songPath)
     end
     file:close()
   else
-    logs.warn(err)
+    logs.warn('Error opening song: ' .. err)
   end
 end
 

@@ -18,6 +18,15 @@ local self = {}
 
 ---@type table<string, Keybind>
 self.binds = {
+  new = {
+    name = 'New',
+    ctrl = true,
+    viewOnly = true,
+    keys = { 'n' },
+    trigger = function()
+      chart.newChart()
+    end
+  },
   open = {
     name = 'Open',
     ctrl = true,

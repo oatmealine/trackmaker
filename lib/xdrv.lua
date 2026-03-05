@@ -104,7 +104,7 @@ M.STAGE_BACKGROUNDS = {
 -- until lua-lsp adds a keyof<> this is the best we're getting
 -- probably susceptible to missing a key either in the type def or in this table
 -- still better than the other solution of having to sync across 3 places!
----@type { [1]: string, [2]: string, [3]: XDRVMetadataValueType, eitherOr: string?}[]
+---@type { [1]: string, [2]: string, [3]: XDRVMetadataValueType, eitherOr: string?, default: any?}[]
 local metadataTags = {
   {'MUSIC_TITLE',                   'musicTitle',                  'string'     },
   {'ALTERNATE_TITLE',               'alternateTitle',              'string'     },
@@ -114,26 +114,46 @@ local metadataTags = {
   {'MUSIC_AUDIO',                   'musicAudio',                  'string'     },
   {'JACKET_IMAGE',                  'jacketImage',                 'string'     },
   {'JACKET_ILLUSTRATOR',            'jacketIllustrator',           'string'     },
-  {'CHART_AUTHOR',                  'chartAuthor',                 'string',      eitherOr = 'CHART_AUTHORS'},
+  {'CHART_AUTHOR',                  'chartAuthor',                 'string',      eitherOr = 'CHART_AUTHORS' },
   {'CHART_AUTHORS',                 'chartAuthors',                'stringArray', eitherOr = 'CHART_AUTHOR' },
   {'CHART_UNLOCK',                  'chartUnlock',                 'string'     },
-  {'STAGE_BACKGROUND',              'stageBackground',             'string'     },
+  {'STAGE_BACKGROUND',              'stageBackground',             'string',      default = 'default' },
   {'MODFILE_PATH',                  'modfilePath',                 'string'     },
-  {'CHART_LEVEL',                   'chartLevel',                  'int'        },
-  {'CHART_DISPLAY_BPM',             'chartDisplayBPM',             'int'        },
+  {'CHART_LEVEL',                   'chartLevel',                  'int',         default = 0 },
+  {'CHART_DISPLAY_BPM',             'chartDisplayBPM',             'int',       },
   {'CHART_BOSS',                    'chartBoss',                   'bool'       },
   {'DISABLE_LEADERBOARD_UPLOADING', 'disableLeaderboardUploading', 'bool'       },
   {'RPC_HIDDEN',                    'rpcHidden',                   'bool'       },
   {'FLASH_TRACK',                   'isFlashTrack',                'bool'       },
   {'KEYBOARD_ONLY',                 'isKeyboardOnly',              'bool'       },
   {'ORIGINAL',                      'isOriginal',                  'bool'       },
-  {'MUSIC_PREVIEW_START',           'musicPreviewStart',           'float'      },
-  {'MUSIC_PREVIEW_LENGTH',          'musicPreviewLength',          'float'      },
-  {'MUSIC_VOLUME',                  'musicVolume',                 'float'      },
-  {'MUSIC_OFFSET',                  'musicOffset',                 'float'      },
-  {'CHART_BPM',                     'chartBPM',                    'float'      },
-  {'CHART_DIFFICULTY',              'chartDifficulty',             'difficulty' },
+  {'MUSIC_PREVIEW_START',           'musicPreviewStart',           'float',     },
+  {'MUSIC_PREVIEW_LENGTH',          'musicPreviewLength',          'float',       default = 0 },
+  {'MUSIC_VOLUME',                  'musicVolume',                 'float',       default = 1 },
+  {'MUSIC_OFFSET',                  'musicOffset',                 'float',       default = 0 },
+  {'CHART_BPM',                     'chartBPM',                    'float',       default = 120 },
+  {'CHART_DIFFICULTY',              'chartDifficulty',             'difficulty',  default = M.XDRVDifficulty.Beginner },
 }
+
+---@type table<XDRVMetadataValueType, any>
+local defaultValues = {
+  string = '',
+  stringArray = {},
+  float = -1,
+  int = -1,
+  bool = false,
+  difficulty = M.XDRVDifficulty.Beginner,
+}
+
+M.defaultMetadata = {}
+M.defaultMetadata._discardedTags = {}
+for _, tag in ipairs(metadataTags) do
+  if tag.default then
+    M.defaultMetadata[tag[2]] = tag.default
+  else
+    M.defaultMetadata[tag[2]] = defaultValues[tag[3]]
+  end
+end
 
 local function trim(s)
   return string.match(s, '^%s*(.*%S)') or ''
@@ -215,16 +235,12 @@ local function serializeMetadataValues(t)
   for _, tag in ipairs(metadataTags) do
     local what = tag[3]
     local v
+    local excluded = false
     if t[tag[2]] then
       v = metadataValueSerializers[what](t[tag[2]])
     else
-      -- for unset values, do a parse->serialize round trip to fill in a
-      -- default value
-      -- TODO: hacky? but like it works..?????
-      v = metadataValueSerializers[what](metadataValueParsers[what](nil))
+      v = metadataValueSerializers[what](tag.default or defaultValues[what])
     end
-
-    local excluded = false
 
     if tag.eitherOr then
       if populatedTags[tag.eitherOr] then

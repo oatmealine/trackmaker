@@ -96,6 +96,10 @@ end
 ActionBarWidget.barItems = {
   { 'File',
     {
+      { 'New',          click = function()
+        chart.newChart()
+      end, bind = keybinds.binds.new },
+      {},
       { 'Open',         click = function()
         chart.openChart()
       end, bind = keybinds.binds.open },
