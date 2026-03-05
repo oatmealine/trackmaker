@@ -6,7 +6,11 @@
 	<string>19B88</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
-	<key>CFBundleDocumentTypes</key>
+  <!-- TODO: due to love2d interpreting any files it opens with as .love files,
+  presently, trying to open trackmaker with an .xdrv causes it to crash.
+  the file association works fine, but i'd rather remove this to prevent people
+  from attempting to open .xdrv files with trackmaker and getting the crash -->
+	<!--<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeExtensions</key>
@@ -28,7 +32,7 @@
 			<key>LSTypeIsPackage</key>
 			<integer>0</integer>
 		</dict>
-	</array>
+	</array>-->
 	<key>CFBundleExecutable</key>
 	<string>trackmaker</string>
 	<key>CFBundleIconFile</key>
@@ -86,11 +90,13 @@
       <array>
         <string>public.data</string>
         <string>public.content</string>
+        <string>public.plain-text</string>
       </array>
       <key>UTTypeDescription</key>
       <string>EX-XDRiVER Chart</string>
-      <key>UTTypeIconFile</key>
-      <string>OS X AppIcon</string>
+      <!-- TODO: this doesn't work? why? -->
+      <!--<key>UTTypeIconFile</key>
+      <string>OS X AppIcon</string>-->
       <key>UTTypeTagSpecification</key>
       <dict>
         <key>public.filename-extension</key>

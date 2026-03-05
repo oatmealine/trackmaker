@@ -58,6 +58,7 @@ cp platform/macos/Info.plist releases/trackmaker.app/Contents/
 plutil -replace CFBundleShortVersionString -string "$ver" releases/trackmaker.app/Contents/Info.plist
 cp "platform/macos/OS X AppIcon.icns" releases/trackmaker.app/Contents/Resources/
 rm releases/trackmaker.app/Contents/Resources/GameIcon.icns
+rm releases/trackmaker.app/Contents/Resources/Assets.car
 cp platform/macos/trackmaker releases/trackmaker.app/Contents/MacOS/
 
 cd releases/ || exit 1
