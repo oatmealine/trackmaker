@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # this script assumes you have nfd.dll and nfd.so in your root dir, as well as
-# love-release (https://github.com/MisterDA/love-release) and plutil installed
+# love-release (https://github.com/MisterDA/love-release) installed
 # mac also uses nfd.so, so it assumes you either also have nfd_mac.so or
 # nfd_linux.so
 
@@ -55,7 +55,7 @@ cp "$nfd_mac" releases/trackmaker.app/Contents/Resources/nfd.so
 cp platform/universal/love-license.txt releases/trackmaker.app/Contents/Resources/
 cp LICENSE.txt releases/trackmaker.app/Contents/Resources/license.txt
 cp platform/macos/Info.plist releases/trackmaker.app/Contents/
-plutil -replace CFBundleShortVersionString -string "$ver" releases/trackmaker.app/Contents/Info.plist
+sed -i "s~{VERSION}~$ver~" releases/trackmaker.app/Contents/Info.plist
 cp "platform/macos/OS X AppIcon.icns" releases/trackmaker.app/Contents/Resources/
 rm releases/trackmaker.app/Contents/Resources/GameIcon.icns
 rm releases/trackmaker.app/Contents/Resources/Assets.car
