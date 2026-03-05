@@ -36,7 +36,7 @@ function love.conf(t)
     title = 'trackmaker',
     package = 'trackmaker',
     loveVersion = '11.3',
-    version = '0.7.4',
+    version = '0.8.0',
     author = 'oatmealine',
     email = 'me@oat.zone',
     description = nil,
