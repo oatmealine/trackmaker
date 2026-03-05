@@ -418,7 +418,7 @@ local QUANT_COLORS = {
   hex('5671e8'),
   hex('ad66d4'),
   hex('f5db41'),
-  nil,
+  --nil,
   hex('f486ae'),
   hex('f19848'),
   hex('92f1ea'),
