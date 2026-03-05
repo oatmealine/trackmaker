@@ -16,7 +16,7 @@ local colors    = require 'src.colors'
 local MetadataWidget = UIWidget:extend()
 
 local WIDTH = 300
-local HEIGHT = 630
+local HEIGHT = 660
 
 ---@class JacketPreview : Node
 local JacketPreview = Node:extend()
@@ -79,6 +79,20 @@ function MetadataWidget:getContainer()
         chart.markDirty()
       end) } }
   end
+  local modAuthorField = {}
+  if #metadata.modAuthors > 0 then
+    modAuthorField =
+      { Label(0, 0, 'Mod Authors'), { Textfield(0, 0, 100, table.concat(metadata.modAuthors, ', '), function(value)
+        chart.metadata.modAuthors = splitStr(value)
+        chart.markDirty()
+      end), } }
+  else
+    modAuthorField =
+      { Label(0, 0, 'Mod Author'), { Textfield(0, 0, 100, metadata.modAuthor or '', function(value)
+        chart.metadata.modAuthor = value
+        chart.markDirty()
+      end) } }
+  end
 
   local elems = Container.placeFormLike({
     { Label(0, 0, 'Title'),   { Textfield(0, 0, 100, metadata.musicTitle or '',  function(value)
@@ -93,7 +107,7 @@ function MetadataWidget:getContainer()
       chart.metadata.musicArtist = value
       chart.markDirty()
     end), } },
-    charterField,
+    charterField, modAuthorField,
     { Label(0, 0, 'Music'),   { Textfield(0, 0, 100, metadata.musicAudio or '', function(value)
       chart.metadata.musicAudio = value
       if chart.chartDir then

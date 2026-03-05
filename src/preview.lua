@@ -507,6 +507,17 @@ function fauxXDRV.GetPlayerScrollSpeed()
 end
 fauxXDRV.get_player_scroll_speed = fauxXDRV.GetPlayerScrollSpeed
 
+function fauxXDRV.GetChartDifficulty()
+  return chart.metadata.chartDifficulty
+end
+fauxXDRV.get_chart_difficulty = fauxXDRV.GetChartDifficulty
+
+function fauxXDRV.GetPlayerRefreshRate()
+  local _, _, flags = love.window.getMode()
+  return flags.refreshrate
+end
+fauxXDRV.get_player_refresh_rate = fauxXDRV.GetPlayerRefreshRate
+
 function fauxXDRV.Set(...)
   if type(arg[1]) == 'number' or type(arg[1]) == 'table' then
     local note, modName, value, beatOrTime, timingValue = ...
@@ -622,6 +633,9 @@ fauxXDRV.GetNoteDataOfTypeInDisplayBeatRange = function() return {} end
 fauxXDRV.get_note_data_of_type_in_display_beat_range = fauxXDRV.GetNoteDataOfTypeInDisplayBeatRange
 fauxXDRV.GetNoteDataOfTypeInBeatRange = function() return {} end
 fauxXDRV.get_note_data_of_type_in_beat_range = fauxXDRV.GetNoteDataOfTypeInBeatRange
+
+fauxXDRV.AddHiddenMeasureLineRegion = function() end
+fauxXDRV.add_hidden_measure_line_region = function() end
 
 -- metatable funcs get applied when passing into script
 

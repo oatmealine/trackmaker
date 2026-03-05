@@ -65,38 +65,44 @@ M.STAGE_BACKGROUNDS = {
   'BackgroundTunnel',
   'BackgroundCity',
   'BackgroundIgnia',
-  'BackgroundVivid'
+  'BackgroundVivid',
+  'BackgroundDesert',
 }
 
 ---@class XDRVMetadata @ https://github.com/tari-cat/XDRV/blob/main/Assets/Scripts/XDRVEditorScripts/XDRV.cs#L631
 ---@field musicTitle string @ MUSIC_TITLE
 ---@field alternateTitle string @ ALTERNATE_TITLE
 ---@field subtitle string @ SUBTITLE
----@field musicCredit string @ MUSIC_CREDIT
 ---@field musicArtist string @ MUSIC_ARTIST
+---@field musicCredit string @ MUSIC_CREDIT
+---@field musicCreditColor string @ MUSIC_CREDIT_COLOR
 ---@field musicAudio string @ MUSIC_AUDIO
----@field jacketImage string @ JACKET_IMAGE
----@field jacketIllustrator string @ JACKET_ILLUSTRATOR
----@field chartAuthor string @ CHART_AUTHOR
----@field chartAuthors string[] @ CHART_AUTHORS
----@field chartUnlock string @ CHART_UNLOCK
----@field stageBackground string @ STAGE_BACKGROUND
----@field modfilePath string @ MODFILE_PATH
----@field chartLevel number @ CHART_LEVEL
----@field chartDisplayBPM number @ CHART_DISPLAY_BPM
----@field chartBoss boolean @ CHART_BOSS
----@field disableLeaderboardUploading boolean @ DISABLE_LEADERBOARD_UPLOADING
----@field rpcHidden boolean @ RPC_HIDDEN
----@field isFlashTrack boolean @ FLASH_TRACK
----@field isKeyboardOnly boolean @ KEYBOARD_ONLY
----@field isOriginal boolean @ ORIGINAL
+---@field disableMusicPreview boolean @ DISABLE_MUSIC_PREVIEW
 ---@field musicPreviewStart number @ MUSIC_PREVIEW_START
 ---@field musicPreviewLength number @ MUSIC_PREVIEW_LENGTH
 ---@field musicVolume number @ MUSIC_VOLUME
 ---@field musicOffset number @ MUSIC_OFFSET
----@field chartBPM number @ CHART_BPM
+---@field jacketImage string @ JACKET_IMAGE
+---@field jacketHeight number @ JACKET_HEIGHT [undocumented, prolly by mistake]
+---@field jacketIllustrator string @ JACKET_ILLUSTRATOR
+---@field chartAuthor string @ CHART_AUTHOR
+---@field chartAuthors string[] @ CHART_AUTHORS
+---@field modAuthor string @ MOD_AUTHOR
+---@field modAuthors string[] @ MOD_AUTHORS
 -----@field chartTags { [1]: number, [2]: number, [3]: number, [4]: number } @ CHART_TAGS -- moved to _discardedTags
+---@field chartBoss boolean @ CHART_BOSS
 ---@field chartDifficulty XDRVDifficulty @ CHART_DIFFICULTY
+---@field chartLevel number @ CHART_LEVEL
+---@field chartUnlock string @ CHART_UNLOCK
+---@field chartDisplayBPM number @ CHART_DISPLAY_BPM
+---@field chartBPM number @ CHART_BPM
+---@field isFlashTrack boolean @ FLASH_TRACK
+---@field isKeyboardOnly boolean @ KEYBOARD_ONLY
+---@field isOriginal boolean @ ORIGINAL
+---@field modfilePath string @ MODFILE_PATH
+---@field rpcHidden boolean @ RPC_HIDDEN
+---@field disableLeaderboardUploading boolean @ DISABLE_LEADERBOARD_UPLOADING
+---@field stageBackground string @ STAGE_BACKGROUND
 ---@field _discardedTags table<string, string> @ for unrecognized or invalid tags
 
 ---@alias XDRVMetadataValueType 'string' | 'stringArray' | 'float' | 'int' | 'bool' | 'difficulty'
@@ -109,30 +115,35 @@ local metadataTags = {
   {'MUSIC_TITLE',                   'musicTitle',                  'string'     },
   {'ALTERNATE_TITLE',               'alternateTitle',              'string'     },
   {'SUBTITLE',                      'subtitle',                    'string'     },
-  {'MUSIC_CREDIT',                  'musicCredit',                 'string'     },
   {'MUSIC_ARTIST',                  'musicArtist',                 'string'     },
+  {'MUSIC_CREDIT',                  'musicCredit',                 'string'     },
+  {'MUSIC_CREDIT_COLOR',            'musicCreditColor',            'string'     },
   {'MUSIC_AUDIO',                   'musicAudio',                  'string'     },
-  {'JACKET_IMAGE',                  'jacketImage',                 'string'     },
-  {'JACKET_ILLUSTRATOR',            'jacketIllustrator',           'string'     },
-  {'CHART_AUTHOR',                  'chartAuthor',                 'string',      eitherOr = 'CHART_AUTHORS' },
-  {'CHART_AUTHORS',                 'chartAuthors',                'stringArray', eitherOr = 'CHART_AUTHOR' },
-  {'CHART_UNLOCK',                  'chartUnlock',                 'string'     },
-  {'STAGE_BACKGROUND',              'stageBackground',             'string',      default = 'default' },
-  {'MODFILE_PATH',                  'modfilePath',                 'string'     },
-  {'CHART_LEVEL',                   'chartLevel',                  'int',         default = 0 },
-  {'CHART_DISPLAY_BPM',             'chartDisplayBPM',             'int',       },
-  {'CHART_BOSS',                    'chartBoss',                   'bool'       },
-  {'DISABLE_LEADERBOARD_UPLOADING', 'disableLeaderboardUploading', 'bool'       },
-  {'RPC_HIDDEN',                    'rpcHidden',                   'bool'       },
-  {'FLASH_TRACK',                   'isFlashTrack',                'bool'       },
-  {'KEYBOARD_ONLY',                 'isKeyboardOnly',              'bool'       },
-  {'ORIGINAL',                      'isOriginal',                  'bool'       },
+  {'DISABLE_MUSIC_PREVIEW',         'disableMusicPreview',         'bool'       },
   {'MUSIC_PREVIEW_START',           'musicPreviewStart',           'float',     },
   {'MUSIC_PREVIEW_LENGTH',          'musicPreviewLength',          'float',       default = 0 },
   {'MUSIC_VOLUME',                  'musicVolume',                 'float',       default = 1 },
   {'MUSIC_OFFSET',                  'musicOffset',                 'float',       default = 0 },
-  {'CHART_BPM',                     'chartBPM',                    'float',       default = 120 },
+  {'JACKET_IMAGE',                  'jacketImage',                 'string'     },
+  {'JACKET_HEIGHT',                 'jacketHeight',                'float',       default = 0.345 },
+  {'JACKET_ILLUSTRATOR',            'jacketIllustrator',           'string'     },
+  {'CHART_AUTHOR',                  'chartAuthor',                 'string',      eitherOr = 'CHART_AUTHORS' },
+  {'CHART_AUTHORS',                 'chartAuthors',                'stringArray', eitherOr = 'CHART_AUTHOR' },
+  {'MOD_AUTHOR',                    'modAuthor',                 'string',      eitherOr = 'MOD_AUTHORS' },
+  {'MOD_AUTHORS',                   'modAuthors',                'stringArray', eitherOr = 'MOD_AUTHOR' },
+  {'CHART_BOSS',                    'chartBoss',                   'bool'       },
   {'CHART_DIFFICULTY',              'chartDifficulty',             'difficulty',  default = M.XDRVDifficulty.Beginner },
+  {'CHART_LEVEL',                   'chartLevel',                  'int',         default = 0 },
+  {'CHART_UNLOCK',                  'chartUnlock',                 'string'     },
+  {'CHART_DISPLAY_BPM',             'chartDisplayBPM',             'int',       },
+  {'CHART_BPM',                     'chartBPM',                    'float',       default = 120 },
+  {'FLASH_TRACK',                   'isFlashTrack',                'bool'       },
+  {'KEYBOARD_ONLY',                 'isKeyboardOnly',              'bool'       },
+  {'ORIGINAL',                      'isOriginal',                  'bool'       },
+  {'MODFILE_PATH',                  'modfilePath',                 'string'     },
+  {'RPC_HIDDEN',                    'rpcHidden',                   'bool'       },
+  {'DISABLE_LEADERBOARD_UPLOADING', 'disableLeaderboardUploading', 'bool'       },
+  {'STAGE_BACKGROUND',              'stageBackground',             'string',      default = 'default' },
 }
 
 ---@type table<XDRVMetadataValueType, any>

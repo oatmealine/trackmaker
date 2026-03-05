@@ -12,8 +12,8 @@ local logs      = require 'src.logs'
 ---@class ChartSettingsWidget : UIWidget
 local ChartSettingsWidget = UIWidget:extend()
 
-local WIDTH = 220
-local HEIGHT = 220
+local WIDTH = 310
+local HEIGHT = 250
 
 function ChartSettingsWidget:new(x, y)
   ChartSettingsWidget.super.new(self, x, y, self:getContainer())
@@ -56,6 +56,10 @@ function ChartSettingsWidget:getContainer()
       chart.metadata.isFlashTrack = value
       chart.markDirty()
     end, metadata.isFlashTrack ) } },
+    { Label(0, 0, 'Disable Music Preview'),          { Checkmark(0, 0, function(_, value)
+      chart.metadata.disableMusicPreview = value
+      chart.markDirty()
+    end, metadata.disableMusicPreview ) } },
     {
       Label(0, 0, 'Stage Background'),
       {
