@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# borrowed from olympus's olympus.sh
+realpath() {
+  [ "." = "${1}" ] && n=${PWD} || n=${1}; while nn=$( readlink -n "$n" ); do n=$nn; done; echo "$n"
+}
+
+cd "$(dirname "$(realpath "$0")")" || exit 1
+
+# love2d on mac will scan the Resources folder for .love files, and prepend
+# that to the launch arguments, so we only need to pass in the launch arguments,
+# somehow
+./love "$@"

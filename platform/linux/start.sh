@@ -1,5 +1,11 @@
 #!/bin/sh
-cd $(dirname "$0")
+
+# borrowed from olympus's olympus.sh
+realpath() {
+  [ "." = "${1}" ] && n=${PWD} || n=${1}; while nn=$( readlink -n "$n" ); do n=$nn; done; echo "$n"
+}
+
+cd "$(dirname "$(realpath "$0")")" || exit 1
 
 if ! [ -x "$(command -v love)" ];
 then
