@@ -309,7 +309,7 @@ local function parseMetadataValues(t)
   for _, tag in ipairs(metadataTags) do
     if not metadata[tag[2]] and not populatedTags[tag.eitherOr] then
       local what = tag[3]
-      metadata[tag[2]] = metadataValueParsers[what](nil)
+      metadata[tag[2]] = tag.default or defaultValues[what]
     end
   end
 
